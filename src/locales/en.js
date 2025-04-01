@@ -1,0 +1,81 @@
+export default {
+    app: {
+      title: 'CodeRush OJ',
+      welcome: 'Welcome to CodeRush Online Judge'
+    },
+    routes: {
+      home: 'Home',
+      dashboard: 'Dashboard',
+      problems: 'Problems',
+      contests: 'Contests',
+      ranking: 'Ranking',
+      profile: 'Profile',
+      settings: 'Settings',
+      admin: 'Admin'
+    },
+    auth: {
+      login: 'Log In',
+      register: 'Register',
+      logout: 'Log Out',
+      account_label: 'Username or Email',
+      username: 'Username',
+      email: 'Email',
+      password: 'Password',
+      remember: 'Remember me',
+      forgot_password: 'Forgot password?',
+      confirm_password: 'Confirm Password',
+      verification_code: 'Verification Code',
+      already_registered: 'Already have an account?',
+      no_account: 'Don\'t have an account?',
+      register_success: 'Registration successful! Please sign in with your credentials.',
+      welcome_back: 'Welcome back!',
+      create_account: 'Create your account',
+      sign_in: 'Sign In',
+      sign_up: 'Sign Up',
+      signing_in: 'Signing in...',
+      registering: 'Registering...'
+    },
+    validation: {
+      username_required: 'Username is required',
+      username_length: 'Username must be between 3 and 20 characters',
+      username_format: 'Username can only contain letters, numbers, underscores and hyphens',
+      username_exists: 'This username is already taken',
+      email_required: 'Email is required',
+      email_format: 'Please enter a valid email address',
+      email_exists: 'This email is already registered',
+      password_required: 'Password is required',
+      password_length: 'Password must be between 6 and 20 characters',
+      passwords_not_match: 'Passwords do not match',
+      confirm_password_required: 'Please confirm your password',
+      captcha_required: 'Verification code is required'
+    },
+    errors: {
+      login_failed: 'Login failed. Please check your credentials.',
+      register_failed: 'Registration failed. Please try again.',
+      unknown_error: 'An unknown error occurred',
+      network_error: 'Network error. Please try again later.',
+      unauthorized: 'You are not authorized to access this resource'
+    },
+    common: {
+      loading: 'Loading...',
+      success: 'Success',
+      error: 'Error',
+      warning: 'Warning',
+      info: 'Information',
+      confirm: 'Confirm',
+      cancel: 'Cancel',
+      save: 'Save',
+      edit: 'Edit',
+      delete: 'Delete',
+      search: 'Search',
+      filter: 'Filter',
+      reset: 'Reset',
+      submit: 'Submit',
+      actions: 'Actions',
+      more: 'More',
+      back: 'Back',
+      next: 'Next',
+      previous: 'Previous',
+      language: 'Language'
+    }
+  }

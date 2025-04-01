@@ -1,0 +1,109 @@
+// Auth components styling
+
+// Auth container
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-color);
+  position: relative;
+  padding: 20px;
+}
+
+// Language selector in auth pages
+.lang-selector {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+}
+
+// Auth content wrapper
+.auth-content {
+  width: 100%;
+  max-width: 420px;
+}
+
+// Auth card
+.auth-card {
+  background: var(--bg-color-secondary);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  padding: 30px;
+  overflow: hidden;
+}
+
+// Logo section
+.auth-logo {
+  text-align: center;
+  margin-bottom: 30px;
+
+  h1 {
+    color: var(--el-color-primary);
+    font-size: 24px;
+    margin: 0;
+  }
+}
+
+// Auth form
+.auth-form {
+  margin-top: 20px;
+}
+
+// Form title
+.form-title {
+  font-size: 24px;
+  color: var(--text-color);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+// Options row (remember me, forgot password)
+.options-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+// Submit button
+.submit-button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+// Link to register/login
+.register-link,
+.login-link {
+  text-align: center;
+  margin-top: 20px;
+}
+
+// Captcha container
+.captcha-container {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.captcha-input {
+  flex: 1;
+}
+
+.captcha-image {
+  width: 120px;
+  display: flex;
+  align-items: center;
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 20px;
+  }
+
+  .form-title {
+    font-size: 20px;
+  }
+}

@@ -1,0 +1,81 @@
+export default {
+    app: {
+      title: 'CodeRush 在线评测系统',
+      welcome: '欢迎使用 CodeRush 在线评测系统'
+    },
+    routes: {
+      home: '首页',
+      dashboard: '控制台',
+      problems: '题库',
+      contests: '竞赛',
+      ranking: '排名',
+      profile: '个人中心',
+      settings: '设置',
+      admin: '管理员'
+    },
+    auth: {
+      login: '登录',
+      register: '注册',
+      logout: '退出登录',
+      account_label: '用户名或邮箱',
+      username: '用户名',
+      email: '邮箱',
+      password: '密码',
+      remember: '记住我',
+      forgot_password: '忘记密码？',
+      confirm_password: '确认密码',
+      verification_code: '验证码',
+      already_registered: '已有账号？',
+      no_account: '没有账号？',
+      register_success: '注册成功！请使用您的凭据登录。',
+      welcome_back: '欢迎回来！',
+      create_account: '创建您的账号',
+      sign_in: '登录',
+      sign_up: '注册',
+      signing_in: '登录中...',
+      registering: '注册中...'
+    },
+    validation: {
+      username_required: '用户名不能为空',
+      username_length: '用户名长度必须在3-20之间',
+      username_format: '用户名只能包含字母、数字、下划线和连字符',
+      username_exists: '该用户名已被占用',
+      email_required: '邮箱不能为空',
+      email_format: '请输入有效的邮箱地址',
+      email_exists: '该邮箱已被注册',
+      password_required: '密码不能为空',
+      password_length: '密码长度必须在6-20之间',
+      passwords_not_match: '两次密码不一致',
+      confirm_password_required: '请确认您的密码',
+      captcha_required: '验证码不能为空'
+    },
+    errors: {
+      login_failed: '登录失败，请检查您的凭据。',
+      register_failed: '注册失败，请重试。',
+      unknown_error: '发生未知错误',
+      network_error: '网络错误，请稍后重试。',
+      unauthorized: '您无权访问此资源'
+    },
+    common: {
+      loading: '加载中...',
+      success: '成功',
+      error: '错误',
+      warning: '警告',
+      info: '信息',
+      confirm: '确认',
+      cancel: '取消',
+      save: '保存',
+      edit: '编辑',
+      delete: '删除',
+      search: '搜索',
+      filter: '筛选',
+      reset: '重置',
+      submit: '提交',
+      actions: '操作',
+      more: '更多',
+      back: '返回',
+      next: '下一步',
+      previous: '上一步',
+      language: '语言'
+    }
+  }

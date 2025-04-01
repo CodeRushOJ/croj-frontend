@@ -1,0 +1,220 @@
+// Layout components styling
+
+// App container
+.app-container {
+  height: 100vh;
+}
+
+// Sidebar
+.sidebar-container {
+  background-color: var(--sidebar-bg);
+  transition: width 0.3s;
+  position: relative;
+  z-index: 10;
+  overflow: hidden;
+}
+
+// Logo container
+.logo-container {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+// App logo
+.logo {
+  color: #fff;
+  font-size: 18px;
+  white-space: nowrap;
+  margin: 0;
+}
+
+// Vertical menu
+.el-menu-vertical:not(.el-menu--collapse) {
+  width: 210px;
+}
+
+// Menu collapse button
+.collapse-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--sidebar-text);
+  cursor: pointer;
+  transition: 0.3s;
+  padding: 10px 0;
+
+  &:hover {
+    color: var(--sidebar-active);
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Main content container
+.main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+// Header
+.app-header {
+  background-color: var(--header-bg);
+  color: var(--text-color);
+  line-height: 60px;
+  box-shadow: 0 1px 4px var(--shadow-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+// Header sections
+.header-left,
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+// Header items
+.header-item {
+  margin: 0 10px;
+}
+
+// Dropdown components
+.dropdown-item {
+  margin-left: 20px;
+}
+
+// User dropdown
+.user-dropdown {
+  display: flex;
+  align-items: center;
+}
+
+// Username display
+.username {
+  margin: 0 5px;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// App footer
+.app-footer {
+  background-color: var(--bg-color);
+  color: var(--text-color-secondary);
+  text-align: center;
+  line-height: 50px;
+  font-size: 14px;
+  margin-top: auto;
+  padding: 0 20px;
+}
+
+// Main content area
+.el-main {
+  padding: 20px;
+  background-color: var(--bg-color);
+  overflow-y: auto;
+}
+
+// Dashboard container
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// Card styling
+.welcome-card {
+  margin-bottom: 20px;
+}
+
+// Card header
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+// Card title
+.card-header h2,
+.card-header h3 {
+  margin: 0;
+}
+
+// Card content
+.card-content {
+  font-size: 14px;
+}
+
+// Dashboard rows
+.dashboard-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+// Dashboard cards
+.stat-card,
+.recent-card {
+  flex: 1;
+  min-width: 300px;
+}
+
+// Stats container
+.stats-container {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+// Stat item
+.stat-item {
+  padding: 10px;
+}
+
+// Stat value
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--el-color-primary);
+}
+
+// Stat label
+.stat-label {
+  font-size: 14px;
+  color: var(--text-color-secondary);
+  margin-top: 5px;
+}
+
+// Empty data state
+.empty-data {
+  padding: 20px 0;
+}
+
+// Responsive layout adjustments
+@media (max-width: 768px) {
+  .dashboard-row {
+    flex-direction: column;
+  }
+
+  .header-left {
+    display: none;
+  }
+
+  .app-header {
+    padding: 0 10px;
+  }
+
+  .dropdown-item {
+    margin-left: 10px;
+  }
+}
