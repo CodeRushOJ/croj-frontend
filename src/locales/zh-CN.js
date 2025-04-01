@@ -60,6 +60,7 @@ export default {
     register_failed: "注册失败，请重试。",
     unknown_error: "发生未知错误",
     network_error: "网络错误，请稍后重试。",
+    session_expired: "会话已过期，请重新登录。",
     unauthorized: "您无权访问此资源",
     captcha_error: "获取验证码失败",
   },

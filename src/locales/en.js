@@ -62,6 +62,7 @@ export default {
     register_failed: "Registration failed. Please try again.",
     unknown_error: "An unknown error occurred",
     network_error: "Network error. Please try again later.",
+    session_expired: "Session expired. Please log in again.",
     unauthorized: "You are not authorized to access this resource",
     captcha_error: "Failed to get verification code",
   },
