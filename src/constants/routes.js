@@ -12,6 +12,9 @@ export const ROUTE_NAMES = {
     REGISTER: 'Register',
     FORGOT_PASSWORD: 'ForgotPassword',
     RESET_PASSWORD: 'ResetPassword',
+
+    // Email verification
+    VERIFY_EMAIL: 'VerifyEmail',
     
     // Admin routes
     ADMIN: 'Admin',
@@ -39,6 +42,9 @@ export const ROUTE_NAMES = {
     REGISTER: '/auth/register',
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
+
+    // Email verification
+    VERIFY_EMAIL: '/verify-email',
     
     // Admin paths
     ADMIN: '/admin',

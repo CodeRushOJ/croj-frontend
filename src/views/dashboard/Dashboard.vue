@@ -1,5 +1,8 @@
 <template>
     <div class="dashboard-container">
+        <!-- Email Verification Banner -->
+        <EmailVerificationBanner />
+
         <el-card class="welcome-card">
             <template #header>
                 <div class="card-header">
@@ -19,6 +22,12 @@
                         </el-descriptions-item>
                         <el-descriptions-item :label="$t('auth.email')">
                             {{ user?.email || '-' }}
+                            <el-tag v-if="user?.emailVerified === 1" type="success" size="small" class="ml-2">
+                                {{ $t('dashboard.verified') }}
+                            </el-tag>
+                            <el-tag v-else type="warning" size="small" class="ml-2">
+                                {{ $t('dashboard.unverified') }}
+                            </el-tag>
                         </el-descriptions-item>
                         <el-descriptions-item :label="$t('dashboard.role')">
                             {{ user?.roleName || '-' }}
@@ -80,6 +89,7 @@
 import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/store/modules/auth'
 import { useI18n } from 'vue-i18n'
+import EmailVerificationBanner from '@/components/common/EmailVerificationBanner.vue'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -101,7 +111,9 @@ useI18n().mergeLocaleMessage('en', {
         submissions: 'Submissions',
         contests: 'Contests',
         recent_activities: 'Recent Activities',
-        no_activities: 'No recent activities'
+        no_activities: 'No recent activities',
+        verified: 'Verified',
+        unverified: 'Unverified'
     }
 })
 
@@ -118,7 +130,9 @@ useI18n().mergeLocaleMessage('zh-CN', {
         submissions: '提交记录',
         contests: '参与竞赛',
         recent_activities: '最近活动',
-        no_activities: '暂无活动记录'
+        no_activities: '暂无活动记录',
+        verified: '已验证',
+        unverified: '未验证'
     }
 })
 
@@ -207,6 +221,10 @@ onMounted(async () => {
 
 .empty-data {
     padding: 20px 0;
+}
+
+.ml-2 {
+    margin-left: 8px;
 }
 
 @media (max-width: 768px) {

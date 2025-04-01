@@ -67,6 +67,15 @@ const routes = [
     path: '/:pathMatch(.*)*',
     name: ROUTE_NAMES.NOT_FOUND,
     component: NotFound
+  },
+  // verify email
+  {
+    path: '/verify-email',
+    name: ROUTE_NAMES.VERIFY_EMAIL,
+    component: () => import('@/views/auth/VerifyEmail.vue'),
+    meta: {
+      title: 'Verify Email'
+    }
   }
 ]
 

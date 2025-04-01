@@ -149,6 +149,13 @@ const router = useRouter()
 const authStore = useAuthStore()
 const appStore = useAppStore()
 
+onMounted(async () => {
+  // 如果有 token 但没有用户数据，则获取用户信息
+  if (authStore.token && !authStore.currentUser) {
+    await authStore.fetchCurrentUser();
+  }
+});
+
 // Current route
 const currentRoute = computed(() => route)
 

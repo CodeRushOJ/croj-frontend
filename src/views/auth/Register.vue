@@ -17,6 +17,17 @@
                     prefix-icon="Message" @blur="validateEmail"></el-input>
             </el-form-item>
 
+            <!-- Email Verification Code Field -->
+            <el-form-item :label="$t('auth.email_code')" prop="emailCode">
+                <div class="code-input-group">
+                    <el-input v-model="registerForm.emailCode" :placeholder="$t('auth.email_code')"
+                        prefix-icon="Key"></el-input>
+                    <el-button type="primary" @click="sendEmailCode" :loading="sendingEmailCode" :disabled="emailCodeSent">
+                        {{ emailCodeSent ? $t('auth.code_sent') + `(${countdown}s)` : $t('auth.send_code') }}
+                    </el-button>
+                </div>
+            </el-form-item>
+
             <!-- Password Field -->
             <el-form-item :label="$t('auth.password')" prop="password">
                 <el-input v-model="registerForm.password" type="password" :placeholder="$t('auth.password')"
@@ -54,14 +65,15 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ROUTE_NAMES } from '@/constants/routes'
-import { User, Lock, Message } from '@element-plus/icons-vue'
+import { User, Lock, Message, Key } from '@element-plus/icons-vue'
 import Captcha from '@/components/common/Captcha.vue'
+import { emailApi } from '@/api'
 
 // Get router and auth store
 const router = useRouter()
@@ -77,10 +89,17 @@ const captchaData = ref({
     captchaKey: ''
 })
 
+// Email verification code state
+const sendingEmailCode = ref(false)
+const emailCodeSent = ref(false)
+const countdown = ref(0)
+let countdownTimer = null
+
 // Form data
 const registerForm = reactive({
     username: '',
     email: '',
+    emailCode: '',
     password: '',
     confirmPassword: '',
     captcha: '',
@@ -159,6 +178,9 @@ const rules = reactive({
         { type: 'email', message: t('validation.email_format'), trigger: 'blur' },
         { validator: checkEmailUnique, trigger: 'blur' }
     ],
+    emailCode: [
+        { required: true, message: t('validation.email_code_required'), trigger: 'blur' }
+    ],
     password: [
         { required: true, message: t('validation.password_required'), trigger: 'blur' },
         { min: 6, max: 20, message: t('validation.password_length'), trigger: 'blur' }
@@ -183,6 +205,7 @@ const isFormValid = computed(() => {
     return (
         registerForm.username &&
         registerForm.email &&
+        registerForm.emailCode &&
         registerForm.password &&
         registerForm.confirmPassword &&
         registerForm.password === registerForm.confirmPassword &&
@@ -203,6 +226,41 @@ const validateEmail = () => {
     if (registerFormRef.value) {
         registerFormRef.value.validateField('email')
     }
+}
+
+// Send email verification code
+const sendEmailCode = async () => {
+    // Validate email field
+    try {
+        await registerFormRef.value.validateField('email')
+        await registerFormRef.value.validateField('username')
+    } catch (error) {
+        return
+    }
+
+    sendingEmailCode.value = true
+    try {
+        await emailApi.sendVerificationCode(registerForm.email, registerForm.username)
+        ElMessage.success(t('validation.email_code_sent'))
+        emailCodeSent.value = true
+        startCountdown()
+    } catch (error) {
+        ElMessage.error(error.message || t('validation.email_code_send_failed'))
+    } finally {
+        sendingEmailCode.value = false
+    }
+}
+
+// Start countdown timer
+const startCountdown = () => {
+    countdown.value = 60
+    countdownTimer = setInterval(() => {
+        countdown.value--
+        if (countdown.value <= 0) {
+            clearInterval(countdownTimer)
+            emailCodeSent.value = false
+        }
+    }, 1000)
 }
 
 // Handle register form submission
@@ -242,6 +300,44 @@ onMounted(() => {
         router.push({ name: ROUTE_NAMES.DASHBOARD })
     }
 })
+
+// Clear timer on component unmount
+onUnmounted(() => {
+    if (countdownTimer) {
+        clearInterval(countdownTimer)
+    }
+})
+
+// Add translations
+useI18n().mergeLocaleMessage('en', {
+    auth: {
+        // Existing translations...
+        email_code: 'Email Verification Code',
+        send_code: 'Send Code',
+        code_sent: 'Resend'
+    },
+    validation: {
+        // Existing translations...
+        email_code_required: 'Email verification code is required',
+        email_code_sent: 'Verification code sent to your email',
+        email_code_send_failed: 'Failed to send verification code'
+    }
+})
+
+useI18n().mergeLocaleMessage('zh-CN', {
+    auth: {
+        // Existing translations...
+        email_code: '邮箱验证码',
+        send_code: '发送验证码',
+        code_sent: '重新发送'
+    },
+    validation: {
+        // Existing translations...
+        email_code_required: '邮箱验证码不能为空',
+        email_code_sent: '验证码已发送到您的邮箱',
+        email_code_send_failed: '验证码发送失败'
+    }
+})
 </script>
 
 <style scoped>
@@ -250,6 +346,15 @@ onMounted(() => {
     color: #303133;
     text-align: center;
     margin-bottom: 30px;
+}
+
+.code-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.code-input-group .el-input {
+    flex: 1;
 }
 
 .submit-button {
