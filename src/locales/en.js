@@ -33,7 +33,12 @@ export default {
       sign_in: 'Sign In',
       sign_up: 'Sign Up',
       signing_in: 'Signing in...',
-      registering: 'Registering...'
+      registering: 'Registering...',
+      login_success: 'Login successful!',
+      verification_code: 'Verification Code',
+      get_verification_code: 'Get Code',
+      refresh_verification_code: 'Refresh',
+      captcha_note: 'Click the image to refresh'
     },
     validation: {
       username_required: 'Username is required',
@@ -47,14 +52,15 @@ export default {
       password_length: 'Password must be between 6 and 20 characters',
       passwords_not_match: 'Passwords do not match',
       confirm_password_required: 'Please confirm your password',
-      captcha_required: 'Verification code is required'
+      captcha_required: 'Verification code is required',
     },
     errors: {
       login_failed: 'Login failed. Please check your credentials.',
       register_failed: 'Registration failed. Please try again.',
       unknown_error: 'An unknown error occurred',
       network_error: 'Network error. Please try again later.',
-      unauthorized: 'You are not authorized to access this resource'
+      unauthorized: 'You are not authorized to access this resource',
+      captcha_error: 'Failed to get verification code'
     },
     common: {
       loading: 'Loading...',
@@ -76,6 +82,6 @@ export default {
       back: 'Back',
       next: 'Next',
       previous: 'Previous',
-      language: 'Language'
+      language: 'Language',
     }
   }

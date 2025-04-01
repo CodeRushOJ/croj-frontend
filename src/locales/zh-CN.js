@@ -33,7 +33,12 @@ export default {
       sign_in: '登录',
       sign_up: '注册',
       signing_in: '登录中...',
-      registering: '注册中...'
+      registering: '注册中...',
+      login_success: '登录成功！',
+      verification_code: '验证码',
+      get_verification_code: '获取验证码',
+      refresh_verification_code: '刷新',
+      captcha_note: '点击图片刷新验证码'
     },
     validation: {
       username_required: '用户名不能为空',
@@ -54,7 +59,8 @@ export default {
       register_failed: '注册失败，请重试。',
       unknown_error: '发生未知错误',
       network_error: '网络错误，请稍后重试。',
-      unauthorized: '您无权访问此资源'
+      unauthorized: '您无权访问此资源',
+      captcha_error: '获取验证码失败'
     },
     common: {
       loading: '加载中...',

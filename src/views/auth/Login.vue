@@ -21,6 +21,11 @@
                     prefix-icon="Lock" show-password></el-input>
             </el-form-item>
 
+            <!-- Captcha Field -->
+            <el-form-item :label="$t('auth.verification_code')" prop="captcha">
+                <Captcha v-model="captchaData" />
+            </el-form-item>
+
             <!-- Options Row -->
             <div class="options-row">
                 <el-checkbox v-model="loginForm.rememberMe">{{ $t('auth.remember') }}</el-checkbox>
@@ -46,13 +51,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ROUTE_NAMES } from '@/constants/routes'
 import { User, Lock } from '@element-plus/icons-vue'
+import Captcha from '@/components/common/Captcha.vue'
 
 // Get route, router and auth store
 const route = useRoute()
@@ -62,6 +68,12 @@ const { t } = useI18n()
 
 // Form reference
 const loginFormRef = ref(null)
+
+// Captcha data
+const captchaData = ref({
+    captcha: '',
+    captchaKey: ''
+})
 
 // Form data
 const loginForm = reactive({
@@ -76,7 +88,7 @@ const registrationSuccess = computed(() => route.query.registered === 'true')
 // Redirect URL after login (if any)
 const redirectPath = computed(() => route.query.redirect || '/')
 
-// Form validation rules - defined AFTER getting the t function
+// Form validation rules
 const rules = reactive({
     account: [
         { required: true, message: t('validation.username_required'), trigger: 'blur' }
@@ -84,14 +96,27 @@ const rules = reactive({
     password: [
         { required: true, message: t('validation.password_required'), trigger: 'blur' },
         { min: 6, message: t('validation.password_length'), trigger: 'blur' }
+    ],
+    captcha: [
+        { required: true, message: t('validation.captcha_required'), trigger: 'blur' }
     ]
 })
+
+// Watch captcha data changes
+watch(captchaData, (newVal) => {
+    loginForm.captcha = newVal.captcha
+    loginForm.captchaKey = newVal.captchaKey
+}, { deep: true })
 
 // Handle login form submission
 const handleLogin = async () => {
     if (!loginFormRef.value) return
 
     try {
+        // Add captcha data to form
+        loginForm.captcha = captchaData.value.captcha
+        loginForm.captchaKey = captchaData.value.captchaKey
+
         // Validate form
         await loginFormRef.value.validate()
 
@@ -103,9 +128,14 @@ const handleLogin = async () => {
 
             // Redirect to the original requested page or home
             router.push(redirectPath.value)
+        } else {
+            // Refresh captcha on failure
+            captchaData.value = { captcha: '', captchaKey: '' }
         }
     } catch (error) {
         console.error('Login validation error:', error)
+        // Refresh captcha on failure
+        captchaData.value = { captcha: '', captchaKey: '' }
     }
 }
 

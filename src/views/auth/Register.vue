@@ -31,16 +31,7 @@
 
             <!-- Captcha Field -->
             <el-form-item :label="$t('auth.verification_code')" prop="captcha">
-                <div class="captcha-container">
-                    <el-input v-model="registerForm.captcha" :placeholder="$t('auth.verification_code')"
-                        class="captcha-input"></el-input>
-                    <div class="captcha-image">
-                        <el-button type="primary">{{ $t('auth.verification_code') }}</el-button>
-                    </div>
-                </div>
-                <el-text type="info" size="small">
-                    {{ $t('auth.captcha_note') }}
-                </el-text>
+                <Captcha v-model="captchaData" />
             </el-form-item>
 
             <!-- Submit Button -->
@@ -63,13 +54,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/modules/auth'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ROUTE_NAMES } from '@/constants/routes'
 import { User, Lock, Message } from '@element-plus/icons-vue'
+import Captcha from '@/components/common/Captcha.vue'
 
 // Get router and auth store
 const router = useRouter()
@@ -79,13 +71,20 @@ const { t } = useI18n()
 // Form reference
 const registerFormRef = ref(null)
 
+// Captcha data
+const captchaData = ref({
+    captcha: '',
+    captchaKey: ''
+})
+
 // Form data
 const registerForm = reactive({
     username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    captcha: '12345' // Pre-filled for demo purposes
+    captcha: '',
+    captchaKey: ''
 })
 
 // Is username being validated
@@ -147,7 +146,7 @@ function validatePasswordMatch(rule, value, callback) {
     }
 }
 
-// Form validation rules - defined AFTER t function is available
+// Form validation rules
 const rules = reactive({
     username: [
         { required: true, message: t('validation.username_required'), trigger: 'blur' },
@@ -173,6 +172,12 @@ const rules = reactive({
     ]
 })
 
+// Watch captcha data changes
+watch(captchaData, (newVal) => {
+    registerForm.captcha = newVal.captcha
+    registerForm.captchaKey = newVal.captchaKey
+}, { deep: true })
+
 // Check if form is valid
 const isFormValid = computed(() => {
     return (
@@ -181,7 +186,8 @@ const isFormValid = computed(() => {
         registerForm.password &&
         registerForm.confirmPassword &&
         registerForm.password === registerForm.confirmPassword &&
-        registerForm.captcha
+        registerForm.captcha &&
+        registerForm.captchaKey
     )
 })
 
@@ -204,6 +210,10 @@ const handleRegister = async () => {
     if (!registerFormRef.value) return
 
     try {
+        // Add captcha data to form
+        registerForm.captcha = captchaData.value.captcha
+        registerForm.captchaKey = captchaData.value.captchaKey
+
         // Validate form
         await registerFormRef.value.validate()
 
@@ -215,9 +225,14 @@ const handleRegister = async () => {
 
             // Redirect to login page with success message
             router.push({ name: ROUTE_NAMES.LOGIN, query: { registered: 'true' } })
+        } else {
+            // Refresh captcha on failure
+            captchaData.value = { captcha: '', captchaKey: '' }
         }
     } catch (error) {
         console.error('Registration validation error:', error)
+        // Refresh captcha on failure
+        captchaData.value = { captcha: '', captchaKey: '' }
     }
 }
 
@@ -235,22 +250,6 @@ onMounted(() => {
     color: #303133;
     text-align: center;
     margin-bottom: 30px;
-}
-
-.captcha-container {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 4px;
-}
-
-.captcha-input {
-    flex: 1;
-}
-
-.captcha-image {
-    width: 120px;
-    display: flex;
-    align-items: center;
 }
 
 .submit-button {
