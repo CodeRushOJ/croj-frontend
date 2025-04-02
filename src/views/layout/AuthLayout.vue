@@ -59,18 +59,23 @@ const handleLanguageChange = (lang) => {
 
 <style scoped>
 .auth-container {
-    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow-y: auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f5f7fa;
-    position: relative;
+    background-color: var(--bg-color);
 }
 
 .lang-selector {
     position: absolute;
     top: 20px;
     right: 20px;
+    z-index: 10;
 }
 
 .el-dropdown-link {

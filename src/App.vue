@@ -1,6 +1,8 @@
 <template>
   <el-config-provider :locale="currentLocale">
-    <router-view />
+    <div class="app-root">
+      <router-view />
+    </div>
   </el-config-provider>
 </template>
 
@@ -39,3 +41,14 @@ watch(() => appStore.language, (newLang) => {
   i18n.locale.value = newLang
 })
 </script>
+
+<style>
+.app-root {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+</style>

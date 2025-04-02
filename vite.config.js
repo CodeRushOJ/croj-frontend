@@ -30,5 +30,15 @@ export default defineConfig({
         changeOrigin: true
       }
     }
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // Modern Sass API configuration
+        charset: false,
+        api: 'modern'
+        // Any global variables can be injected here
+      }
+    }
   }
 })

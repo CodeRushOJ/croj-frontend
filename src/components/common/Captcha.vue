@@ -15,13 +15,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineEmits, defineProps, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { captchaApi } from '@/api'
 import { ElMessage } from 'element-plus'
 
 const { t } = useI18n()
 
+// No longer need to explicitly import defineProps and defineEmits
 const props = defineProps({
     modelValue: {
         type: Object,

@@ -90,6 +90,8 @@ export default {
     next: "Next",
     previous: "Previous",
     language: "Language",
+    close: "Close",
+    update: "Update",
   },
   email: {
     verify_email: "Verify Your Email",

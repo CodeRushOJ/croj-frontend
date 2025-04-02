@@ -1,114 +1,83 @@
-// Base styles for the application
+// Override default Element Plus styles
 
-// CSS Variables for theming
-:root {
-    // Light theme (default)
-    --bg-color: #f5f7fa;
-    --bg-color-secondary: #ffffff;
-    --text-color: #303133;
-    --text-color-secondary: #606266;
-    --border-color: #e4e7ed;
-    --border-color-light: #f0f2f5;
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --header-bg: #ffffff;
-    --sidebar-bg: #304156;
-    --sidebar-text: #bfcbd9;
-    --sidebar-active: #409eff;
-  }
-  
-  // Dark theme
-  [data-theme="dark"] {
-    --bg-color: #1e1e1e;
-    --bg-color-secondary: #2c2c2c;
-    --text-color: #e5eaf3;
-    --text-color-secondary: #a3a6ad;
-    --border-color: #4c4d4f;
-    --border-color-light: #363637;
-    --shadow-color: rgba(0, 0, 0, 0.3);
-    --header-bg: #252525;
-    --sidebar-bg: #252525;
-    --sidebar-text: #a3a6ad;
-    --sidebar-active: #409eff;
-  
-    // Override Element Plus variables for dark theme
-    --el-bg-color: var(--bg-color-secondary);
-    --el-bg-color-overlay: var(--bg-color);
-    --el-text-color-primary: var(--text-color);
-    --el-text-color-regular: var(--text-color-secondary);
-    --el-border-color: var(--border-color);
-    --el-border-color-light: var(--border-color-light);
-    --el-fill-color: var(--bg-color);
-    --el-fill-color-light: var(--bg-color-secondary);
-  }
-  
-  // Base HTML styling
-  html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--text-color);
-    background-color: var(--bg-color);
-  }
-  
-  // Remove default margin/padding
-  * {
-    box-sizing: border-box;
-  }
-  
-  // Links
-  a {
-    color: var(--el-color-primary);
-    text-decoration: none;
-  
-    &:hover, &:focus {
-      color: var(--el-color-primary-light-3);
-    }
-  }
-  
-  // Main container
-  #app {
-    height: 100%;
-  }
-  
-  // Transitions
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: opacity 0.3s ease;
-  }
-  
-  .fade-enter-from,
-  .fade-leave-to {
-    opacity: 0;
-  }
-  
-  // Utility classes
-  .mb-4 {
-    margin-bottom: 16px;
-  }
-  
-  .mt-4 {
-    margin-top: 16px;
-  }
-  
-  .text-center {
-    text-align: center;
-  }
-  
-  .w-100 {
-    width: 100%;
-  }
-  
-  .d-flex {
-    display: flex;
-  }
-  
-  .justify-between {
-    justify-content: space-between;
-  }
-  
-  .align-center {
-    align-items: center;
-  }
+// Fix element container overflow
+.el-container {
+  height: 100%;
+  width: 100%;
+}
+
+// Ensure aside doesn't cause overflow
+.el-aside {
+  overflow: hidden;
+}
+
+// Adjust el-menu for fixed sidebar
+.el-menu {
+  border-right: none;
+}
+
+// Improve dialog styles for fixed positioning
+.el-dialog {
+  margin-top: 10vh !important;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.el-dialog__body {
+  overflow-y: auto;
+  padding: 20px;
+}
+
+// Fix pagination container
+.el-pagination {
+  margin-top: 15px;
+  justify-content: center;
+}
+
+// Make el-card work better in fixed layouts
+.el-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.el-card__body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+// Fix for forms inside fixed containers
+.el-form {
+  width: 100%;
+}
+
+// Ensure table works in fixed layout
+.el-table {
+  width: 100%;
+  height: 100%;
+}
+
+// Fix scrollbar styles for better appearance
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #dcdfe6;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f5f7fa;
+}
+
+// Dark theme scrollbar
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background-color: #4c4d4f;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background-color: #1e1e1e;
+}

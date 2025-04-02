@@ -88,6 +88,8 @@ export default {
     next: "下一步",
     previous: "上一步",
     language: "语言",
+    close: "关闭",
+    update: "更新",
   },
   email: {
     verify_email: "验证您的邮箱",

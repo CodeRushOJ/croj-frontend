@@ -247,10 +247,16 @@ const handleLogout = () => {
 
 <style scoped>
 .app-container {
-    height: 100vh;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 .sidebar-container {
+    height: 100%;
     background-color: #304156;
     transition: width 0.3s;
     position: relative;
@@ -299,6 +305,7 @@ const handleLogout = () => {
     display: flex;
     flex-direction: column;
     height: 100%;
+    flex: 1;
     overflow: hidden;
 }
 
@@ -311,6 +318,11 @@ const handleLogout = () => {
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
 }
 
 .header-right {
@@ -348,12 +360,24 @@ const handleLogout = () => {
     text-align: center;
     line-height: 50px;
     font-size: 14px;
-    margin-top: auto;
 }
 
 .el-main {
+    overflow-y: auto;
     padding: 20px;
     background-color: #f5f7fa;
-    overflow-y: auto;
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .header-left {
+        display: none;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
 }
 </style>

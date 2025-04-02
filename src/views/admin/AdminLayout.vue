@@ -95,7 +95,8 @@ useI18n().mergeLocaleMessage('zh-CN', {
 .admin-layout {
     display: flex;
     flex-direction: column;
-    min-height: calc(100vh - 150px);
+    height: 100%;
+    overflow: hidden;
 }
 
 .admin-header {
@@ -124,11 +125,14 @@ useI18n().mergeLocaleMessage('zh-CN', {
     border-radius: 4px;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    height: calc(100% - 110px);
 }
 
 .admin-sidebar {
     width: 240px;
     border-right: 1px solid #e6e6e6;
+    height: 100%;
+    overflow-y: auto;
 }
 
 .admin-menu {
@@ -139,18 +143,24 @@ useI18n().mergeLocaleMessage('zh-CN', {
 .admin-main {
     flex: 1;
     padding: 20px;
-    overflow: auto;
+    overflow-y: auto;
 }
 
 @media (max-width: 768px) {
     .admin-content {
         flex-direction: column;
+        height: calc(100% - 120px);
     }
 
     .admin-sidebar {
         width: 100%;
+        height: auto;
         border-right: none;
         border-bottom: 1px solid #e6e6e6;
+    }
+
+    .admin-main {
+        height: calc(100% - 200px);
     }
 }
 </style>

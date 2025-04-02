@@ -1,11 +1,14 @@
-// Import all styles
+// Main styles entry point
+// Using modern Sass module system
 
-// Base styles
-@import "./base.scss";
+// Forward all styles to make them available to consumers
+@forward "./base";
+@forward "./element-override";
+@forward "./components/auth";
+@forward "./components/layout";
 
-// Element Plus overrides
-@import "./element-override.scss";
-
-// Component styles
-@import "./components/auth.scss";
-@import "./components/layout.scss";
+// Use modern Sass modules
+@use "./base";
+@use "./element-override";
+@use "./components/auth";
+@use "./components/layout";

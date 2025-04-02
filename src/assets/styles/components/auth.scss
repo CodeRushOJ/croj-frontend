@@ -2,13 +2,16 @@
 
 // Auth container
 .auth-container {
-  min-height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: var(--bg-color);
-  position: relative;
-  padding: 20px;
 }
 
 // Language selector in auth pages
@@ -23,6 +26,7 @@
 .auth-content {
   width: 100%;
   max-width: 420px;
+  padding: 20px;
 }
 
 // Auth card
@@ -38,12 +42,12 @@
 .auth-logo {
   text-align: center;
   margin-bottom: 30px;
+}
 
-  h1 {
-    color: var(--el-color-primary);
-    font-size: 24px;
-    margin: 0;
-  }
+.auth-logo h1 {
+  color: var(--el-color-primary);
+  font-size: 24px;
+  margin: 0;
 }
 
 // Auth form
