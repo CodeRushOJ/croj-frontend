@@ -1,82 +1,123 @@
-import { ROUTE_NAMES } from '@/constants/routes'
+// src/router/routes.js
+import { ROUTE_NAMES } from "@/constants/routes";
 
-// Layout components
-const MainLayout = () => import('@/views/layout/MainLayout.vue')
-const AuthLayout = () => import('@/views/layout/AuthLayout.vue')
+// 布局组件
+const MainLayout = () => import("@/views/layout/MainLayout.vue");
+const AuthLayout = () => import("@/views/layout/AuthLayout.vue");
 
-// Auth pages
-const Login = () => import('@/views/auth/Login.vue')
-const Register = () => import('@/views/auth/Register.vue')
+// 认证页面
+const Login = () => import("@/views/auth/Login.vue");
+const Register = () => import("@/views/auth/Register.vue");
 
-// Dashboard and other pages
-const Dashboard = () => import('@/views/dashboard/Dashboard.vue')
-const NotFound = () => import('@/views/error/NotFound.vue')
+// 仪表板和其他页面
+const Dashboard = () => import("@/views/dashboard/Dashboard.vue");
+const NotFound = () => import("@/views/error/NotFound.vue");
 
-// Routes configuration
+// 管理页面
+const AdminLayout = () => import("@/views/admin/AdminLayout.vue");
+const AdminDashboard = () => import("@/views/admin/Dashboard.vue");
+const UserManagement = () => import("@/views/admin/UserManagement.vue");
+
+// 路由配置
 const routes = [
   {
-    path: '/',
+    path: "/",
     component: MainLayout,
     meta: { requiresAuth: true },
     children: [
       {
-        path: '',
+        path: "",
         name: ROUTE_NAMES.DASHBOARD,
         component: Dashboard,
         meta: {
-          title: 'Dashboard',
-          icon: 'el-icon-menu'
-        }
-      }
-    ]
+          title: "Dashboard",
+          icon: "el-icon-menu",
+        },
+      },
+    ],
+  },
+  // 管理路由
+  {
+    path: "/admin",
+    component: MainLayout,
+    meta: {
+      requiresAuth: true,
+      admin: true,
+    },
+    children: [
+      {
+        path: "",
+        component: AdminLayout,
+        children: [
+          {
+            path: "",
+            name: ROUTE_NAMES.ADMIN,
+            component: AdminDashboard,
+            meta: {
+              title: "Admin Dashboard",
+              icon: "el-icon-s-platform",
+            },
+          },
+          {
+            path: "users",
+            name: ROUTE_NAMES.ADMIN_USERS,
+            component: UserManagement,
+            meta: {
+              title: "User Management",
+              icon: "el-icon-user",
+            },
+          },
+        ],
+      },
+    ],
   },
   {
-    path: '/auth',
+    path: "/auth",
     component: AuthLayout,
     meta: { guest: true },
     children: [
       {
-        path: 'login',
+        path: "login",
         name: ROUTE_NAMES.LOGIN,
         component: Login,
         meta: {
-          title: 'Login'
-        }
+          title: "Login",
+        },
       },
       {
-        path: 'register',
+        path: "register",
         name: ROUTE_NAMES.REGISTER,
         component: Register,
         meta: {
-          title: 'Register'
-        }
-      }
-    ]
+          title: "Register",
+        },
+      },
+    ],
   },
-  // Redirect /login and /register to /auth/login and /auth/register
+  // 重定向 /login 和 /register 到 /auth/login 和 /auth/register
   {
-    path: '/login',
-    redirect: { name: ROUTE_NAMES.LOGIN }
+    path: "/login",
+    redirect: { name: ROUTE_NAMES.LOGIN },
   },
   {
-    path: '/register',
-    redirect: { name: ROUTE_NAMES.REGISTER }
+    path: "/register",
+    redirect: { name: ROUTE_NAMES.REGISTER },
   },
-  // Catch all route for 404
+  // 邮箱验证路由
   {
-    path: '/:pathMatch(.*)*',
-    name: ROUTE_NAMES.NOT_FOUND,
-    component: NotFound
-  },
-  // verify email
-  {
-    path: '/verify-email',
+    path: "/verify-email",
     name: ROUTE_NAMES.VERIFY_EMAIL,
-    component: () => import('@/views/auth/VerifyEmail.vue'),
+    component: () => import("@/views/auth/VerifyEmail.vue"),
     meta: {
-      title: 'Verify Email'
-    }
-  }
-]
+      title: "Verify Email",
+    },
+  },
+  // 404 路由
+  {
+    path: "/:pathMatch(.*)*",
+    name: ROUTE_NAMES.NOT_FOUND,
+    component: NotFound,
+  },
+];
 
-export default routes
+export default routes;
