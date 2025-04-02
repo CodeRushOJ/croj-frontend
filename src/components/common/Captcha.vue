@@ -134,4 +134,4 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
 }
-</style>
+</style>    

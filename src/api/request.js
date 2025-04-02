@@ -74,6 +74,11 @@ service.interceptors.response.use(
         case 40011: // EMAIL_IS_VERIFIED
           errorMessageKey = "errors.email_verified";
           break;
+        case 40012: // UPDATE_ERROR
+          errorMessageKey = "errors.update_error";
+          break;
+        case 40013: // UPLOAD_ERROR
+          errorMessageKey = "errors.upload_error";
         case 40100: // FORBIDDEN
           errorMessageKey = "errors.unauthorized";
           break;

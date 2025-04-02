@@ -34,6 +34,16 @@ const routes = [
           icon: "el-icon-menu",
         },
       },
+      {
+        path: "profile",
+        name: ROUTE_NAMES.PROFILE,
+        component: () => import("@/views/profile/Profile.vue"),
+        meta: {
+          title: "Profile",
+          requiresAuth: true,
+          icon: "el-icon-user",
+        },
+      },
     ],
   },
   // 管理路由

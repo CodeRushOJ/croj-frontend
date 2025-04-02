@@ -1,3 +1,5 @@
+import { update } from "lodash-es";
+
 export default {
   app: {
     title: "CodeRush 在线评测系统",
@@ -78,6 +80,8 @@ export default {
     account_not_exist: "该账号不存在",
     disabled_error: "无法禁用账户",
     email_verified: "该邮箱已验证",
+    update_error: "更新失败",
+    upload_error: "上传失败",
   },
   common: {
     loading: "加载中...",
@@ -121,5 +125,43 @@ export default {
     go_to_dashboard: "前往控制台",
     invalid_link: "验证链接无效。",
     verifying_email: "正在验证您的邮箱...",
+  },
+  profile: {
+    title: "个人资料设置",
+    bio: "个人简介",
+    github: "GitHub",
+    school: "学校/组织",
+    save_changes: "保存更改",
+    reset: "重置",
+    change_password: "修改密码",
+    old_password: "当前密码",
+    new_password: "新密码",
+    confirm_password: "确认密码",
+    update_password: "更新密码",
+    update_success: "个人资料更新成功",
+    update_error: "更新个人资料失败",
+    password_update_success: "密码修改成功",
+    password_update_error: "密码修改失败",
+    load_error: "加载用户信息失败",
+    old_password_required: "当前密码不能为空",
+    new_password_required: "新密码不能为空",
+    confirm_password_required: "请确认新密码",
+    change_avatar: "更换头像",
+    upload_avatar: "上传头像",
+    avatar_size_limit: "头像大小不能超过2MB",
+    avatar_type_error: "文件必须是图片格式",
+    avatar_update_success: "头像更新成功",
+    avatar_update_error: "头像更新失败",
+    upload_avatar_confirm: "是否上传此头像？",
+    upload: "上传",
+    bio_max_length: "个人简介不能超过255个字符",
+    github_max_length: "GitHub用户名不能超过100个字符",
+    school_max_length: "学校/组织名称不能超过100个字符",
+    verified: "已验证",
+    unverified: "未验证",
+    password_changed: "密码已修改",
+    relogin_suggestion: "出于安全考虑，建议您使用新密码重新登录。",
+    logout_now: "立即退出",
+    later: "稍后"
   },
 };
