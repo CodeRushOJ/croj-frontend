@@ -166,4 +166,36 @@ export default {
     logout_now: "Logout Now",
     later: "Later"
   },
+  settings: {
+    title: 'Settings',
+    theme_settings: 'Theme Settings',
+    theme_mode: 'Theme Mode',
+    light_mode: 'Light',
+    dark_mode: 'Dark',
+    language_settings: 'Language Settings',
+    language: 'Language',
+    interface_settings: 'Interface Settings',
+    sidebar_collapsed: 'Collapse Sidebar',
+    save_settings: 'Save Settings',
+    reset: 'Reset to Defaults',
+    save_success: 'Settings saved successfully',
+    reset_success: 'Settings reset to defaults'
+  },
+  dashboard: {
+    greeting: 'Hello, {username}!',
+    user_info: 'User Information',
+    role: 'Role',
+    status: 'Status',
+    last_login: 'Last Login',
+    register_time: 'Register Time',
+    stats: 'Statistics',
+    solved_problems: 'Solved Problems',
+    submissions: 'Submissions',
+    contests: 'Contests',
+    recent_activities: 'Recent Activities',
+    no_activities: 'No recent activities',
+    verified: 'Verified',
+    unverified: 'Unverified'
+  }
 };
+

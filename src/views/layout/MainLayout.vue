@@ -1,13 +1,14 @@
 <template>
     <el-container class="app-container">
-        <!-- Sidebar -->
-        <el-aside width="auto" class="sidebar-container">
+        <!-- 侧边栏 -->
+        <el-aside :width="isCollapse ? '64px' : '210px'" class="sidebar-container">
             <div class="logo-container">
                 <h1 class="logo">{{ $t('app.title') }}</h1>
             </div>
 
             <el-menu :default-active="activeIndex" class="el-menu-vertical" :collapse="isCollapse"
-                background-color="#304156" text-color="#bfcbd9" active-text-color="#409EFF" router>
+                background-color="var(--sidebar-bg)" text-color="var(--sidebar-text)"
+                active-text-color="var(--sidebar-active)" router>
                 <el-menu-item index="/">
                     <el-icon>
                         <house />
@@ -36,7 +37,7 @@
                     <template #title>{{ $t('routes.ranking') }}</template>
                 </el-menu-item>
 
-                <!-- Admin menu for administrators -->
+                <!-- 管理员菜单 -->
                 <el-menu-item v-if="isAdmin" index="/admin">
                     <el-icon>
                         <setting />
@@ -45,16 +46,20 @@
                 </el-menu-item>
             </el-menu>
 
-            <!-- Collapse button -->
+            <!-- 折叠按钮 -->
             <div class="collapse-btn" @click="toggleSidebar">
-                <el-icon v-if="isCollapse"><d-arrow-right /></el-icon>
-                <el-icon v-else><d-arrow-left /></el-icon>
+                <el-icon v-if="isCollapse">
+                    <d-arrow-right />
+                </el-icon>
+                <el-icon v-else>
+                    <d-arrow-left />
+                </el-icon>
             </div>
         </el-aside>
 
-        <!-- Main content -->
+        <!-- 主内容区 -->
         <el-container class="main-container">
-            <!-- Header -->
+            <!-- 头部 -->
             <el-header class="app-header">
                 <div class="header-left">
                     <el-breadcrumb separator="/">
@@ -66,11 +71,16 @@
                 </div>
 
                 <div class="header-right">
-                    <!-- Language dropdown -->
-                    <el-dropdown @command="handleLanguageChange" class="dropdown-item">
+                    <!-- 主题切换 -->
+                    <ThemeToggler class="header-item" />
+
+                    <!-- 语言下拉 -->
+                    <el-dropdown @command="handleLanguageChange" class="header-item">
                         <span class="el-dropdown-link">
                             {{ currentLanguage }}
-                            <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                            <el-icon class="el-icon--right">
+                                <arrow-down />
+                            </el-icon>
                         </span>
                         <template #dropdown>
                             <el-dropdown-menu>
@@ -80,12 +90,14 @@
                         </template>
                     </el-dropdown>
 
-                    <!-- User dropdown -->
-                    <el-dropdown @command="handleCommand" class="dropdown-item">
+                    <!-- 用户下拉 -->
+                    <el-dropdown @command="handleCommand" class="header-item">
                         <span class="el-dropdown-link user-dropdown">
                             <el-avatar :size="32" :src="userAvatar" />
                             <span class="username">{{ user?.username }}</span>
-                            <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                            <el-icon class="el-icon--right">
+                                <arrow-down />
+                            </el-icon>
                         </span>
                         <template #dropdown>
                             <el-dropdown-menu>
@@ -117,12 +129,12 @@
                 </div>
             </el-header>
 
-            <!-- Main content -->
+            <!-- 主内容 -->
             <el-main>
                 <router-view />
             </el-main>
 
-            <!-- Footer -->
+            <!-- 底部 -->
             <el-footer height="50px" class="app-footer">
                 <div>CodeRush Online Judge &copy; {{ currentYear }}</div>
             </el-footer>
@@ -131,7 +143,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, markRaw } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n';
 import {
@@ -150,6 +162,7 @@ import { useAuthStore } from '@/store/modules/auth'
 import { useAppStore } from '@/store/modules/app'
 import { ROUTE_NAMES } from '@/constants/routes'
 import { ElMessageBox } from 'element-plus'
+import ThemeToggler from '@/components/common/ThemeToggler.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -165,33 +178,30 @@ onMounted(async () => {
     }
 });
 
-// Current route
+// 当前路由
 const currentRoute = computed(() => route)
 
-// Active menu index
+// 活动菜单索引
 const activeIndex = computed(() => route.path)
 
-// Current year for footer
+// 当前年份
 const currentYear = computed(() => new Date().getFullYear())
 
-// Get user from store
-const user = computed(() => {
-    const currentUser = authStore.currentUser
-    return currentUser ? markRaw(currentUser) : null
-})
+// 获取用户
+const user = computed(() => authStore.currentUser)
 
-// Check if user is admin
+// 检查用户是否是管理员
 const isAdmin = computed(() => authStore.isAdmin)
 
-// Get user avatar with fallback
+// 获取用户头像
 const userAvatar = computed(() => {
     return user.value?.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
 })
 
-// Get sidebar collapse state
+// 获取侧边栏折叠状态
 const isCollapse = computed(() => appStore.sidebarCollapsed)
 
-// Get current language name
+// 获取当前语言
 const currentLanguage = computed(() => {
     switch (appStore.language) {
         case 'zh-CN':
@@ -202,17 +212,17 @@ const currentLanguage = computed(() => {
     }
 })
 
-// Toggle sidebar
+// 切换侧边栏
 const toggleSidebar = () => {
     appStore.toggleSidebar()
 }
 
-// Handle language change
+// 处理语言更改
 const handleLanguageChange = (lang) => {
     appStore.setLanguage(lang)
 }
 
-// Handle dropdown commands
+// 处理下拉命令
 const handleCommand = (command) => {
     switch (command) {
         case 'profile':
@@ -227,7 +237,7 @@ const handleCommand = (command) => {
     }
 }
 
-// Handle logout with confirmation
+// 处理登出
 const handleLogout = () => {
     ElMessageBox.confirm(
         t('auth.logout_confirm'),
@@ -239,9 +249,9 @@ const handleLogout = () => {
         }
     ).then(() => {
         authStore.logout(router)
-    }).catch((error) => {
-        // User canceled logout
-        console.log('Logout canceled:', error)
+    }).catch(() => {
+        // 用户取消登出
+        console.log('Logout canceled')
     })
 }
 </script>
@@ -258,7 +268,6 @@ const handleLogout = () => {
 
 .sidebar-container {
     height: 100%;
-    background-color: #304156;
     transition: width 0.3s;
     position: relative;
     z-index: 10;
@@ -270,12 +279,12 @@ const handleLogout = () => {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #2b3649;
+    background-color: rgba(0, 0, 0, 0.1);
     overflow: hidden;
 }
 
 .logo {
-    color: #fff;
+    color: var(--sidebar-text);
     font-size: 18px;
     white-space: nowrap;
     margin: 0;
@@ -291,15 +300,15 @@ const handleLogout = () => {
     left: 0;
     right: 0;
     text-align: center;
-    color: #bfcbd9;
+    color: var(--sidebar-text);
     cursor: pointer;
     transition: 0.3s;
     padding: 10px 0;
 }
 
 .collapse-btn:hover {
-    color: #409EFF;
-    background-color: #263445;
+    color: var(--sidebar-active);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .main-container {
@@ -311,10 +320,9 @@ const handleLogout = () => {
 }
 
 .app-header {
-    background-color: #fff;
-    color: #333;
+    color: var(--text-color);
     line-height: 60px;
-    box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+    box-shadow: 0 1px 4px var(--shadow-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -331,13 +339,12 @@ const handleLogout = () => {
     align-items: center;
 }
 
-.dropdown-item {
+.header-item {
     margin-left: 20px;
 }
 
 .el-dropdown-link {
     cursor: pointer;
-    color: #409EFF;
     display: flex;
     align-items: center;
 }
@@ -356,8 +363,7 @@ const handleLogout = () => {
 }
 
 .app-footer {
-    background-color: #f5f7fa;
-    color: #666;
+    color: var(--text-color-secondary);
     text-align: center;
     line-height: 50px;
     font-size: 14px;
@@ -366,7 +372,6 @@ const handleLogout = () => {
 .el-main {
     overflow-y: auto;
     padding: 20px;
-    background-color: #f5f7fa;
     flex: 1;
 }
 
@@ -375,10 +380,8 @@ const handleLogout = () => {
         display: none;
     }
 
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+    .header-item {
+        margin-left: 10px;
     }
 }
 </style>

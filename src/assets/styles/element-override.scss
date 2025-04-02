@@ -1,64 +1,267 @@
-// Override default Element Plus styles
+// 覆盖默认Element Plus样式
 
-// Fix element container overflow
+// 修复element容器溢出
 .el-container {
   height: 100%;
   width: 100%;
 }
 
-// Ensure aside doesn't cause overflow
+// 确保侧边栏不会导致溢出
 .el-aside {
   overflow: hidden;
+  background-color: var(--sidebar-bg);
+  transition: background-color 0.3s;
 }
 
-// Adjust el-menu for fixed sidebar
+// 调整el-menu以适配固定侧边栏
 .el-menu {
   border-right: none;
+  background-color: var(--sidebar-bg) !important;
 }
 
-// Improve dialog styles for fixed positioning
+// 改进对话框样式以适应固定定位
 .el-dialog {
   margin-top: 10vh !important;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-color-secondary);
+  border-color: var(--border-color);
+}
+
+.el-dialog__header {
+  background-color: var(--bg-color-secondary);
 }
 
 .el-dialog__body {
   overflow-y: auto;
   padding: 20px;
+  color: var(--text-color);
+  background-color: var(--bg-color-secondary);
 }
 
-// Fix pagination container
+.el-dialog__footer {
+  background-color: var(--bg-color-secondary);
+}
+
+// 修复分页容器
 .el-pagination {
   margin-top: 15px;
   justify-content: center;
+  color: var(--text-color);
+  background-color: var(--bg-color-secondary);
 }
 
-// Make el-card work better in fixed layouts
+// 按钮组件样式
+.el-button:not(.is-text) {
+  background-color: var(--bg-color-secondary);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+// 确保主要按钮样式
+.el-button--primary {
+  color: #fff;
+}
+
+// 使el-card在固定布局中更好地工作
 .el-card {
   height: 100%;
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-color-secondary);
+  border-color: var(--border-color);
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.el-card__header {
+  border-bottom-color: var(--border-color);
+  background-color: var(--bg-color-secondary);
+  color: var(--text-color);
 }
 
 .el-card__body {
   flex: 1;
   overflow-y: auto;
+  background-color: var(--bg-color-secondary);
+  color: var(--text-color);
 }
 
-// Fix for forms inside fixed containers
+// 修复固定容器中的表单
 .el-form {
   width: 100%;
 }
 
-// Ensure table works in fixed layout
-.el-table {
-  width: 100%;
-  height: 100%;
+.el-form-item__label {
+  color: var(--text-color);
 }
 
-// Fix scrollbar styles for better appearance
+.el-form-item__content {
+  color: var(--text-color);
+}
+
+// 输入框样式
+.el-input__wrapper {
+  background-color: var(--input-bg);
+  box-shadow: 0 0 0 1px var(--input-border) inset;
+}
+
+.el-input__inner {
+  color: var(--input-text);
+}
+
+.el-input.is-disabled .el-input__wrapper {
+  background-color: var(--el-disabled-bg-color);
+}
+
+// 描述列表样式
+.el-descriptions__label {
+  color: var(--text-color);
+}
+
+.el-descriptions__content {
+  color: var(--text-color);
+}
+
+.el-descriptions {
+  --el-descriptions-item-bordered-label-background: var(--bg-color);
+}
+
+.el-descriptions__body {
+  background-color: var(--bg-color-secondary);
+}
+
+.el-descriptions__cell {
+  background-color: var(--bg-color-secondary);
+}
+
+// 确保表格在固定布局中工作
+.el-table {
+  width: 100%;
+  background-color: var(--bg-color-secondary);
+  color: var(--text-color);
+}
+
+.el-table tr {
+  background-color: var(--bg-color-secondary);
+}
+
+.el-table th {
+  background-color: var(--bg-color-secondary);
+  color: var(--text-color);
+}
+
+.el-table td {
+  background-color: var(--bg-color-secondary);
+  color: var(--text-color);
+}
+
+.el-table--border {
+  border-color: var(--border-color);
+}
+
+.el-table--border::after {
+  background-color: var(--border-color);
+}
+
+.el-table--border .el-table__cell {
+  border-color: var(--border-color);
+}
+
+// 修复暗色模式下的标签
+.el-tag {
+  background-color: var(--tag-bg);
+  color: var(--tag-text);
+  border-color: var(--tag-bg);
+}
+
+.el-tag--success {
+  background-color: var(--tag-success-bg);
+  color: var(--tag-success-text);
+  border-color: var(--tag-success-bg);
+}
+
+.el-tag--warning {
+  background-color: var(--tag-warning-bg);
+  color: var(--tag-warning-text);
+  border-color: var(--tag-warning-bg);
+}
+
+.el-tag--danger {
+  background-color: var(--tag-danger-bg);
+  color: var(--tag-danger-text);
+  border-color: var(--tag-danger-bg);
+}
+
+// 下拉菜单样式
+.el-dropdown-menu {
+  background-color: var(--bg-color-secondary);
+  border-color: var(--border-color);
+}
+
+.el-dropdown-menu__item {
+  color: var(--text-color);
+}
+
+.el-dropdown-menu__item:hover {
+  background-color: var(--el-dropdown-menuItem-hover-fill);
+}
+
+// 空状态样式
+.el-empty__description {
+  color: var(--text-color-secondary);
+}
+
+// 分割线样式
+.el-divider__text {
+  background-color: var(--bg-color-secondary);
+  color: var(--text-color);
+}
+
+// 单选按钮组
+.el-radio-button__inner {
+  color: var(--text-color);
+  background-color: var(--bg-color-secondary);
+  border-color: var(--border-color);
+}
+
+// 面包屑样式
+.el-breadcrumb__item {
+  color: var(--text-color-secondary);
+}
+
+.el-breadcrumb__inner {
+  color: var(--text-color-secondary);
+}
+
+.el-breadcrumb__inner a {
+  color: var(--text-color-secondary);
+}
+
+.el-breadcrumb__item:last-child .el-breadcrumb__inner {
+  color: var(--text-color);
+}
+
+// 选择器样式
+.el-select__wrapper {
+  background-color: var(--input-bg);
+}
+
+.el-select-dropdown {
+  background-color: var(--bg-color-secondary);
+  border-color: var(--border-color);
+}
+
+.el-select-dropdown__item {
+  color: var(--text-color);
+}
+
+.el-select-dropdown__item.hover,
+.el-select-dropdown__item:hover {
+  background-color: var(--el-dropdown-menuItem-hover-fill);
+}
+
+// 修复滚动条样式以美化外观
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -73,7 +276,7 @@
   background-color: #f5f7fa;
 }
 
-// Dark theme scrollbar
+// 暗色主题滚动条
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
   background-color: #4c4d4f;
 }

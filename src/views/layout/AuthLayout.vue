@@ -1,8 +1,12 @@
 <template>
     <div class="auth-container">
-        <!-- Language Selector -->
-        <div class="lang-selector">
-            <el-dropdown @command="handleLanguageChange">
+        <!-- 顶部操作栏 -->
+        <div class="auth-top-bar">
+            <!-- 主题切换 -->
+            <ThemeToggler />
+
+            <!-- 语言选择器 -->
+            <el-dropdown @command="handleLanguageChange" class="language-dropdown">
                 <span class="el-dropdown-link">
                     {{ currentLanguage }}
                     <el-icon class="el-icon--right"><arrow-down /></el-icon>
@@ -16,15 +20,15 @@
             </el-dropdown>
         </div>
 
-        <!-- Auth Content -->
+        <!-- 认证内容 -->
         <div class="auth-content">
             <div class="auth-card">
-                <!-- Logo -->
+                <!-- 徽标 -->
                 <div class="auth-logo">
                     <h1>{{ $t('app.title') }}</h1>
                 </div>
 
-                <!-- Form Container -->
+                <!-- 表单容器 -->
                 <div class="auth-form">
                     <router-view />
                 </div>
@@ -37,10 +41,11 @@
 import { computed } from 'vue'
 import { ArrowDown } from '@element-plus/icons-vue'
 import { useAppStore } from '@/store/modules/app'
+import ThemeToggler from '@/components/common/ThemeToggler.vue'
 
 const appStore = useAppStore()
 
-// Get current language name
+// 获取当前语言名称
 const currentLanguage = computed(() => {
     switch (appStore.language) {
         case 'zh-CN':
@@ -51,7 +56,7 @@ const currentLanguage = computed(() => {
     }
 })
 
-// Handle language change
+// 处理语言变更
 const handleLanguageChange = (lang) => {
     appStore.setLanguage(lang)
 }
@@ -71,18 +76,25 @@ const handleLanguageChange = (lang) => {
     background-color: var(--bg-color);
 }
 
-.lang-selector {
+.auth-top-bar {
     position: absolute;
     top: 20px;
     right: 20px;
     z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.language-dropdown {
+    margin-left: 15px;
 }
 
 .el-dropdown-link {
     cursor: pointer;
     display: flex;
     align-items: center;
-    color: #409eff;
+    color: var(--text-color);
 }
 
 .auth-content {
@@ -92,9 +104,9 @@ const handleLanguageChange = (lang) => {
 }
 
 .auth-card {
-    background: white;
+    background: var(--bg-color-secondary);
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px var(--shadow-color);
     padding: 30px;
     overflow: hidden;
 }
@@ -105,7 +117,7 @@ const handleLanguageChange = (lang) => {
 }
 
 .auth-logo h1 {
-    color: #409eff;
+    color: var(--el-color-primary);
     font-size: 24px;
     margin: 0;
 }

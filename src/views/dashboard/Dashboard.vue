@@ -1,6 +1,6 @@
 <template>
     <div class="dashboard-container">
-        <!-- Email Verification Banner -->
+        <!-- 邮箱验证横幅 -->
         <EmailVerificationBanner />
 
         <el-card class="welcome-card">
@@ -94,49 +94,10 @@ import EmailVerificationBanner from '@/components/common/EmailVerificationBanner
 const { t } = useI18n()
 const authStore = useAuthStore()
 
-// Get user from store
+// 获取用户
 const user = computed(() => authStore.currentUser)
 
-// Add translations for dashboard
-useI18n().mergeLocaleMessage('en', {
-    dashboard: {
-        greeting: 'Hello, {username}!',
-        user_info: 'User Information',
-        role: 'Role',
-        status: 'Status',
-        last_login: 'Last Login',
-        register_time: 'Register Time',
-        stats: 'Statistics',
-        solved_problems: 'Solved Problems',
-        submissions: 'Submissions',
-        contests: 'Contests',
-        recent_activities: 'Recent Activities',
-        no_activities: 'No recent activities',
-        verified: 'Verified',
-        unverified: 'Unverified'
-    }
-})
-
-useI18n().mergeLocaleMessage('zh-CN', {
-    dashboard: {
-        greeting: '你好，{username}！',
-        user_info: '用户信息',
-        role: '角色',
-        status: '状态',
-        last_login: '最后登录',
-        register_time: '注册时间',
-        stats: '统计数据',
-        solved_problems: '已解决问题',
-        submissions: '提交记录',
-        contests: '参与竞赛',
-        recent_activities: '最近活动',
-        no_activities: '暂无活动记录',
-        verified: '已验证',
-        unverified: '未验证'
-    }
-})
-
-// Fetch user info if needed
+// 获取用户信息
 onMounted(async () => {
     if (!user.value && authStore.token) {
         await authStore.fetchCurrentUser()
@@ -210,12 +171,12 @@ onMounted(async () => {
 .stat-value {
     font-size: 24px;
     font-weight: bold;
-    color: #409EFF;
+    color: var(--el-color-primary);
 }
 
 .stat-label {
     font-size: 14px;
-    color: #606266;
+    color: var(--text-color-secondary);
     margin-top: 5px;
 }
 

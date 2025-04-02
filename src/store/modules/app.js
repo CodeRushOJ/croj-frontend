@@ -1,48 +1,63 @@
-import { defineStore } from 'pinia'
+// src/store/modules/app.js
 
-export const useAppStore = defineStore('app', {
+import { defineStore } from "pinia";
+
+export const useAppStore = defineStore("app", {
   state: () => ({
-    // App settings
-    sidebarCollapsed: false,
-    language: localStorage.getItem('language') || import.meta.env.VITE_I18N_LOCALE || 'en',
-    theme: localStorage.getItem('theme') || 'light',
-    
-    // App state
+    // 应用设置
+    sidebarCollapsed:
+      localStorage.getItem("sidebarCollapsed") === "true" || false,
+    language:
+      localStorage.getItem("language") ||
+      import.meta.env.VITE_I18N_LOCALE ||
+      "en",
+    theme: localStorage.getItem("theme") || "light",
+
+    // 应用状态
     loading: false,
-    error: null
+    error: null,
   }),
-  
+
   actions: {
     /**
-     * Toggle sidebar collapse state
+     * 切换侧边栏折叠状态
      */
     toggleSidebar() {
-      this.sidebarCollapsed = !this.sidebarCollapsed
+      this.sidebarCollapsed = !this.sidebarCollapsed;
+      localStorage.setItem("sidebarCollapsed", this.sidebarCollapsed);
     },
-    
+
     /**
-     * Set application language
+     * 设置侧边栏折叠状态
+     */
+    setSidebarCollapsed(collapsed) {
+      this.sidebarCollapsed = collapsed;
+      localStorage.setItem("sidebarCollapsed", collapsed);
+    },
+
+    /**
+     * 设置应用语言
      */
     setLanguage(lang) {
-      this.language = lang
-      localStorage.setItem('language', lang)
+      this.language = lang;
+      localStorage.setItem("language", lang);
     },
-    
+
     /**
-     * Set application theme
+     * 设置应用主题
      */
     setTheme(theme) {
-      this.theme = theme
-      localStorage.setItem('theme', theme)
-      
-      // Apply theme to body
-      document.body.setAttribute('data-theme', theme)
-    }
+      this.theme = theme;
+      localStorage.setItem("theme", theme);
+
+      // 应用主题到body
+      document.body.setAttribute("data-theme", theme);
+    },
   },
-  
+
   persist: {
-    key: 'croj-app',
+    key: "croj-app",
     storage: localStorage,
-    paths: ['sidebarCollapsed', 'language', 'theme']
-  }
-})
+    paths: ["sidebarCollapsed", "language", "theme"],
+  },
+});

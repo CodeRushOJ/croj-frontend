@@ -9,36 +9,40 @@ import { registerDirectives } from "./directives";
 import App from "./App.vue";
 import router from "./router";
 
-// Import styles
+// 导入样式
 import "./assets/styles/index.scss";
 
-// Create Vue app
+// 创建Vue应用
 const app = createApp(App);
 
-// Configure Pinia with persistence
+// 配置Pinia持久化
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
-// Register Element Plus icons
+// 注册Element Plus图标
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component);
 }
 
-// Register custom directives
+// 注册自定义指令
 registerDirectives(app);
 
-// Use plugins
+// 使用插件
 app.use(pinia);
 app.use(router);
 app.use(i18n);
 app.use(ElementPlus);
 
-// Set initial theme from store
+// 从存储中设置初始主题
 import { useAppStore } from "./store/modules/app";
 const appStore = useAppStore();
-document.body.setAttribute("data-theme", appStore.theme);
 
-// Set body style to prevent scrolling
+// 确保DOM加载后设置主题
+document.addEventListener('DOMContentLoaded', () => {
+  document.body.setAttribute("data-theme", appStore.theme);
+});
+
+// 设置body样式以防止滚动
 document.body.style.margin = "0";
 document.body.style.padding = "0";
 document.body.style.overflow = "hidden";
@@ -46,5 +50,8 @@ document.body.style.position = "fixed";
 document.body.style.width = "100vw";
 document.body.style.height = "100vh";
 
-// Mount the app
+// 立即设置主题，避免闪烁
+document.body.setAttribute("data-theme", appStore.theme);
+
+// 挂载应用
 app.mount("#app");

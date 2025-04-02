@@ -11,6 +11,7 @@ const Register = () => import("@/views/auth/Register.vue");
 
 // 仪表板和其他页面
 const Dashboard = () => import("@/views/dashboard/Dashboard.vue");
+const Settings = () => import("@/views/settings/Settings.vue");
 const NotFound = () => import("@/views/error/NotFound.vue");
 
 // 管理页面
@@ -42,6 +43,16 @@ const routes = [
           title: "Profile",
           requiresAuth: true,
           icon: "el-icon-user",
+        },
+      },
+      {
+        path: "settings",
+        name: ROUTE_NAMES.SETTINGS,
+        component: Settings,
+        meta: {
+          title: "Settings",
+          requiresAuth: true,
+          icon: "el-icon-setting",
         },
       },
     ],

@@ -1,8 +1,8 @@
-// Base styles for the application
+// 应用基础样式
 
-// CSS Variables for theming
+// 主题CSS变量
 :root {
-  // Light theme (default)
+  // 亮色主题（默认）
   --bg-color: #f5f7fa;
   --bg-color-secondary: #ffffff;
   --text-color: #303133;
@@ -14,55 +14,109 @@
   --sidebar-bg: #304156;
   --sidebar-text: #bfcbd9;
   --sidebar-active: #409eff;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
+  --input-border: #dcdfe6;
+  --input-text: #606266;
+  --tag-bg: #f4f4f5;
+  --tag-text: #909399;
+  --tag-success-bg: #f0f9eb;
+  --tag-success-text: #67c23a;
+  --tag-warning-bg: #fdf6ec;
+  --tag-warning-text: #e6a23c;
+  --tag-danger-bg: #fef0f0;
+  --tag-danger-text: #f56c6c;
 }
 
-// Dark theme
+// 暗色主题
 [data-theme="dark"] {
-  --bg-color: #1e1e1e;
-  --bg-color-secondary: #2c2c2c;
+  --bg-color: #141414;
+  --bg-color-secondary: #1e1e1e;
   --text-color: #e5eaf3;
   --text-color-secondary: #a3a6ad;
   --border-color: #4c4d4f;
   --border-color-light: #363637;
   --shadow-color: rgba(0, 0, 0, 0.3);
-  --header-bg: #252525;
-  --sidebar-bg: #252525;
+  --header-bg: #1e1e1e;
+  --sidebar-bg: #1e1e1e;
   --sidebar-text: #a3a6ad;
   --sidebar-active: #409eff;
+  --card-bg: #1e1e1e;
+  --input-bg: #2a2a2a;
+  --input-border: #4c4d4f;
+  --input-text: #e5eaf3;
+  --tag-bg: #2c2c2c;
+  --tag-text: #a3a6ad;
+  --tag-success-bg: #16251e;
+  --tag-success-text: #67c23a;
+  --tag-warning-bg: #292218;
+  --tag-warning-text: #e6a23c;
+  --tag-danger-bg: #2b1d1d;
+  --tag-danger-text: #f56c6c;
 
-  // Override Element Plus variables for dark theme
+  // 重写Element Plus变量 - 对暗色主题进行全面覆盖
+  --el-color-primary: #409eff;
   --el-bg-color: var(--bg-color-secondary);
-  --el-bg-color-overlay: var(--bg-color);
+  --el-bg-color-overlay: var(--bg-color-secondary);
   --el-text-color-primary: var(--text-color);
   --el-text-color-regular: var(--text-color-secondary);
+  --el-text-color-secondary: var(--text-color-secondary);
   --el-border-color: var(--border-color);
   --el-border-color-light: var(--border-color-light);
+  --el-border-color-lighter: var(--border-color-light);
   --el-fill-color: var(--bg-color);
   --el-fill-color-light: var(--bg-color-secondary);
+  --el-fill-color-blank: var(--bg-color-secondary);
+  --el-mask-color: rgba(0, 0, 0, 0.7);
+  --el-mask-color-extra-light: rgba(0, 0, 0, 0.3);
+
+  // 表单相关
+  --el-input-bg-color: var(--input-bg);
+  --el-input-border-color: var(--input-border);
+  --el-input-text-color: var(--input-text);
+  --el-disabled-bg-color: #2c2c2c;
+  --el-disabled-text-color: #757575;
+
+  // 卡片相关
+  --el-card-bg-color: var(--card-bg);
+
+  // 表格相关
+  --el-table-bg-color: var(--bg-color-secondary);
+  --el-table-border-color: var(--border-color);
+  --el-table-header-bg-color: #262626;
+  --el-table-row-hover-bg-color: #262626;
+  --el-table-fixed-box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+
+  // 下拉菜单、弹出框
+  --el-dropdown-menu-bg-color: var(--bg-color-secondary);
+  --el-dropdown-menuItem-hover-fill: #2c2c2c;
+  --el-popup-bg-color: var(--bg-color-secondary);
 }
 
-// Base HTML styling
-html, body {
+// 基础HTML样式
+html,
+body {
   margin: 0;
   padding: 0;
-  height: 100vh; /* Use viewport height */
-  width: 100vw; /* Use viewport width */
-  overflow: hidden; /* Prevent scrolling at the body level */
-  position: fixed; /* Fix the body in place */
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: fixed;
   font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-color);
   background-color: var(--bg-color);
+  transition: background-color 0.3s, color 0.3s;
 }
 
-// Remove default margin/padding
+// 移除默认边距/内边距
 * {
   box-sizing: border-box;
 }
 
-// Links
+// 链接
 a {
   color: var(--el-color-primary);
   text-decoration: none;
@@ -73,14 +127,14 @@ a:focus {
   color: var(--el-color-primary-light-3);
 }
 
-// Main container
+// 主容器
 #app {
   height: 100%;
   width: 100%;
   overflow: hidden;
 }
 
-// Transitions
+// 过渡效果
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.3s ease;
@@ -91,7 +145,7 @@ a:focus {
   opacity: 0;
 }
 
-// Utility classes
+// 工具类
 .mb-4 {
   margin-bottom: 16px;
 }
@@ -118,4 +172,24 @@ a:focus {
 
 .align-center {
   align-items: center;
+}
+
+// 颜色文本修复
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-color);
+}
+
+p,
+span,
+div {
+  color: var(--text-color);
+}
+
+label {
+  color: var(--text-color);
 }
