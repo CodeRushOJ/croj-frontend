@@ -154,6 +154,9 @@ onMounted(() => {
     text-align: center;
     margin-bottom: 30px;
 }
+[data-theme="dark"] .form-title {
+    color: #e0e0e0;
+}
 
 .options-row {
     display: flex;

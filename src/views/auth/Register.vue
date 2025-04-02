@@ -348,6 +348,11 @@ useI18n().mergeLocaleMessage('zh-CN', {
     margin-bottom: 30px;
 }
 
+[data-theme="dark"] .form-title {
+    color: #e0e0e0;
+}
+
+
 .code-input-group {
     display: flex;
     gap: 10px;

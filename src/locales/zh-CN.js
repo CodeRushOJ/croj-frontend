@@ -2,8 +2,8 @@ import { update } from "lodash-es";
 
 export default {
   app: {
-    title: "CodeRush 在线评测系统",
-    welcome: "欢迎使用 CodeRush 在线评测系统",
+    title: "CodeRush OJ",
+    welcome: "欢迎使用 CodeRush OJ",
   },
   routes: {
     home: "首页",
