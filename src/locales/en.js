@@ -17,6 +17,7 @@ export default {
     login: "Log In",
     register: "Register",
     logout: "Log Out",
+    logout_confirm: "Are you sure you want to log out?",
     account_label: "Username or Email",
     username: "Username",
     email: "Email",
@@ -40,6 +41,8 @@ export default {
     get_verification_code: "Get Code",
     refresh_verification_code: "Refresh",
     captcha_note: "Click the image to refresh",
+    login_hint: "Please log in to access this page",
+    permission_hint: "You do not have permission to access this page"
   },
   validation: {
     username_required: "Username is required",

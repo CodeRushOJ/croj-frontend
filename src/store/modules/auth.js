@@ -86,13 +86,12 @@ export const useAuthStore = defineStore('auth', {
     /**
      * Logout user
      */
-    logout() {
+    logout(router) {
       // Clear token and user data
       this.token = null
       this.user = null
       
       // Redirect to login page
-      const router = useRouter()
       router.push({ name: ROUTE_NAMES.LOGIN })
     },
     

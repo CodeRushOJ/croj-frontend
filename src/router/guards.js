@@ -1,6 +1,10 @@
+// guards.js
 import { useAuthStore } from '@/store/modules/auth'
 import { ROUTE_NAMES } from '@/constants/routes'
 import { ElMessage } from 'element-plus'
+import i18n from '@/i18n'
+
+const { t } = i18n.global
 
 export function setupRouterGuards(router) {
   router.beforeEach((to, from, next) => {
@@ -14,7 +18,7 @@ export function setupRouterGuards(router) {
 
     // Routes that require authentication
     if (to.meta.requiresAuth && !isAuthenticated) {
-      ElMessage.warning('Please log in to access this page')
+      ElMessage.warning(t('auth.login_hint'))
       next({ name: ROUTE_NAMES.LOGIN, query: { redirect: to.fullPath } })
       return
     }
@@ -27,7 +31,7 @@ export function setupRouterGuards(router) {
 
     // Admin routes - check if user is admin
     if (to.meta.admin && !authStore.isAdmin) {
-      ElMessage.error('You do not have permission to access this page')
+      ElMessage.error(t('auth.permission_hint'))
       next({ name: ROUTE_NAMES.DASHBOARD })
       return
     }

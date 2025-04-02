@@ -90,20 +90,26 @@
                         <template #dropdown>
                             <el-dropdown-menu>
                                 <el-dropdown-item command="profile">
-                                    <el-icon>
-                                        <user />
-                                    </el-icon>
-                                    {{ $t('routes.profile') }}
+                                    <template #default>
+                                        <el-icon>
+                                            <User />
+                                        </el-icon>
+                                        <span>{{ $t('routes.profile') }}</span>
+                                    </template>
                                 </el-dropdown-item>
                                 <el-dropdown-item command="settings">
-                                    <el-icon>
-                                        <setting />
-                                    </el-icon>
-                                    {{ $t('routes.settings') }}
+                                    <template #default>
+                                        <el-icon>
+                                            <setting />
+                                        </el-icon>
+                                        <span>{{ $t('routes.settings') }}</span>
+                                    </template>
                                 </el-dropdown-item>
                                 <el-dropdown-item divided command="logout">
-                                    <el-icon><switch-button /></el-icon>
-                                    {{ $t('auth.logout') }}
+                                    <template #default>
+                                        <el-icon><switch-button /></el-icon>
+                                        <span>{{ $t('auth.logout') }}</span>
+                                    </template>
                                 </el-dropdown-item>
                             </el-dropdown-menu>
                         </template>
@@ -125,8 +131,9 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, markRaw } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n';
 import {
     House,
     Document,
@@ -148,12 +155,13 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const appStore = useAppStore()
+const { t } = useI18n();
 
 onMounted(async () => {
-  // 如果有 token 但没有用户数据，则获取用户信息
-  if (authStore.token && !authStore.currentUser) {
-    await authStore.fetchCurrentUser();
-  }
+    // 如果有 token 但没有用户数据，则获取用户信息
+    if (authStore.token && !authStore.currentUser) {
+        await authStore.fetchCurrentUser();
+    }
 });
 
 // Current route
@@ -166,7 +174,10 @@ const activeIndex = computed(() => route.path)
 const currentYear = computed(() => new Date().getFullYear())
 
 // Get user from store
-const user = computed(() => authStore.currentUser)
+const user = computed(() => {
+    const currentUser = authStore.currentUser
+    return currentUser ? markRaw(currentUser) : null
+})
 
 // Check if user is admin
 const isAdmin = computed(() => authStore.isAdmin)
@@ -218,17 +229,18 @@ const handleCommand = (command) => {
 // Handle logout with confirmation
 const handleLogout = () => {
     ElMessageBox.confirm(
-        'Are you sure you want to log out?',
-        'Logout',
+        t('auth.logout_confirm'),
+        t('auth.logout'),
         {
-            confirmButtonText: 'Logout',
-            cancelButtonText: 'Cancel',
+            confirmButtonText: t('auth.logout'),
+            cancelButtonText: t('common.cancel'),
             type: 'warning'
         }
     ).then(() => {
-        authStore.logout()
-    }).catch(() => {
-        // User cancelled logout
+        authStore.logout(router)
+    }).catch((error) => {
+        // User canceled logout
+        console.log('Logout canceled:', error)
     })
 }
 </script>

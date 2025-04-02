@@ -16,7 +16,8 @@ export default {
   auth: {
     login: "登录",
     register: "注册",
-    logout: "退出登录",
+    logout: "注销",
+    logout_confirm: "您确定要退出登录吗？",
     account_label: "用户名或邮箱",
     username: "用户名",
     email: "邮箱",
@@ -39,6 +40,8 @@ export default {
     get_verification_code: "获取验证码",
     refresh_verification_code: "刷新",
     captcha_note: "点击图片刷新验证码",
+    login_hint: "请登录以访问此页面",
+    permission_hint: "您没有权限访问此页面",
   },
   validation: {
     username_required: "用户名不能为空",
