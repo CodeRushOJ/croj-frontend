@@ -1,7 +1,9 @@
+// src/constants/routes.js
 export const ROUTE_NAMES = {
   // Main routes
   DASHBOARD: "Dashboard",
   PROBLEMS: "Problems",
+  PROBLEM_DETAIL: "ProblemDetail",
   CONTESTS: "Contests",
   RANKING: "Ranking",
   PROFILE: "Profile",
@@ -20,6 +22,7 @@ export const ROUTE_NAMES = {
   ADMIN: "Admin",
   ADMIN_USERS: "AdminUsers",
   ADMIN_PROBLEMS: "AdminProblems",
+  ADMIN_TAGS: "AdminTags",
   ADMIN_CONTESTS: "AdminContests",
 
   // Error pages
@@ -32,6 +35,7 @@ export const ROUTE_PATHS = {
   // Main paths
   DASHBOARD: "/",
   PROBLEMS: "/problems",
+  PROBLEM_DETAIL: "/problem/:problemNo",
   CONTESTS: "/contests",
   RANKING: "/ranking",
   PROFILE: "/profile",
@@ -50,6 +54,7 @@ export const ROUTE_PATHS = {
   ADMIN: "/admin",
   ADMIN_USERS: "/admin/users",
   ADMIN_PROBLEMS: "/admin/problems",
+  ADMIN_TAGS: "/admin/tags",
   ADMIN_CONTESTS: "/admin/contests",
 
   // Error paths

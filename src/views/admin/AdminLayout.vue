@@ -1,14 +1,14 @@
 <template>
     <div class="admin-layout">
-        <!-- 管理头部与标题 -->
+        <!-- Admin header and title -->
         <div class="admin-header">
             <h1 class="admin-title">{{ $t('admin.title') }}</h1>
             <div class="admin-description">{{ $t('admin.description') }}</div>
         </div>
 
-        <!-- 管理内容区域，包含侧边栏和主区域 -->
+        <!-- Admin content area with sidebar and main area -->
         <div class="admin-content">
-            <!-- 侧边栏导航 -->
+            <!-- Sidebar navigation -->
             <div class="admin-sidebar">
                 <el-menu :default-active="activeMenu" class="admin-menu" router>
                     <el-menu-item index="/admin">
@@ -29,6 +29,12 @@
                         </el-icon>
                         <span>{{ $t('admin.problems') }}</span>
                     </el-menu-item>
+                    <el-menu-item index="/admin/tags">
+                        <el-icon>
+                            <CollectionTag />
+                        </el-icon>
+                        <span>{{ $t('admin.tags') }}</span>
+                    </el-menu-item>
                     <el-menu-item index="/admin/contests">
                         <el-icon>
                             <Trophy />
@@ -36,9 +42,11 @@
                         <span>{{ $t('admin.contests') }}</span>
                     </el-menu-item>
                 </el-menu>
+                <!-- Add a filler div to ensure background covers the entire sidebar -->
+                <div class="sidebar-filler"></div>
             </div>
 
-            <!-- 主内容区域 -->
+            <!-- Main content area -->
             <div class="admin-main">
                 <router-view />
             </div>
@@ -48,46 +56,16 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { Monitor, User, Document, Trophy } from '@element-plus/icons-vue';
-import { useAuthStore } from '@/store/modules/auth';
+import { Monitor, User, Document, CollectionTag, Trophy } from '@element-plus/icons-vue';
 
 const route = useRoute();
-const router = useRouter();
 const { t } = useI18n();
-const authStore = useAuthStore();
 
-// 检查用户是否是管理员，如果不是则重定向
-const isSuperAdmin = computed(() => authStore.isSuperAdmin);
-const isAdmin = computed(() => authStore.isAdmin);
-
-// 使用当前路径确定活动菜单项
+// Use current path to determine active menu item
 const activeMenu = computed(() => {
     return route.path;
-});
-
-// 添加翻译
-useI18n().mergeLocaleMessage('en', {
-    admin: {
-        title: 'Administration',
-        description: 'Manage users, problems, and contests',
-        dashboard: 'Dashboard',
-        users: 'Users',
-        problems: 'Problems',
-        contests: 'Contests',
-    }
-});
-
-useI18n().mergeLocaleMessage('zh-CN', {
-    admin: {
-        title: '管理后台',
-        description: '管理用户、题目和竞赛',
-        dashboard: '控制台',
-        users: '用户管理',
-        problems: '题目管理',
-        contests: '竞赛管理',
-    }
 });
 </script>
 
@@ -97,53 +75,82 @@ useI18n().mergeLocaleMessage('zh-CN', {
     flex-direction: column;
     height: 100%;
     overflow: hidden;
+    background-color: var(--bg-color);
 }
 
 .admin-header {
-    background-color: #fff;
     padding: 20px;
     border-radius: 4px;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 12px 0 var(--shadow-color);
     margin-bottom: 20px;
+    background-color: var(--bg-color);
 }
 
 .admin-title {
     font-size: 24px;
     margin: 0 0 10px 0;
-    color: #303133;
+    color: var(--text-color);
 }
 
 .admin-description {
-    color: #606266;
+    color: var(--text-color-secondary);
     font-size: 14px;
 }
 
 .admin-content {
     display: flex;
     flex: 1;
-    background-color: #fff;
     border-radius: 4px;
-    box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 12px 0 var(--shadow-color);
     overflow: hidden;
     height: calc(100% - 110px);
+    background-color: var(--bg-color);
 }
 
 .admin-sidebar {
     width: 240px;
-    border-right: 1px solid #e6e6e6;
+    border-right: 1px solid var(--border-color);
     height: 100%;
     overflow-y: auto;
+    background-color: var(--bg-color);
+    display: flex;
+    flex-direction: column;
 }
 
 .admin-menu {
-    height: 100%;
+    height: auto;
     border-right: none;
+    background-color: var(--bg-color);
+}
+
+/* This fills the remaining space in the sidebar to maintain background color */
+.sidebar-filler {
+    flex-grow: 1;
+    background-color: var(--bg-color);
+}
+
+.admin-menu :deep(.el-menu) {
+    background-color: var(--bg-color);
+    border-right: none;
+}
+
+.admin-menu :deep(.el-menu-item) {
+    background-color: var(--bg-color);
+}
+
+.admin-menu :deep(.el-menu-item.is-active) {
+    background-color: var(--el-menu-hover-bg-color);
+}
+
+.admin-menu :deep(.el-menu-item:hover) {
+    background-color: var(--el-menu-hover-bg-color);
 }
 
 .admin-main {
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    background-color: var(--bg-color);
 }
 
 @media (max-width: 768px) {
@@ -156,7 +163,7 @@ useI18n().mergeLocaleMessage('zh-CN', {
         width: 100%;
         height: auto;
         border-right: none;
-        border-bottom: 1px solid #e6e6e6;
+        border-bottom: 1px solid var(--border-color);
     }
 
     .admin-main {

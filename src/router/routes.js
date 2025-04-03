@@ -1,25 +1,31 @@
 // src/router/routes.js
 import { ROUTE_NAMES } from "@/constants/routes";
 
-// 布局组件
+// Layout components
 const MainLayout = () => import("@/views/layout/MainLayout.vue");
 const AuthLayout = () => import("@/views/layout/AuthLayout.vue");
 
-// 认证页面
+// Auth pages
 const Login = () => import("@/views/auth/Login.vue");
 const Register = () => import("@/views/auth/Register.vue");
 
-// 仪表板和其他页面
+// Dashboard and other pages
 const Dashboard = () => import("@/views/dashboard/Dashboard.vue");
 const Settings = () => import("@/views/settings/Settings.vue");
 const NotFound = () => import("@/views/error/NotFound.vue");
 
-// 管理页面
+// Problem pages
+const ProblemList = () => import("@/views/problem/ProblemList.vue");
+const ProblemDetail = () => import("@/views/problem/ProblemDetail.vue");
+
+// Admin pages
 const AdminLayout = () => import("@/views/admin/AdminLayout.vue");
 const AdminDashboard = () => import("@/views/admin/Dashboard.vue");
 const UserManagement = () => import("@/views/admin/UserManagement.vue");
+const ProblemManagement = () => import("@/views/admin/ProblemManagement.vue");
+const TagManagement = () => import("@/views/admin/TagManagement.vue");
 
-// 路由配置
+// Route configuration
 const routes = [
   {
     path: "/",
@@ -33,6 +39,26 @@ const routes = [
         meta: {
           title: "Dashboard",
           icon: "el-icon-menu",
+        },
+      },
+      {
+        path: "problems",
+        name: ROUTE_NAMES.PROBLEMS,
+        component: ProblemList,
+        meta: {
+          title: "Problems",
+          requiresAuth: true,
+          icon: "el-icon-document",
+        },
+      },
+      {
+        path: "problem/:problemNo",
+        name: "ProblemDetail",
+        component: ProblemDetail,
+        meta: {
+          title: "Problem Detail",
+          requiresAuth: true,
+          icon: "el-icon-document",
         },
       },
       {
@@ -57,7 +83,7 @@ const routes = [
       },
     ],
   },
-  // 管理路由
+  // Admin routes
   {
     path: "/admin",
     component: MainLayout,
@@ -88,6 +114,24 @@ const routes = [
               icon: "el-icon-user",
             },
           },
+          {
+            path: "problems",
+            name: ROUTE_NAMES.ADMIN_PROBLEMS,
+            component: ProblemManagement,
+            meta: {
+              title: "Problem Management",
+              icon: "el-icon-document",
+            },
+          },
+          {
+            path: "tags",
+            name: "AdminTags",
+            component: TagManagement,
+            meta: {
+              title: "Tag Management",
+              icon: "el-icon-collection-tag",
+            },
+          },
         ],
       },
     ],
@@ -115,7 +159,7 @@ const routes = [
       },
     ],
   },
-  // 重定向 /login 和 /register 到 /auth/login 和 /auth/register
+  // Redirect /login and /register to /auth/login and /auth/register
   {
     path: "/login",
     redirect: { name: ROUTE_NAMES.LOGIN },
@@ -124,7 +168,7 @@ const routes = [
     path: "/register",
     redirect: { name: ROUTE_NAMES.REGISTER },
   },
-  // 邮箱验证路由
+  // Email verification route
   {
     path: "/verify-email",
     name: ROUTE_NAMES.VERIFY_EMAIL,
@@ -133,7 +177,7 @@ const routes = [
       title: "Verify Email",
     },
   },
-  // 404 路由
+  // 404 route
   {
     path: "/:pathMatch(.*)*",
     name: ROUTE_NAMES.NOT_FOUND,

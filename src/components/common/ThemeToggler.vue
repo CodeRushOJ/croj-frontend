@@ -33,21 +33,6 @@ const toggleTheme = () => {
 const tooltipContent = computed(() => {
   return isDarkMode.value ? t('common.light_mode') : t('common.dark_mode');
 });
-
-// 添加翻译
-useI18n().mergeLocaleMessage('en', {
-  common: {
-    light_mode: 'Switch to Light Mode',
-    dark_mode: 'Switch to Dark Mode'
-  }
-});
-
-useI18n().mergeLocaleMessage('zh-CN', {
-  common: {
-    light_mode: '切换到亮色模式',
-    dark_mode: '切换到暗色模式'
-  }
-});
 </script>
 
 <style scoped>

@@ -201,49 +201,6 @@ const fetchDashboardData = async () => {
 onMounted(() => {
     fetchDashboardData();
 });
-
-// 添加翻译
-useI18n().mergeLocaleMessage('en', {
-    admin: {
-        dashboard_title: 'Admin Dashboard',
-        total_users: 'Total Users',
-        active_users: 'Active Users',
-        verified_users: 'Verified Users',
-        today_registered: 'Today Registered',
-        of_total: 'of total',
-        recent_users: 'Recent Users',
-        view_all: 'View All',
-        register_time: 'Registration Time',
-        status: 'Status',
-        actions: 'Actions',
-        details: 'Details',
-        email_verified: 'Email Status',
-        verified: 'Verified',
-        unverified: 'Unverified',
-        fetch_data_error: 'Failed to fetch dashboard data'
-    }
-});
-
-useI18n().mergeLocaleMessage('zh-CN', {
-    admin: {
-        dashboard_title: '管理控制台',
-        total_users: '用户总数',
-        active_users: '活跃用户',
-        verified_users: '已验证用户',
-        today_registered: '今日注册',
-        of_total: '占总数',
-        recent_users: '最近注册用户',
-        view_all: '查看全部',
-        register_time: '注册时间',
-        status: '状态',
-        actions: '操作',
-        details: '详情',
-        email_verified: '邮箱状态',
-        verified: '已验证',
-        unverified: '未验证',
-        fetch_data_error: '获取仪表板数据失败'
-    }
-});
 </script>
 
 <style scoped>

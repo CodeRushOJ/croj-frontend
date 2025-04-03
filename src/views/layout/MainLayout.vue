@@ -64,9 +64,16 @@
                 <div class="header-left">
                     <el-breadcrumb separator="/">
                         <el-breadcrumb-item :to="{ path: '/' }">{{ $t('routes.dashboard') }}</el-breadcrumb-item>
-                        <el-breadcrumb-item v-if="currentRoute.meta.title">
-                            {{ $t(`routes.${currentRoute.meta.title.toLowerCase()}`) }}
-                        </el-breadcrumb-item>
+                        
+                        <!-- Handle nested routes correctly -->
+                        <template v-if="breadcrumbs.length > 0">
+                            <el-breadcrumb-item 
+                                v-for="(breadcrumb, index) in breadcrumbs"
+                                :key="index"
+                                :to="breadcrumb.path">
+                                {{ breadcrumb.title }}
+                            </el-breadcrumb-item>
+                        </template>
                     </el-breadcrumb>
                 </div>
 
@@ -143,7 +150,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n';
 import {
@@ -211,6 +218,47 @@ const currentLanguage = computed(() => {
             return 'English'
     }
 })
+
+// Generate breadcrumbs for current route
+const breadcrumbs = computed(() => {
+    const crumbs = [];
+    const pathFragments = route.path.split('/').filter(Boolean);
+    let path = '';
+    
+    // Process each path fragment
+    pathFragments.forEach((fragment, index) => {
+        path += `/${fragment}`;
+        
+        // Find matching route
+        const matchedRoute = router.getRoutes().find(r => r.path === path);
+        if (matchedRoute) {
+            // Determine title based on fragment or route meta
+            let title = '';
+            
+            if (matchedRoute.meta && matchedRoute.meta.title) {
+                // Try to translate the title from route meta
+                const translationKey = `routes.${matchedRoute.meta.title.toLowerCase()}`;
+                title = t(translationKey);
+                
+                // If translation returns the key itself, it means no translation found
+                if (title === translationKey) {
+                    // Fallback to formatted fragment
+                    title = fragment.charAt(0).toUpperCase() + fragment.slice(1);
+                }
+            } else {
+                // Fallback to formatted fragment
+                title = fragment.charAt(0).toUpperCase() + fragment.slice(1);
+            }
+            
+            crumbs.push({
+                path,
+                title
+            });
+        }
+    });
+    
+    return crumbs;
+});
 
 // 切换侧边栏
 const toggleSidebar = () => {

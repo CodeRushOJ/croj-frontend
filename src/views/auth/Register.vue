@@ -307,37 +307,6 @@ onUnmounted(() => {
         clearInterval(countdownTimer)
     }
 })
-
-// Add translations
-useI18n().mergeLocaleMessage('en', {
-    auth: {
-        // Existing translations...
-        email_code: 'Email Verification Code',
-        send_code: 'Send Code',
-        code_sent: 'Resend'
-    },
-    validation: {
-        // Existing translations...
-        email_code_required: 'Email verification code is required',
-        email_code_sent: 'Verification code sent to your email',
-        email_code_send_failed: 'Failed to send verification code'
-    }
-})
-
-useI18n().mergeLocaleMessage('zh-CN', {
-    auth: {
-        // Existing translations...
-        email_code: '邮箱验证码',
-        send_code: '发送验证码',
-        code_sent: '重新发送'
-    },
-    validation: {
-        // Existing translations...
-        email_code_required: '邮箱验证码不能为空',
-        email_code_sent: '验证码已发送到您的邮箱',
-        email_code_send_failed: '验证码发送失败'
-    }
-})
 </script>
 
 <style scoped>
@@ -351,7 +320,6 @@ useI18n().mergeLocaleMessage('zh-CN', {
 [data-theme="dark"] .form-title {
     color: #e0e0e0;
 }
-
 
 .code-input-group {
     display: flex;

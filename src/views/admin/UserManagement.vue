@@ -15,7 +15,7 @@
         </div>
 
         <!-- 用户表格 -->
-        <el-table :data="users" style="width: 100%" v-loading="loading" border stripe>
+        <el-table :data="users" style="width: 100%" v-loading="loading" border stripe :header-cell-style="headerCellStyle" :cell-style="cellStyle">
             <el-table-column prop="id" label="ID" width="80" sortable />
             <el-table-column prop="username" :label="$t('auth.username')" min-width="120" />
             <el-table-column prop="email" :label="$t('auth.email')" min-width="180" />
@@ -174,6 +174,19 @@ const currentPage = ref(1);
 const pageSize = ref(10);
 const searchKeyword = ref('');
 const searchTimeout = ref(null);
+
+// Table styles for correct theme application
+const headerCellStyle = {
+    backgroundColor: 'var(--bg-color-secondary)',
+    color: 'var(--text-color)',
+    borderColor: 'var(--border-color)'
+};
+
+const cellStyle = {
+    backgroundColor: 'var(--bg-color-secondary)',
+    color: 'var(--text-color)',
+    borderColor: 'var(--border-color)'
+};
 
 // 获取当前用户角色
 const currentUserRole = computed(() => {
@@ -379,85 +392,6 @@ watch([currentPage, pageSize], () => {
 // 组件挂载时获取用户
 onMounted(() => {
     fetchUsers();
-});
-
-// 添加翻译
-useI18n().mergeLocaleMessage('en', {
-    admin: {
-        user_management: 'User Management',
-        search_user: 'Search by username or email',
-        email_verified: 'Email Status',
-        verified: 'Verified',
-        unverified: 'Unverified',
-        role: 'Role',
-        status: 'Status',
-        actions: 'Actions',
-        view: 'View',
-        disable: 'Disable',
-        enable: 'Enable',
-        delete: 'Delete',
-        user_details: 'User Details',
-        user_id: 'User ID',
-        last_login: 'Last Login',
-        never: 'Never',
-        bio: 'Bio',
-        school: 'School',
-        github: 'GitHub',
-        confirm_delete: 'Confirm Delete',
-        delete_confirmation: 'Are you sure you want to delete the user {username}? This action cannot be undone.',
-        confirm: 'Confirm',
-        status_confirmation: 'Are you sure you want to {action} the user {username}?',
-        cannot_change_super_admin: 'Cannot modify super admin',
-        cannot_delete_super_admin: 'Cannot delete super admin',
-        cannot_change_admin: 'Regular admin cannot modify other admins',
-        cannot_delete_admin: 'Regular admin cannot delete other admins',
-        status_updated: 'User status updated successfully',
-        user_deleted: 'User deleted successfully',
-        fetch_users_error: 'Failed to fetch users',
-        update_status_error: 'Failed to update user status',
-        delete_user_error: 'Failed to delete user',
-        normal: 'Normal',
-        disabled: 'Disabled'
-    }
-});
-
-useI18n().mergeLocaleMessage('zh-CN', {
-    admin: {
-        user_management: '用户管理',
-        search_user: '搜索用户名或邮箱',
-        email_verified: '邮箱状态',
-        verified: '已验证',
-        unverified: '未验证',
-        role: '角色',
-        status: '状态',
-        actions: '操作',
-        view: '查看',
-        disable: '禁用',
-        enable: '启用',
-        delete: '删除',
-        user_details: '用户详情',
-        user_id: '用户ID',
-        last_login: '最后登录',
-        never: '从未登录',
-        bio: '个人简介',
-        school: '学校',
-        github: 'GitHub账号',
-        confirm_delete: '确认删除',
-        delete_confirmation: '您确定要删除用户 {username} 吗？此操作不可撤销。',
-        confirm: '确认',
-        status_confirmation: '您确定要{action}用户 {username} 吗？',
-        cannot_change_super_admin: '无法修改超级管理员',
-        cannot_delete_super_admin: '无法删除超级管理员',
-        cannot_change_admin: '普通管理员无法修改其他管理员',
-        cannot_delete_admin: '普通管理员无法删除其他管理员',
-        status_updated: '用户状态更新成功',
-        user_deleted: '用户删除成功',
-        fetch_users_error: '获取用户列表失败',
-        update_status_error: '更新用户状态失败',
-        delete_user_error: '删除用户失败',
-        normal: '正常',
-        disabled: '禁用'
-    }
 });
 </script>
 
