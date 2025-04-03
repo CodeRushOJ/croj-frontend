@@ -246,7 +246,29 @@ export default {
     solution_placeholder: '题解将在您解决问题后或比赛结束时可用。',
     submissions_placeholder: '您的提交记录将显示在这里。',
     submit_solution: '提交解答',
-    submit_placeholder: '提交功能即将推出。'
+    submit_placeholder: '提交功能即将推出。',
+
+    /* Submission */
+    submit: '提交代码',
+    select_language: '选择语言',
+    format_code: '格式化代码',
+    reset_template: '重置',
+    submit_solution: '提交解答',
+    run_code: '运行代码',
+    running_code: '运行中...',
+    last_submitted: '上次提交',
+    submission_success: '代码提交成功',
+    submission_error: '代码提交失败',
+    submission_received: '您的提交已收到',
+    code_formatted: '代码已格式化',
+    code_reset: '代码已重置为模板',
+    run_success: '代码执行成功',
+    run_error: '代码执行失败',
+    editor_load_error: '加载代码编辑器失败',
+    format_error: '格式化代码时发生错误',
+    reset_error: '重置代码时发生错误',
+    language_change_error: '切换语言时发生错误',
+    initializing_editor: '正在初始化编辑器...'
   },
   admin: {
     /* Dashboard Layout */

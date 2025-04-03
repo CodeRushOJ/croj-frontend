@@ -250,7 +250,30 @@ export default {
     solution_placeholder: 'Solutions will be available after you solve the problem or when the contest ends.',
     submissions_placeholder: 'Your submissions will appear here.',
     submit_solution: 'Submit Solution',
-    submit_placeholder: 'Submission functionality coming soon.'
+    submit_placeholder: 'Submission functionality coming soon.',
+    submit: 'Submit Code',
+
+    /* Submission */
+    submit: 'Submit Code',
+    select_language: 'Select Language',
+    format_code: 'Format Code',
+    reset_template: 'Reset',
+    submit_solution: 'Submit Solution',
+    run_code: 'Run Code',
+    running_code: 'Running...',
+    last_submitted: 'Last submitted',
+    submission_success: 'Code submitted successfully',
+    submission_error: 'Failed to submit code',
+    submission_received: 'Your submission has been received',
+    code_formatted: 'Code formatted',
+    code_reset: 'Code reset to template',
+    run_success: 'Code executed successfully',
+    run_error: 'Error executing code',
+    editor_load_error: 'Failed to load code editor',
+    format_error: 'Error formatting code',
+    reset_error: 'Error resetting code',
+    language_change_error: 'Error changing language',
+    initializing_editor: 'Initializing editor...',
   },
   admin: {
     /* Dashboard Layout */

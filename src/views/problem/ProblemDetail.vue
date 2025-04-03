@@ -1,4 +1,4 @@
-// src/views/problem/ProblemDetail.vue
+<!-- src/views/problem/ProblemDetail.vue -->
 <template>
     <div class="problem-detail-container">
         <!-- Loading skeleton -->
@@ -116,14 +116,14 @@
                         <p>{{ $t('problems.submissions_placeholder') }}</p>
                     </div>
                 </el-tab-pane>
-            </el-tabs>
 
-            <!-- Submit button -->
-            <div class="action-buttons">
-                <el-button type="primary" size="large" @click="handleSubmit">
-                    {{ $t('problems.submit_solution') }}
-                </el-button>
-            </div>
+                <!-- New tab for code submission -->
+                <el-tab-pane :label="$t('problems.submit')" name="submit">
+                    <div class="submit-section">
+                        <code-editor :problem="problem" @submit="handleSubmitCode" />
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
         </div>
     </div>
 </template>
@@ -134,6 +134,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import { problemApi } from '@/api/problem';
+import CodeEditor from '@/components/problem/CodeEditor.vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -195,11 +196,17 @@ const getDifficultyLabel = (difficulty) => {
     }
 };
 
-// Handle submit solution
-const handleSubmit = () => {
-    ElMessage.info(t('problems.submit_placeholder'));
-    // This would navigate to a code editor or submission page
-    // router.push({ name: 'ProblemSubmit', params: { problemNo: problem.value.problemNo } });
+// Handle submit code
+const handleSubmitCode = (submission) => {
+    console.log('Submission received:', submission);
+    // Here you would call your submission API
+    // Example: submitApi.submit(submission);
+
+    // Switch to submissions tab
+    activeTab.value = 'submissions';
+
+    // Show success message
+    ElMessage.success(t('problems.submission_received'));
 };
 
 // Lifecycle
@@ -368,10 +375,8 @@ pre {
     color: var(--text-color-secondary);
 }
 
-.action-buttons {
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
+.submit-section {
+    padding: 10px 0;
 }
 
 @media (min-width: 768px) {
