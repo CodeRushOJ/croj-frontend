@@ -115,7 +115,8 @@ export default {
     close: "关闭",
     update: "更新",
     light_mode: '切换到亮色模式',
-    dark_mode: '切换到暗色模式'
+    dark_mode: '切换到暗色模式',
+    view_code: '查看代码',
   },
   email: {
     verify_email: "验证您的邮箱",
@@ -268,7 +269,9 @@ export default {
     format_error: '格式化代码时发生错误',
     reset_error: '重置代码时发生错误',
     language_change_error: '切换语言时发生错误',
-    initializing_editor: '正在初始化编辑器...'
+    initializing_editor: '正在初始化编辑器...',
+    submission_history: '提交历史',
+    submission_sent: '提交成功',
   },
   admin: {
     /* Dashboard Layout */
@@ -413,5 +416,22 @@ export default {
   notfound: {
     title: "抱歉，您访问的页面不存在。",
     back_to_home: "返回首页",
-  }
+  },
+  submissions: {
+    title: '提交记录',
+    status: '状态',
+    language: '语言',
+    time: '耗时',
+    memory: '内存',
+    submit_time: '提交时间',
+    submitting: '提交中',
+    poll_error: '轮询提交状态失败',
+    accepted: '通过',
+    finished_with_status: '评测完成，状态',
+    already_submitting: '正在提交中，请稍候...',
+    last_submission_status: '最后一次提交状态',
+    message: '信息',
+    fetch_list_error: '获取提交列表失败',
+    view_code_title: '查看代码',
+  },
 };

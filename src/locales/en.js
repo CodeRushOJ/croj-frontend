@@ -117,6 +117,7 @@ export default {
     update: "Update",
     light_mode: 'Switch to Light Mode',
     dark_mode: 'Switch to Dark Mode',
+    view_code: 'View Code',
   },
   email: {
     verify_email: "Verify Your Email",
@@ -274,6 +275,8 @@ export default {
     reset_error: 'Error resetting code',
     language_change_error: 'Error changing language',
     initializing_editor: 'Initializing editor...',
+    submission_history: 'Submission History',
+    submission_sent: 'Submission sent successfully',
   },
   admin: {
     /* Dashboard Layout */
@@ -419,6 +422,23 @@ export default {
   notfound: {
     title: "Sorry, the page you visited does not exist.",
     back_to_home: "Back to Home",
-  }
+  },
+  submissions: {
+    title: 'Submissions',
+    status: 'Status',
+    language: 'Language',
+    time: 'Time',
+    memory: 'Memory',
+    submit_time: 'Submit Time',
+    submitting: 'Submitting',
+    poll_error: 'Error polling submission status',
+    accepted: 'Accepted',
+    finished_with_status: 'Finished with status',
+    already_submitting: 'Already submitting, please wait...',
+    last_submission_status: 'Last Submission Status',
+    message: 'Message',
+    fetch_list_error: 'Failed to fetch submission list',
+    view_code_title: 'View Code',
+  },
 };
 
