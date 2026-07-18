@@ -32,7 +32,7 @@
 import { onMounted, reactive, ref, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { solutionApi } from "@/api/community";
-import { normalizeCommunityPage } from "@/types/community";
+import { normalizeCommunityPage, normalizeSolution } from "@/types/community";
 import AsyncState from "@/components/community/AsyncState.vue";
 import SolutionCard from "@/components/community/SolutionCard.vue";
 
@@ -48,7 +48,11 @@ const form = reactive({ title: "", content: "" });
 const loadSolutions = async () => {
   if (!props.problemId) return;
   loading.value = true; error.value = "";
-  try { solutions.value = normalizeCommunityPage((await solutionApi.list(props.problemId, { page: 1, size: 30 })).data).items; }
+  try {
+    solutions.value = normalizeCommunityPage(
+      (await solutionApi.list(props.problemId, { current: 1, size: 30 })).data,
+    ).items.map(normalizeSolution);
+  }
   catch { solutions.value = []; error.value = "题解加载失败，请稍后重试。"; }
   finally { loading.value = false; }
 };
@@ -79,4 +83,3 @@ watch(() => props.problemId, loadSolutions);
 .form-actions { display: flex !important; grid-auto-flow: column; justify-content: end; }.form-error { margin: 0; color: var(--el-color-danger); }
 @media (max-width: 600px) { .solutions__header { flex-direction: column; } }
 </style>
-

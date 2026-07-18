@@ -16,6 +16,7 @@
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { solutionApi } from "@/api/community";
+import { normalizeSolution } from "@/types/community";
 import AsyncState from "@/components/community/AsyncState.vue";
 
 const route = useRoute();
@@ -27,7 +28,7 @@ const error = ref("");
 const formatDate = (value) => value ? new Intl.DateTimeFormat("zh-CN", { dateStyle: "long", timeStyle: "short" }).format(new Date(value)) : "刚刚";
 const loadSolution = async () => {
   loading.value = true; error.value = "";
-  try { solution.value = (await solutionApi.get(problemId, route.params.solutionId)).data; }
+  try { solution.value = normalizeSolution((await solutionApi.get(problemId, route.params.solutionId)).data); }
   catch { error.value = "无法获取这篇题解，请稍后重试。"; }
   finally { loading.value = false; }
 };

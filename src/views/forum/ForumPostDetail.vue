@@ -35,7 +35,7 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { forumApi } from "@/api/community";
-import { normalizeCommunityPage } from "@/types/community";
+import { normalizeCommunityPage, normalizeForumComment, normalizeForumPost } from "@/types/community";
 import AsyncState from "@/components/community/AsyncState.vue";
 
 const route = useRoute();
@@ -53,13 +53,17 @@ const postId = String(route.params.postId);
 const formatDate = (value) => value ? new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "刚刚";
 const loadPost = async () => {
   loading.value = true; error.value = "";
-  try { post.value = (await forumApi.getPost(postId)).data; }
+  try { post.value = normalizeForumPost((await forumApi.getPost(postId)).data); }
   catch { error.value = "无法获取这篇讨论，请稍后重试。"; }
   finally { loading.value = false; }
 };
 const loadComments = async () => {
   commentsLoading.value = true; commentsError.value = "";
-  try { comments.value = normalizeCommunityPage((await forumApi.listComments(postId, { page: 1, size: 100 })).data).items; }
+  try {
+    comments.value = normalizeCommunityPage(
+      (await forumApi.listComments(postId, { current: 1, size: 100 })).data,
+    ).items.map(normalizeForumComment);
+  }
   catch { commentsError.value = "评论加载失败，请稍后重试。"; }
   finally { commentsLoading.value = false; }
 };
@@ -97,4 +101,3 @@ textarea:focus { border-color: var(--el-color-primary); }
 .comment p { margin: 10px 0 0; white-space: pre-wrap; }
 .form-error { margin: 0; color: var(--el-color-danger); }
 </style>
-

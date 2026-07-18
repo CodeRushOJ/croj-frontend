@@ -78,12 +78,13 @@ pnpm build
 Axios 的 `baseURL` 是同源 `/api`，社区请求集中在 `src/api/community.js`：
 
 - `GET/POST /api/v1/forum/posts`
+- `GET /api/v1/forum/categories`
 - `GET /api/v1/forum/posts/{postId}`
 - `GET/POST /api/v1/forum/posts/{postId}/comments`
 - `GET/POST /api/v1/problems/{problemId}/solutions`
 - `GET /api/v1/problems/{problemId}/solutions/{solutionId}`
 
-页面支持加载骨架、空态、可重试错误态和移动端单列布局。正文以纯文本安全呈现；当前 MVP 不引入富文本和付费能力。
+`community.js` 在边界上把页面的 `content` 模型映射为后端 `contentMarkdown` DTO，并把 `authorName`、`publishedAt` 等 VO 字段规范化后再交给组件。论坛列表、帖子详情和题解详情允许匿名阅读；发布、评论和题解写入仍需要登录。页面支持加载骨架、空态、可重试错误态和移动端单列布局。正文以纯文本安全呈现；当前 MVP 不引入富文本和付费能力。
 
 ## 部署
 

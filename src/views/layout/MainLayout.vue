@@ -105,7 +105,7 @@
                     </el-dropdown>
 
                     <!-- 用户下拉 -->
-                    <el-dropdown @command="handleCommand" class="header-item">
+                    <el-dropdown v-if="user" @command="handleCommand" class="header-item">
                         <span class="el-dropdown-link user-dropdown">
                             <el-avatar :size="32" :src="userAvatar" />
                             <span class="username">{{ user?.username }}</span>
@@ -140,6 +140,9 @@
                             </el-dropdown-menu>
                         </template>
                     </el-dropdown>
+                    <router-link v-else :to="{ name: ROUTE_NAMES.LOGIN, query: { redirect: route.fullPath } }">
+                        <el-button type="primary" plain>{{ $t('auth.login') }}</el-button>
+                    </router-link>
                 </div>
             </el-header>
 

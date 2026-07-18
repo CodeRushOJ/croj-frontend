@@ -69,7 +69,7 @@ const routes = [
         path: "forum",
         name: ROUTE_NAMES.FORUM,
         component: ForumList,
-        meta: { title: "Forum", requiresAuth: true, icon: "el-icon-chat-dot-round" },
+        meta: { title: "Forum", requiresAuth: false, icon: "el-icon-chat-dot-round" },
       },
       {
         path: "forum/new",
@@ -81,13 +81,13 @@ const routes = [
         path: "forum/:postId",
         name: ROUTE_NAMES.FORUM_POST_DETAIL,
         component: ForumPostDetail,
-        meta: { title: "Discussion", requiresAuth: true },
+        meta: { title: "Discussion", requiresAuth: false },
       },
       {
         path: "problems/:problemId/solutions/:solutionId",
         name: ROUTE_NAMES.SOLUTION_DETAIL,
         component: SolutionDetail,
-        meta: { title: "Solution", requiresAuth: true },
+        meta: { title: "Solution", requiresAuth: false },
       },
       {
         path: "profile",

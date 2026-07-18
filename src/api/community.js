@@ -1,18 +1,26 @@
 import request from "./request";
 
 export const forumApi = {
+  listCategories: () => request({ url: "/v1/forum/categories", method: "get" }),
   listPosts: (params) => request({ url: "/v1/forum/posts", method: "get", params }),
   getPost: (postId) => request({ url: `/v1/forum/posts/${postId}`, method: "get" }),
-  createPost: (data) => request({ url: "/v1/forum/posts", method: "post", data }),
+  createPost: ({ categoryId, title, content }) => request({
+    url: "/v1/forum/posts",
+    method: "post",
+    data: { categoryId, title, contentMarkdown: content },
+  }),
   listComments: (postId, params) => request({
     url: `/v1/forum/posts/${postId}/comments`,
     method: "get",
     params,
   }),
-  createComment: (postId, data) => request({
+  createComment: (postId, { content, parentId }) => request({
     url: `/v1/forum/posts/${postId}/comments`,
     method: "post",
-    data,
+    data: {
+      ...(parentId ? { parentId } : {}),
+      contentMarkdown: content,
+    },
   }),
 };
 
@@ -26,10 +34,9 @@ export const solutionApi = {
     url: `/v1/problems/${problemId}/solutions/${solutionId}`,
     method: "get",
   }),
-  create: (problemId, data) => request({
+  create: (problemId, { title, content }) => request({
     url: `/v1/problems/${problemId}/solutions`,
     method: "post",
-    data,
+    data: { title, contentMarkdown: content },
   }),
 };
-

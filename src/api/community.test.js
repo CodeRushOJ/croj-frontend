@@ -9,12 +9,21 @@ describe("community API contract", () => {
   beforeEach(() => request.mockReset());
 
   it("lists forum posts through the v1 endpoint", () => {
-    forumApi.listPosts({ page: 2, size: 12, keyword: "graph" });
+    forumApi.listPosts({ current: 2, size: 12, categoryId: 3 });
 
     expect(request).toHaveBeenCalledWith({
       url: "/v1/forum/posts",
       method: "get",
-      params: { page: 2, size: 12, keyword: "graph" },
+      params: { current: 2, size: 12, categoryId: 3 },
+    });
+  });
+
+  it("loads server-defined forum categories", () => {
+    forumApi.listCategories();
+
+    expect(request).toHaveBeenCalledWith({
+      url: "/v1/forum/categories",
+      method: "get",
     });
   });
 
@@ -24,7 +33,7 @@ describe("community API contract", () => {
     expect(request).toHaveBeenCalledWith({
       url: "/v1/forum/posts/post-7/comments",
       method: "post",
-      data: { content: "Clear explanation" },
+      data: { contentMarkdown: "Clear explanation" },
     });
   });
 
@@ -34,7 +43,17 @@ describe("community API contract", () => {
     expect(request).toHaveBeenCalledWith({
       url: "/v1/problems/1001/solutions",
       method: "post",
-      data: { title: "Two pointers", content: "..." },
+      data: { title: "Two pointers", contentMarkdown: "..." },
+    });
+  });
+
+  it("maps the post composer model to the backend DTO", () => {
+    forumApi.createPost({ categoryId: 3, title: "Graph proof", content: "Details" });
+
+    expect(request).toHaveBeenCalledWith({
+      url: "/v1/forum/posts",
+      method: "post",
+      data: { categoryId: 3, title: "Graph proof", contentMarkdown: "Details" },
     });
   });
 });

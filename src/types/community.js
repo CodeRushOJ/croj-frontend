@@ -37,9 +37,37 @@
  */
 export function normalizeCommunityPage(page) {
   return {
-    items: page?.items ?? page?.records ?? [],
-    total: Number(page?.total ?? 0),
+    items: Array.isArray(page) ? page : page?.items ?? page?.records ?? [],
+    total: Number(Array.isArray(page) ? page.length : page?.total ?? 0),
     page: Number(page?.page ?? page?.current ?? 1),
   };
 }
 
+const normalizeAuthor = (source) => ({
+  id: source?.authorId,
+  username: source?.authorName || "匿名用户",
+  avatar: source?.authorAvatar,
+});
+
+/** @param {Record<string, unknown>} source */
+export const normalizeForumPost = (source) => ({
+  ...source,
+  content: source?.contentMarkdown || "",
+  summary: source?.summary || source?.contentMarkdown || "",
+  author: normalizeAuthor(source),
+});
+
+/** @param {Record<string, unknown>} source */
+export const normalizeForumComment = (source) => ({
+  ...source,
+  content: source?.contentMarkdown || "",
+  author: normalizeAuthor(source),
+});
+
+/** @param {Record<string, unknown>} source */
+export const normalizeSolution = (source) => ({
+  ...source,
+  content: source?.contentMarkdown || "",
+  author: normalizeAuthor(source),
+  createdAt: source?.publishedAt || source?.createdAt,
+});

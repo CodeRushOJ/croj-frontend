@@ -19,8 +19,9 @@ describe("ForumPostDetail", () => {
     forumApi.getPost.mockResolvedValue({ data: {
       id: 7,
       title: "线段树讨论",
-      content: "这里记录复杂度分析。",
-      author: { username: "Grace" },
+      contentMarkdown: "这里记录复杂度分析。",
+      authorId: 2,
+      authorName: "Grace",
       createdAt: "2026-07-18T08:00:00Z",
     } });
     forumApi.listComments.mockResolvedValue({ data: { items: [], total: 0 } });

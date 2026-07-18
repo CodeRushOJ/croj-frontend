@@ -12,7 +12,7 @@
     <section class="toolbar" aria-label="论坛筛选">
       <el-input v-model="filters.keyword" clearable placeholder="搜索标题或内容" @keyup.enter="applyFilters" />
       <el-select v-model="filters.category" placeholder="全部分类" clearable @change="applyFilters">
-        <el-option v-for="category in categories" :key="category" :label="category" :value="category" />
+        <el-option v-for="category in categories" :key="category.id" :label="category.name" :value="category.id" />
       </el-select>
       <el-button @click="applyFilters">搜索</el-button>
     </section>
@@ -40,45 +40,64 @@
       layout="prev, pager, next"
       :total="total"
       :page-size="filters.size"
-      :current-page="filters.page"
+      :current-page="filters.current"
       @current-change="changePage"
     />
   </div>
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { forumApi } from "@/api/community";
-import { normalizeCommunityPage } from "@/types/community";
+import { normalizeCommunityPage, normalizeForumPost } from "@/types/community";
 import AsyncState from "@/components/community/AsyncState.vue";
 import PostCard from "@/components/community/PostCard.vue";
 
-const categories = ["算法讨论", "题目求助", "比赛复盘", "站务交流"];
-const filters = reactive({ page: 1, size: 12, keyword: "", category: "" });
-const posts = ref([]);
+const categories = ref([]);
+const filters = reactive({ current: 1, size: 12, keyword: "", categoryId: null });
+const rawPosts = ref([]);
 const total = ref(0);
 const loading = ref(true);
 const error = ref("");
+const categoryNames = computed(() => new Map(categories.value.map((category) => [category.id, category.name])));
+const posts = computed(() => {
+  const keyword = filters.keyword.trim().toLocaleLowerCase();
+  return rawPosts.value
+    .map((post) => ({
+      ...normalizeForumPost(post),
+      category: categoryNames.value.get(post.categoryId) || `分类 #${post.categoryId}`,
+    }))
+    .filter((post) => !keyword || `${post.title} ${post.content}`.toLocaleLowerCase().includes(keyword));
+});
+
+const loadCategories = async () => {
+  try { categories.value = (await forumApi.listCategories()).data || []; }
+  catch { categories.value = []; }
+};
 
 const fetchPosts = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const response = await forumApi.listPosts({ ...filters });
+    const response = await forumApi.listPosts({
+      current: filters.current,
+      size: filters.size,
+      ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
+    });
     const page = normalizeCommunityPage(response.data);
-    posts.value = page.items;
+    rawPosts.value = page.items;
     total.value = page.total;
   } catch {
-    posts.value = [];
+    rawPosts.value = [];
     error.value = "请检查网络连接后重试。";
   } finally {
     loading.value = false;
   }
 };
 
-const applyFilters = () => { filters.page = 1; fetchPosts(); };
-const changePage = (page) => { filters.page = page; fetchPosts(); };
-onMounted(fetchPosts);
+const applyFilters = () => { filters.current = 1; fetchPosts(); };
+const changePage = (page) => { filters.current = page; fetchPosts(); };
+onMounted(() => { loadCategories(); fetchPosts(); });
 </script>
 
 <style scoped>
@@ -93,4 +112,3 @@ onMounted(fetchPosts);
 .pagination { justify-content: center; margin-top: 24px; }
 @media (max-width: 720px) { .hero { align-items: flex-start; flex-direction: column; padding: 24px; } .toolbar { grid-template-columns: 1fr; } }
 </style>
-
