@@ -68,7 +68,7 @@ const relativeTime = contest => {
   const hours = Math.max(0, Math.round(Math.abs(new Date(target) - Date.now()) / 36e5))
   return hours >= 24 ? `${Math.floor(hours / 24)} 天 ${hours % 24} 小时` : `${hours} 小时`
 }
-const openContest = contest => router.push(`/contests/${contest.id}`)
+const openContest = contest => router.push({ name: 'ContestDetail', params: { contestId: contest.id } })
 
 onMounted(async () => {
   if (previewAuthEnabled) { contests.value = previewContests; return }

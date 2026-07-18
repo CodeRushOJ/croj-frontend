@@ -9,6 +9,7 @@ All notable frontend changes are recorded here.
 - Local-only preview administrator mode and documented one-click entry.
 - Preview problem data so product review does not depend on a running backend.
 - Contest API client, responsive contest discovery page, phase filters, and preview fixtures.
+- Contest overview, registration toggle, problem roster, and ACM scoreboard preview.
 
 ### Changed
 
