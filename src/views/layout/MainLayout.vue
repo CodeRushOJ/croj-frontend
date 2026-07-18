@@ -12,6 +12,7 @@
 
         <nav class="primary-nav" aria-label="Primary navigation">
           <router-link to="/problems">题库</router-link>
+          <router-link to="/contests">竞赛</router-link>
           <router-link to="/forum">讨论</router-link>
           <router-link v-if="isAdmin" to="/admin">管理</router-link>
         </nav>

@@ -13,3 +13,10 @@ export const previewProblems = [
   { id: 5, problemNo: 'CR1005', title: '括号序列计数', difficulty: 2, submitCount: 618, acceptedCount: 281, acceptRate: .455, userStatus: 1, tags: [previewTags[1]] },
   { id: 6, problemNo: 'CR1006', title: '连通分量查询', difficulty: 1, submitCount: 1102, acceptedCount: 824, acceptRate: .748, userStatus: 0, tags: [previewTags[2]] },
 ]
+
+const now = Date.now()
+export const previewContests = [
+  { id: 21, title: 'CodeRush Weekly #12', ruleType: 'ACM', phase: 'REGISTRATION', startsAt: new Date(now + 36e5 * 18).toISOString(), endsAt: new Date(now + 36e5 * 20).toISOString() },
+  { id: 20, title: '新生算法挑战赛', ruleType: 'ACM', phase: 'RUNNING', startsAt: new Date(now - 36e5).toISOString(), endsAt: new Date(now + 36e5).toISOString() },
+  { id: 19, title: 'CodeRush Weekly #11', ruleType: 'ACM', phase: 'ENDED', startsAt: new Date(now - 36e5 * 168).toISOString(), endsAt: new Date(now - 36e5 * 166).toISOString() },
+]
