@@ -17,6 +17,10 @@ const NotFound = () => import("@/views/error/NotFound.vue");
 // Problem pages
 const ProblemList = () => import("@/views/problem/ProblemList.vue");
 const ProblemDetail = () => import("@/views/problem/ProblemDetail.vue");
+const ForumList = () => import("@/views/forum/ForumList.vue");
+const ForumPostDetail = () => import("@/views/forum/ForumPostDetail.vue");
+const ForumPostCreate = () => import("@/views/forum/ForumPostCreate.vue");
+const SolutionDetail = () => import("@/views/solution/SolutionDetail.vue");
 
 // Admin pages
 const AdminLayout = () => import("@/views/admin/AdminLayout.vue");
@@ -53,13 +57,37 @@ const routes = [
       },
       {
         path: "problem/:problemNo",
-        name: "ProblemDetail",
+        name: ROUTE_NAMES.PROBLEM_DETAIL,
         component: ProblemDetail,
         meta: {
           title: "Problem Detail",
           requiresAuth: true,
           icon: "el-icon-document",
         },
+      },
+      {
+        path: "forum",
+        name: ROUTE_NAMES.FORUM,
+        component: ForumList,
+        meta: { title: "Forum", requiresAuth: true, icon: "el-icon-chat-dot-round" },
+      },
+      {
+        path: "forum/new",
+        name: ROUTE_NAMES.FORUM_POST_CREATE,
+        component: ForumPostCreate,
+        meta: { title: "New discussion", requiresAuth: true },
+      },
+      {
+        path: "forum/:postId",
+        name: ROUTE_NAMES.FORUM_POST_DETAIL,
+        component: ForumPostDetail,
+        meta: { title: "Discussion", requiresAuth: true },
+      },
+      {
+        path: "problems/:problemId/solutions/:solutionId",
+        name: ROUTE_NAMES.SOLUTION_DETAIL,
+        component: SolutionDetail,
+        meta: { title: "Solution", requiresAuth: true },
       },
       {
         path: "profile",

@@ -7,6 +7,7 @@ export default {
     home: "Home",
     dashboard: "Dashboard",
     problems: "Problems",
+    forum: "Forum",
     contests: "Contests",
     ranking: "Ranking",
     profile: "Profile",
@@ -441,4 +442,3 @@ export default {
     view_code_title: 'View Code',
   },
 };
-

@@ -23,6 +23,13 @@
                     <template #title>{{ $t('routes.problems') }}</template>
                 </el-menu-item>
 
+                <el-menu-item index="/forum">
+                    <el-icon>
+                        <chat-dot-round />
+                    </el-icon>
+                    <template #title>{{ $t('routes.forum') }}</template>
+                </el-menu-item>
+
                 <el-menu-item index="/contests">
                     <el-icon>
                         <trophy />
@@ -163,7 +170,8 @@ import {
     SwitchButton,
     DArrowLeft,
     DArrowRight,
-    ArrowDown
+    ArrowDown,
+    ChatDotRound
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/modules/auth'
 import { useAppStore } from '@/store/modules/app'
