@@ -108,6 +108,24 @@ describe("ProblemImport", () => {
     expect(await screen.findByText("FPS_XML")).toBeVisible();
   });
 
+  it("keeps a validated job retryable when commit fails", async () => {
+    problemImportApi.commit
+      .mockRejectedValueOnce(new Error("temporary storage failure"))
+      .mockResolvedValueOnce({ data: { importedCount: 2 } });
+
+    render(ProblemImport);
+    await upload();
+    const confirmButton = await screen.findByRole("button", { name: "确认导入 2 道题目" });
+    await fireEvent.click(confirmButton);
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("确认导入失败");
+    await fireEvent.click(screen.getByRole("button", { name: "重试导入 2 道题目" }));
+
+    await waitFor(() => expect(problemImportApi.commit).toHaveBeenCalledTimes(2));
+    expect(problemImportApi.commit).toHaveBeenLastCalledWith("job-42");
+    expect(await screen.findByText("已成功导入 2 道题目")).toBeVisible();
+  });
+
   it("rejects unsupported files before calling the API", async () => {
     render(ProblemImport);
     await upload("problems.txt");

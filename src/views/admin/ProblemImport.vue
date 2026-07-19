@@ -17,7 +17,7 @@
     <div class="upload-panel">
       <label class="file-field" for="problem-package">
         <span class="file-field__title">选择题目包</span>
-        <span class="file-field__hint">支持 FreeProblemSet XML 与 ZIP 归档，文件会在导入前完成安全检查。</span>
+        <span class="file-field__hint">支持 FreeProblemSet XML 与 ZIP 归档，格式、大小和归档安全由服务端强制校验。</span>
         <input
           id="problem-package"
           ref="fileInput"
