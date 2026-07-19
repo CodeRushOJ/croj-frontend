@@ -74,6 +74,27 @@ pnpm build
 
 社区模块已经沉淀 API 契约与组件交互测试。新增功能必须同步添加 Vitest 组件测试或 Playwright 流程测试；CI 应强制执行 lint、测试和生产构建。
 
+## 管理端题目导入
+
+管理员从头像菜单进入“管理工作台”，再打开“题目导入”。页面使用真实后端 API，不包含浏览器端 mock 或仅预览数据：
+
+1. 选择 `.xml` 或 `.zip` 题目包。
+2. 前端以 multipart 请求上传到 `POST /api/v1/admin/problem-imports/preflight`。
+3. 服务端负责格式探测、归档安全校验、题面与测试数据解析，并返回文件 SHA-256、题目/测试用例数量、逐题错误和警告。
+4. 只有全局和逐题错误均为空时，页面才允许调用 `POST /api/v1/admin/problem-imports/{jobId}/commit`。
+5. 上传或确认失败时保留当前文件/预检任务，管理员可以直接重试，不会假装已经导入成功。
+
+第一阶段以 [FreeProblemSet](https://github.com/zhblue/freeproblemset/tree/master) XML 为基准格式；ZIP 是安全归档载体，具体内容仍由后端适配器识别。后续 Polygon、DOMjudge、Hydro/QDUOJ 等格式通过相同预检响应契约扩展，前端不根据文件名伪判格式。解析、压缩炸弹/路径穿越防护、大小上限、重复题策略和测试包不可变发布都必须由后端强制执行。
+
+API 响应中的预检核心字段为：
+
+```text
+jobId, detectedFormat, sha256, problemCount, testCaseCount,
+errors[], warnings[], problems[]
+```
+
+`problems[]` 展示 `sourceId`、标题、测试用例数、状态以及逐题错误/警告。确认响应返回实际 `importedCount`。
+
 ## 论坛与题解 API
 
 Axios 的 `baseURL` 是同源 `/api`，社区请求集中在 `src/api/community.js`：
@@ -100,7 +121,7 @@ pnpm preview --host 0.0.0.0
 
 ## 功能状态
 
-- 已有：认证、邮箱验证、题目浏览、代码编辑、基础提交、论坛、评论、题解、个人设置、管理端基础页面、主题和国际化。
+- 已有：认证、邮箱验证、题目浏览、代码编辑、基础提交、论坛、评论、题解、个人设置、管理端基础页面、题目包预检/确认导入界面、主题和国际化。
 - 迭代中：真实判题状态体验、响应式视觉统一、错误/空/加载状态、无障碍与性能优化。
 - 待实现：竞赛、排行榜、举报审核、通知中心和端到端浏览器测试。
 - 不在 v1 范围：付费、订阅和商业计费。
