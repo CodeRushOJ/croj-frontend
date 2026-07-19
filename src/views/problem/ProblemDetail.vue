@@ -119,6 +119,10 @@
                     <ProblemSolutions v-if="problem.id" :problem-id="problem.id" />
                 </el-tab-pane>
 
+                <el-tab-pane label="讨论" name="discussion">
+                    <ProblemDiscussions v-if="problem.id" :problem-id="problem.id" />
+                </el-tab-pane>
+
                 <el-tab-pane :label="$t('problems.submissions')" name="submissions">
                     <div class="submissions-section" v-loading="loadingSubmissions">
                          <h3>{{ $t('problems.submission_history') }}</h3>
@@ -238,6 +242,7 @@ import { useI18n } from 'vue-i18n';
 import { problemApi, submissionApi } from '@/api';
 import CodeEditor from '@/components/problem/CodeEditor.vue';
 import ProblemSolutions from '@/components/problem/ProblemSolutions.vue';
+import ProblemDiscussions from '@/components/problem/ProblemDiscussions.vue';
 
 const { t } = useI18n();
 const route = useRoute();

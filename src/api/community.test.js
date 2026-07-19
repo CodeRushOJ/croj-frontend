@@ -48,12 +48,34 @@ describe("community API contract", () => {
   });
 
   it("maps the post composer model to the backend DTO", () => {
-    forumApi.createPost({ categoryId: 3, title: "Graph proof", content: "Details" });
+    forumApi.createPost({
+      categoryId: 3,
+      resourceType: "PROBLEM",
+      resourceId: 1001,
+      title: "Graph proof",
+      content: "Details",
+    });
 
     expect(request).toHaveBeenCalledWith({
       url: "/v1/forum/posts",
       method: "post",
-      data: { categoryId: 3, title: "Graph proof", contentMarkdown: "Details" },
+      data: {
+        categoryId: 3,
+        resourceType: "PROBLEM",
+        resourceId: 1001,
+        title: "Graph proof",
+        contentMarkdown: "Details",
+      },
+    });
+  });
+
+  it("filters discussions by their problem resource", () => {
+    forumApi.listProblemPosts(1001, { current: 1, size: 20 });
+
+    expect(request).toHaveBeenCalledWith({
+      url: "/v1/forum/posts",
+      method: "get",
+      params: { current: 1, size: 20, resourceType: "PROBLEM", resourceId: 1001 },
     });
   });
 });

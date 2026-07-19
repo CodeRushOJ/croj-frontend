@@ -35,6 +35,7 @@ describe("ForumPostCreate", () => {
     await waitFor(() => expect(forumApi.createPost).toHaveBeenCalledWith({
       title: "关于拓扑排序唯一性的讨论",
       categoryId: 3,
+      resourceType: "GENERAL",
       content: "我尝试从入度为零的节点数量证明唯一性，希望讨论反例与完整证明。",
     }));
     expect(push).toHaveBeenCalledWith({ name: "ForumPostDetail", params: { postId: 18 } });

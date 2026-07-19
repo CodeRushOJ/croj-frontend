@@ -13,6 +13,7 @@ All notable frontend changes are recorded here.
 - Added an administrator problem-import workspace for real `.xml`/`.zip` multipart preflight and explicit commit operations.
 - Added detected-format, SHA-256, problem/test counts, global diagnostics, and per-problem validation previews.
 - Added API and component contract tests covering multipart uploads, commit gating, unsupported files, and retryable failures.
+- Added problem-scoped discussions that filter and publish explicit `PROBLEM/resourceId` forum associations through the real backend contract.
 - Contest API client, responsive contest discovery page, phase filters, contest overview, registration, problem roster, and ACM scoreboard.
 - Real API failure and retry states for the problem library and problem details.
 - Submission detail API normalization for stable polling of integer backend statuses.
