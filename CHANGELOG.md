@@ -10,6 +10,9 @@ All notable frontend changes are recorded here.
 - Administrator announcement publication desk for drafts, editing, pin ordering, scheduling, immediate publication, withdrawal, archival, and lifecycle filtering.
 - Optimistic concurrency UX that sends quoted `If-Match` versions, preserves edits on HTTP 409, and requires explicit server-version refresh.
 - Loading, empty, retryable error, permission, lifecycle-validation, and responsive states for announcement surfaces, with API and component contract tests.
+- Added an administrator problem-import workspace for real `.xml`/`.zip` multipart preflight and explicit commit operations.
+- Added detected-format, SHA-256, problem/test counts, global diagnostics, and per-problem validation previews.
+- Added API and component contract tests covering multipart uploads, commit gating, unsupported files, and retryable failures.
 - Contest API client, responsive contest discovery page, phase filters, contest overview, registration, problem roster, and ACM scoreboard.
 - Real API failure and retry states for the problem library and problem details.
 - Submission detail API normalization for stable polling of integer backend statuses.

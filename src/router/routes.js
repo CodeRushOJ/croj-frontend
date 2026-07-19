@@ -31,6 +31,7 @@ const AdminLayout = () => import("@/views/admin/AdminLayout.vue");
 const AdminDashboard = () => import("@/views/admin/Dashboard.vue");
 const UserManagement = () => import("@/views/admin/UserManagement.vue");
 const ProblemManagement = () => import("@/views/admin/ProblemManagement.vue");
+const ProblemImport = () => import("@/views/admin/ProblemImport.vue");
 const TagManagement = () => import("@/views/admin/TagManagement.vue");
 const AnnouncementManagement = () => import("@/views/admin/AnnouncementManagement.vue");
 
@@ -178,6 +179,14 @@ const routes = [
             meta: {
               title: "Problem Management",
               icon: "el-icon-document",
+            },
+          },
+          {
+            path: "problem-imports",
+            name: ROUTE_NAMES.ADMIN_PROBLEM_IMPORTS,
+            component: ProblemImport,
+            meta: {
+              title: "Problem Import",
             },
           },
           {

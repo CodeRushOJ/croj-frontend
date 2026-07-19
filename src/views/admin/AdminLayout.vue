@@ -29,6 +29,12 @@
                         </el-icon>
                         <span>{{ $t('admin.problems') }}</span>
                     </el-menu-item>
+                    <el-menu-item index="/admin/problem-imports">
+                        <el-icon>
+                            <UploadFilled />
+                        </el-icon>
+                        <span>题目导入</span>
+                    </el-menu-item>
                     <el-menu-item index="/admin/tags">
                         <el-icon>
                             <CollectionTag />
@@ -63,11 +69,9 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n';
-import { Monitor, User, Document, CollectionTag, Trophy, Bell } from '@element-plus/icons-vue';
+import { Monitor, User, Document, CollectionTag, Trophy, Bell, UploadFilled } from '@element-plus/icons-vue';
 
 const route = useRoute();
-const { t } = useI18n();
 
 // Use current path to determine active menu item
 const activeMenu = computed(() => {
