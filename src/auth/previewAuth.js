@@ -17,4 +17,8 @@ export function createPreviewAdmin() {
   }
 }
 
-export const previewAuthEnabled = isPreviewAuthEnabled()
+// Keep this as a direct import.meta.env expression so Vite can remove the
+// preview-only token and branches from production bundles.
+export const previewAuthEnabled =
+  import.meta.env.MODE === 'preview' &&
+  import.meta.env.VITE_ENABLE_PREVIEW_MOCK_AUTH === 'true'

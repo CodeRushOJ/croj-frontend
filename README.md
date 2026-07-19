@@ -96,14 +96,60 @@ Axios 的 `baseURL` 是同源 `/api`，社区请求集中在 `src/api/community.
 
 ## 部署
 
-生产构建输出位于 `dist/`：
+### 生产镜像
+
+生产镜像使用锁定 digest 的 Node 22 构建阶段和官方 nginx-unprivileged runtime。依赖安装严格读取 `pnpm-lock.yaml`，Vite 始终以 `production` mode 构建；`VITE_ENABLE_PREVIEW_MOCK_AUTH` 在镜像构建中固定为 `false`，即使调用方传入同名 build argument 也不能启用预览管理员，产物检查还会拒绝包含预览 token 的 bundle。
+
+```bash
+docker build \
+  --build-arg VCS_REF="$(git rev-parse HEAD)" \
+  --build-arg VERSION=0.1.0 \
+  -t coderushoj/croj-frontend:dev .
+
+# 构建并执行镜像元数据、non-root、只读根文件系统、health、SPA、
+# 缓存头、安全头和 /api 误路由契约测试；测试容器结束后自动删除。
+./tests/container-contract.sh coderushoj/croj-frontend:dev
+```
+
+runtime 固定为 UID/GID `101:101`，监听 `8080`，并提供无外部依赖的 `GET /healthz`。Kubernetes 使用只读根文件系统时，只需为 Nginx 的显式写入目录提供内存卷：
+
+```yaml
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+volumeMounts:
+  - { name: tmp, mountPath: /tmp }
+  - { name: nginx-cache, mountPath: /var/cache/nginx }
+  - { name: nginx-run, mountPath: /var/run }
+volumes:
+  - { name: tmp, emptyDir: {} }
+  - { name: nginx-cache, emptyDir: {} }
+  - { name: nginx-run, emptyDir: {} }
+```
+
+Nginx 对 Vue Router history URL 使用 `index.html` fallback，对带 hash 的 `/assets/` 文件返回一年 immutable cache；HTML 不缓存，并统一设置 CSP、`nosniff`、frame、referrer 和 permissions policy。`/api` 与 `/uploads` 不配置容器内 upstream：生产流量由 `croj-platform` Gateway API 按同源路径转发到 backend；若这些路径被误发到 frontend Service，Nginx 返回 `404`，不会伪装成 SPA 页面。
+
+### CI 与发布
+
+Pull Request CI 在前端 lint/test/build 后构建镜像，以 UID `101` 和只读根文件系统运行容器契约，使用 Trivy 的已修复安全版本扫描 HIGH/CRITICAL 漏洞，并上传 SPDX JSON SBOM。所有第三方 Actions 都锁定完整 commit SHA。
+
+合并到 `main` 或推送 `v*` tag 后，CI 才使用最小 `packages: write` 权限发布 `linux/amd64` 与 `linux/arm64` 镜像到 `ghcr.io/coderushoj/croj-frontend`，同时生成 BuildKit provenance 和 SBOM attestation。PR 不登录 GHCR、也不发布镜像。
+
+### 仅构建静态文件
+
+生产构建输出仍位于 `dist/`：
 
 ```bash
 pnpm build
 pnpm preview --host 0.0.0.0
 ```
 
-正式 Docker 镜像、Nginx 静态资源配置、Gateway 路由、Secret/ConfigMap 和 Kubernetes 部署由 [`croj-platform`](https://github.com/CodeRushOJ/croj-platform) 统一管理。完整系统安装请从平台仓库的快速开始进入。
+Gateway 路由和 Kubernetes Deployment 由 [`croj-platform`](https://github.com/CodeRushOJ/croj-platform) 统一管理。完整系统安装请从平台仓库的快速开始进入。
 
 ## 功能状态
 
