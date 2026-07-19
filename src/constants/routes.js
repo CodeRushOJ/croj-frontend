@@ -10,6 +10,8 @@ export const ROUTE_NAMES = {
   SOLUTION_DETAIL: "SolutionDetail",
   CONTESTS: "Contests",
   CONTEST_DETAIL: "ContestDetail",
+  ANNOUNCEMENTS: "Announcements",
+  ANNOUNCEMENT_DETAIL: "AnnouncementDetail",
   RANKING: "Ranking",
   PROFILE: "Profile",
   SETTINGS: "Settings",
@@ -29,6 +31,7 @@ export const ROUTE_NAMES = {
   ADMIN_PROBLEMS: "AdminProblems",
   ADMIN_TAGS: "AdminTags",
   ADMIN_CONTESTS: "AdminContests",
+  ADMIN_ANNOUNCEMENTS: "AdminAnnouncements",
 
   // Error pages
   NOT_FOUND: "NotFound",
@@ -46,6 +49,8 @@ export const ROUTE_PATHS = {
   FORUM_POST_DETAIL: "/forum/:postId",
   SOLUTION_DETAIL: "/problems/:problemId/solutions/:solutionId",
   CONTESTS: "/contests",
+  ANNOUNCEMENTS: "/announcements",
+  ANNOUNCEMENT_DETAIL: "/announcements/:announcementId",
   RANKING: "/ranking",
   PROFILE: "/profile",
   SETTINGS: "/settings",
@@ -65,6 +70,7 @@ export const ROUTE_PATHS = {
   ADMIN_PROBLEMS: "/admin/problems",
   ADMIN_TAGS: "/admin/tags",
   ADMIN_CONTESTS: "/admin/contests",
+  ADMIN_ANNOUNCEMENTS: "/admin/announcements",
 
   // Error paths
   NOT_FOUND: "/404",
