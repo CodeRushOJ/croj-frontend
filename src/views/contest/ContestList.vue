@@ -43,8 +43,6 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { contestApi } from '@/api/contest'
-import { previewAuthEnabled } from '@/auth/previewAuth'
-import { previewContests } from '@/auth/previewData'
 
 const router = useRouter()
 const contests = ref([])
@@ -71,7 +69,6 @@ const relativeTime = contest => {
 const openContest = contest => router.push({ name: 'ContestDetail', params: { contestId: contest.id } })
 
 onMounted(async () => {
-  if (previewAuthEnabled) { contests.value = previewContests; return }
   loading.value = true
   try {
     const response = await contestApi.list({ page: 1, size: 50 })

@@ -14,7 +14,6 @@
           <router-link to="/problems">题库</router-link>
           <router-link to="/contests">竞赛</router-link>
           <router-link to="/forum">讨论</router-link>
-          <router-link v-if="isAdmin" to="/admin">管理</router-link>
         </nav>
 
         <div class="topbar__actions">
@@ -39,6 +38,7 @@
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">个人主页</el-dropdown-item>
                 <el-dropdown-item command="settings">设置</el-dropdown-item>
+                <el-dropdown-item v-if="isAdmin" divided command="admin">管理工作台</el-dropdown-item>
                 <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -83,6 +83,7 @@ const handleLanguageChange = (language) => appStore.setLanguage(language)
 const handleCommand = (command) => {
   if (command === 'profile') router.push({ name: ROUTE_NAMES.PROFILE })
   if (command === 'settings') router.push({ name: ROUTE_NAMES.SETTINGS })
+  if (command === 'admin' && isAdmin.value) router.push({ name: ROUTE_NAMES.ADMIN })
   if (command === 'logout') {
     ElMessageBox.confirm('确定退出当前账号吗？', '退出登录', {
       confirmButtonText: '退出',
@@ -100,10 +101,9 @@ const handleCommand = (command) => {
 }
 
 .topbar {
-  height: 68px;
+  height: 62px;
   border-bottom: 1px solid var(--border-color-light);
-  background: color-mix(in srgb, var(--header-bg) 92%, transparent);
-  backdrop-filter: blur(18px);
+  background: var(--header-bg);
   position: sticky;
   top: 0;
   z-index: 30;
@@ -127,16 +127,15 @@ const handleCommand = (command) => {
 }
 
 .brand__mark {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
   color: white;
   font-weight: 800;
   letter-spacing: -0.04em;
-  background: linear-gradient(135deg, #635bff, #00a7e1);
-  box-shadow: 0 8px 24px rgba(99, 91, 255, .22);
+  background: var(--accent-color);
 }
 
 .brand__copy { display: grid; line-height: 1.05; }
@@ -152,7 +151,7 @@ const handleCommand = (command) => {
   transition: .18s ease;
 }
 .primary-nav a:hover { color: var(--text-color); background: var(--border-color-light); }
-.primary-nav a.router-link-active { color: #635bff; background: rgba(99, 91, 255, .1); }
+.primary-nav a.router-link-active { color: var(--accent-color); background: var(--accent-color-soft); }
 
 .topbar__actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .quiet-action, .user-action, .login-action {
@@ -162,13 +161,13 @@ const handleCommand = (command) => {
   border-radius: 10px;
 }
 .quiet-action { background: transparent; color: var(--text-color-secondary); padding: 9px 10px; }
-.user-action { background: var(--border-color-light); color: var(--text-color); padding: 5px 9px 5px 5px; display: flex; align-items: center; gap: 8px; }
-.user-action__avatar { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: white; font-weight: 800; background: #14151a; }
+.user-action { background: transparent; color: var(--text-color); padding: 4px 7px 4px 4px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--border-color-light); }
+.user-action__avatar { width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center; color: white; font-weight: 750; background: #4a4540; }
 .user-action__name { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
-.login-action { color: white; background: #14151a; padding: 9px 14px; font-weight: 700; }
+.login-action { color: #fffaf5; background: #3b3733; padding: 8px 13px; font-weight: 650; }
 
-.page-scroll { height: calc(100vh - 68px); overflow-y: auto; }
-.page-frame { width: min(1240px, calc(100% - 40px)); margin: 0 auto; padding: 40px 0 64px; }
+.page-scroll { height: calc(100vh - 62px); overflow-y: auto; }
+.page-frame { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 32px 0 64px; }
 footer { text-align: center; color: var(--text-color-secondary); padding: 22px 16px 32px; font-size: 12px; }
 
 @media (max-width: 760px) {

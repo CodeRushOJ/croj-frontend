@@ -31,14 +31,6 @@ src/
 
 ## 本地开发
 
-需要在后端尚未启动时检查受保护页面，可启动仅本机开发使用的预览模式：
-
-```bash
-pnpm dev:preview
-```
-
-打开 `http://localhost:3000`，在登录页点击“以预览管理员身份进入”。这个入口只在 Vite `preview` mode 且显式开关为 true 时编译启用；常规 `pnpm dev` 与 production build 都不会提供 mock 管理员。它只绕过前端路由认证，不会伪造后端 API 数据。
-
 推荐 Node.js 22 和 pnpm 9：
 
 ```bash
@@ -49,6 +41,7 @@ pnpm dev
 ```
 
 打开 <http://localhost:3000>。后端默认监听 `http://localhost:7999/api`。
+前端主路径不提供 mock 账号或 mock 题目；请先按平台仓库文档启动真实依赖和后端。需要从局域网访问开发服务器时使用 `pnpm dev:network`。
 
 宿主机不安装 Node.js 时可使用容器：
 

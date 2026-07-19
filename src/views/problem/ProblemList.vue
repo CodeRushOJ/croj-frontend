@@ -2,9 +2,9 @@
   <section class="problem-page">
     <header class="page-hero">
       <div>
-        <span class="eyebrow">Problem library</span>
-        <h1>找到下一道值得解决的问题</h1>
-        <p>按难度、完成状态和算法标签筛选。每一道题都固定到不可变版本，提交结果可追溯。</p>
+        <span class="eyebrow">PROBLEMS</span>
+        <h1>题库</h1>
+        <p>按题号、难度、状态或标签筛选题目。</p>
       </div>
       <div class="progress-card">
         <span>你的进度</span>
@@ -56,6 +56,12 @@
       </div>
 
       <div v-if="loading" class="loading-state"><el-skeleton :rows="8" animated /></div>
+      <div v-else-if="loadError" class="error-state" role="alert">
+        <span aria-hidden="true">!</span>
+        <h2>暂时无法加载题目</h2>
+        <p>题目服务没有返回有效数据。请检查网络或稍后重试。</p>
+        <button type="button" @click="fetchProblems">重新加载</button>
+      </div>
       <div v-else-if="problemList.length" class="problem-table" role="table" aria-label="题目列表">
         <div class="problem-row problem-row--head" role="row">
           <span>状态</span><span>题目</span><span>难度</span><span>通过率</span><span>提交</span><span></span>
@@ -109,11 +115,10 @@ import { useRouter } from 'vue-router'
 import { ArrowRight, Search } from '@element-plus/icons-vue'
 import { problemApi } from '@/api/problem'
 import { tagApi } from '@/api/tag'
-import { previewAuthEnabled } from '@/auth/previewAuth'
-import { previewProblems, previewTags } from '@/auth/previewData'
 
 const router = useRouter()
 const loading = ref(false)
+const loadError = ref(false)
 const problemList = ref([])
 const currentPage = ref(1)
 const pageSize = ref(20)
@@ -124,21 +129,9 @@ const searchQuery = reactive({ keyword: '', difficulty: 0, status: 0, tagIds: []
 const solvedCount = computed(() => problemList.value.filter(problem => problem.userStatus === 1).length)
 const progressPercent = computed(() => Math.min(100, Math.round((solvedCount.value / Math.max(total.value, problemList.value.length, 1)) * 100)))
 
-const applyPreviewFilters = () => {
-  const keyword = searchQuery.keyword.trim().toLowerCase()
-  problemList.value = previewProblems.filter(problem => {
-    const matchesKeyword = !keyword || `${problem.problemNo} ${problem.title}`.toLowerCase().includes(keyword)
-    const matchesDifficulty = !searchQuery.difficulty || problem.difficulty === searchQuery.difficulty
-    const matchesStatus = !searchQuery.status || (searchQuery.status === 3 ? !problem.userStatus : problem.userStatus === searchQuery.status)
-    const matchesTags = !searchQuery.tagIds.length || searchQuery.tagIds.every(id => problem.tags.some(tag => tag.id === id))
-    return matchesKeyword && matchesDifficulty && matchesStatus && matchesTags
-  })
-  total.value = problemList.value.length
-}
-
 const fetchProblems = async () => {
-  if (previewAuthEnabled) return applyPreviewFilters()
   loading.value = true
+  loadError.value = false
   try {
     const params = { current: currentPage.value, size: pageSize.value, ...searchQuery }
     if (!params.difficulty) delete params.difficulty
@@ -147,15 +140,22 @@ const fetchProblems = async () => {
     const response = await problemApi.getProblemList(params)
     problemList.value = response.data.records || []
     total.value = response.data.total || 0
+  } catch {
+    problemList.value = []
+    total.value = 0
+    loadError.value = true
   } finally {
     loading.value = false
   }
 }
 
 const fetchTags = async () => {
-  if (previewAuthEnabled) { allTags.value = previewTags; return }
-  const response = await tagApi.getAllTags()
-  allTags.value = response.data || []
+  try {
+    const response = await tagApi.getAllTags()
+    allTags.value = response.data || []
+  } catch {
+    allTags.value = []
+  }
 }
 
 const handleSearch = () => { currentPage.value = 1; fetchProblems() }
@@ -167,7 +167,7 @@ const handleCurrentChange = page => { currentPage.value = page; fetchProblems() 
 const navigateToDetail = problem => router.push({ name: 'ProblemDetail', params: { problemNo: problem.problemNo } })
 const difficultyLabel = difficulty => ({ 1: '入门', 2: '进阶', 3: '挑战' }[difficulty] || '未知')
 const statusClass = status => status === 1 ? 'status-indicator--accepted' : status === 2 ? 'status-indicator--attempted' : ''
-const formatRate = rate => `${((rate || 0) * 100).toFixed(1)}%`
+const formatRate = rate => `${Number(rate || 0).toFixed(1)}%`
 const formatCount = count => new Intl.NumberFormat('zh-CN', { notation: count > 9999 ? 'compact' : 'standard' }).format(count || 0)
 
 onMounted(() => Promise.allSettled([fetchProblems(), fetchTags()]))
@@ -176,21 +176,21 @@ onMounted(() => Promise.allSettled([fetchProblems(), fetchTags()]))
 <style scoped>
 .problem-page { display: grid; gap: 26px; }
 .page-hero { display: grid; grid-template-columns: 1fr 230px; gap: 30px; align-items: end; padding: 8px 2px; }
-.eyebrow { color: #635bff; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.page-hero h1 { margin: 8px 0 10px; font-size: clamp(28px, 4vw, 43px); line-height: 1.08; letter-spacing: -.045em; }
+.eyebrow { color: var(--accent-color); font-size: 11px; font-weight: 750; letter-spacing: .1em; }
+.page-hero h1 { margin: 5px 0 8px; font-size: clamp(27px, 4vw, 36px); line-height: 1.12; letter-spacing: -.035em; }
 .page-hero p { margin: 0; max-width: 680px; color: var(--text-color-secondary); font-size: 15px; }
-.progress-card { background: #14151a; color: white; border-radius: 18px; padding: 18px 20px; box-shadow: 0 16px 42px rgba(20,21,26,.16); }
-.progress-card span, .progress-card small { color: #aeb0bb; }
-.progress-card strong { display: block; color: white; font-size: 30px; margin: 4px 0 10px; }
-.progress-track { height: 5px; background: #343640; border-radius: 999px; overflow: hidden; }
-.progress-track i { display: block; height: 100%; background: linear-gradient(90deg, #7c74ff, #42d6b3); border-radius: inherit; }
-.workspace-card { background: var(--card-bg); border: 1px solid var(--border-color-light); border-radius: 20px; box-shadow: 0 12px 40px rgba(18, 24, 40, .055); overflow: hidden; }
+.progress-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px 18px; }
+.progress-card span, .progress-card small { color: var(--text-color-secondary); }
+.progress-card strong { display: block; color: var(--text-color); font-size: 27px; margin: 3px 0 9px; }
+.progress-track { height: 4px; background: var(--border-color-light); border-radius: 999px; overflow: hidden; }
+.progress-track i { display: block; height: 100%; background: var(--accent-color); border-radius: inherit; }
+.workspace-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
 .toolbar { padding: 20px; display: grid; grid-template-columns: minmax(280px, 1fr) 150px 150px auto; gap: 10px; border-bottom: 1px solid var(--border-color-light); }
 .search-control :deep(.el-input__wrapper), .select-control :deep(.el-select__wrapper) { min-height: 42px; box-shadow: 0 0 0 1px var(--border-color) inset; border-radius: 11px; }
 .reset-button { border: 0; border-radius: 11px; padding: 0 15px; color: var(--text-color-secondary); background: var(--border-color-light); cursor: pointer; font-weight: 650; }
 .tag-filter { padding: 14px 20px; display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--border-color-light); }
 .tag-chip { border: 1px solid var(--border-color); background: transparent; color: var(--text-color-secondary); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
-.tag-chip--active { border-color: #635bff; color: #635bff; background: rgba(99,91,255,.09); }
+.tag-chip--active { border-color: var(--accent-color); color: var(--accent-color); background: var(--accent-color-soft); }
 .list-meta { padding: 14px 20px; display: flex; justify-content: space-between; color: var(--text-color-secondary); font-size: 12px; }
 .legend { display: flex; gap: 7px; align-items: center; }
 .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #bec2cd; }
@@ -210,9 +210,12 @@ onMounted(() => Promise.allSettled([fetchProblems(), fetchTags()]))
 .difficulty { display: inline-flex; border-radius: 999px; padding: 5px 9px; font-size: 11px; }
 .difficulty--1 { color: #087d5c; background: #e7f8f2; }.difficulty--2 { color: #9a6500; background: #fff4d7; }.difficulty--3 { color: #c23e43; background: #ffeaeb; }
 .metric { color: var(--text-color-secondary); font-variant-numeric: tabular-nums; }
-.solve-button { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: #635bff; font-weight: 750; cursor: pointer; }
-.loading-state, .empty-state { padding: 48px 28px; }
-.empty-state { text-align: center; }.empty-state > span { font-size: 34px; color: #9da1ac; }.empty-state h2 { margin: 10px 0 4px; }.empty-state p { color: var(--text-color-secondary); }.empty-state button { border: 0; background: #14151a; color: white; border-radius: 10px; padding: 9px 14px; cursor: pointer; }
+.solve-button { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: var(--accent-color); font-weight: 700; cursor: pointer; }
+.loading-state, .empty-state, .error-state { padding: 48px 28px; }
+.empty-state, .error-state { text-align: center; }
+.empty-state > span, .error-state > span { display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--border-color); border-radius: 50%; color: #9a6b47; font-weight: 750; }
+.empty-state h2, .error-state h2 { margin: 10px 0 4px; font-size: 18px; }.empty-state p, .error-state p { color: var(--text-color-secondary); }
+.empty-state button, .error-state button { border: 1px solid #2f2b28; background: #2f2b28; color: #fffaf3; border-radius: 8px; padding: 9px 14px; cursor: pointer; }
 .pagination-container { display: flex; justify-content: center; padding: 18px; border-top: 1px solid var(--border-color-light); }
 @media (max-width: 900px) {
   .page-hero { grid-template-columns: 1fr; }.progress-card { display: none; }

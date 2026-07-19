@@ -3,21 +3,23 @@
 // 主题CSS变量
 :root {
   // 亮色主题（默认）
-  --bg-color: #f5f7fa;
-  --bg-color-secondary: #ffffff;
-  --text-color: #303133;
-  --text-color-secondary: #606266;
-  --border-color: #e4e7ed;
-  --border-color-light: #f0f2f5;
-  --shadow-color: rgba(0, 0, 0, 0.1);
-  --header-bg: #ffffff;
+  --bg-color: #f7f5f2;
+  --bg-color-secondary: #fdfcf9;
+  --text-color: #2d2a26;
+  --text-color-secondary: #6f6a63;
+  --border-color: #d9d4cc;
+  --border-color-light: #ebe7e1;
+  --shadow-color: rgba(58, 47, 37, 0.08);
+  --header-bg: #faf8f5;
+  --accent-color: #b65f3d;
+  --accent-color-soft: #f3e5dc;
   --sidebar-bg: #304156;
   --sidebar-text: #bfcbd9;
   --sidebar-active: #409eff;
-  --card-bg: #ffffff;
-  --input-bg: #ffffff;
-  --input-border: #dcdfe6;
-  --input-text: #606266;
+  --card-bg: #fdfcf9;
+  --input-bg: #fffefa;
+  --input-border: #d9d4cc;
+  --input-text: #2d2a26;
   --tag-bg: #f4f4f5;
   --tag-text: #909399;
   --tag-success-bg: #f0f9eb;
@@ -32,6 +34,7 @@
   --editor-cursor: #d4d4d4;
   --editor-selection-bg: #264f78;
   --editor-active-line-bg: #282828;
+  --el-color-primary: #b65f3d;
 }
 
 // 暗色主题
@@ -65,9 +68,11 @@
   --editor-cursor: #d4d4d4;
   --editor-selection-bg: #264f78;
   --editor-active-line-bg: #282828;
+  --accent-color: #d7835e;
+  --accent-color-soft: #3a2922;
 
   // 重写Element Plus变量 - 对暗色主题进行全面覆盖
-  --el-color-primary: #409eff;
+  --el-color-primary: #d7835e;
   --el-bg-color: var(--bg-color-secondary);
   --el-bg-color-overlay: var(--bg-color-secondary);
   --el-text-color-primary: var(--text-color);
@@ -114,8 +119,8 @@ body {
   width: 100vw;
   overflow: hidden;
   position: fixed;
-  font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB",
-    "Microsoft YaHei", Arial, sans-serif;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-color);
