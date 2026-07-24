@@ -31,8 +31,8 @@ export const ROUTE_NAMES = {
   ADMIN_USERS: "AdminUsers",
   ADMIN_PROBLEMS: "AdminProblems",
   ADMIN_PROBLEM_IMPORTS: "AdminProblemImports",
+  ADMIN_TEST_BUNDLES: "AdminTestBundles",
   ADMIN_TAGS: "AdminTags",
-  ADMIN_CONTESTS: "AdminContests",
   ADMIN_ANNOUNCEMENTS: "AdminAnnouncements",
 
   // Error pages
@@ -72,8 +72,8 @@ export const ROUTE_PATHS = {
   ADMIN_USERS: "/admin/users",
   ADMIN_PROBLEMS: "/admin/problems",
   ADMIN_PROBLEM_IMPORTS: "/admin/problem-imports",
+  ADMIN_TEST_BUNDLES: "/admin/test-bundles",
   ADMIN_TAGS: "/admin/tags",
-  ADMIN_CONTESTS: "/admin/contests",
   ADMIN_ANNOUNCEMENTS: "/admin/announcements",
 
   // Error paths
@@ -81,3 +81,8 @@ export const ROUTE_PATHS = {
   FORBIDDEN: "/403",
   SERVER_ERROR: "/500",
 };
+
+export const adminTestBundlesLocation = (problemId) => ({
+  name: ROUTE_NAMES.ADMIN_TEST_BUNDLES,
+  query: { problemId: String(problemId) },
+});

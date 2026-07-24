@@ -32,6 +32,7 @@ const AdminDashboard = () => import("@/views/admin/Dashboard.vue");
 const UserManagement = () => import("@/views/admin/UserManagement.vue");
 const ProblemManagement = () => import("@/views/admin/ProblemManagement.vue");
 const ProblemImport = () => import("@/views/admin/ProblemImport.vue");
+const TestBundleManagement = () => import("@/views/admin/TestBundleManagement.vue");
 const TagManagement = () => import("@/views/admin/TagManagement.vue");
 const AnnouncementManagement = () => import("@/views/admin/AnnouncementManagement.vue");
 
@@ -197,6 +198,14 @@ const routes = [
             component: ProblemImport,
             meta: {
               title: "Problem Import",
+            },
+          },
+          {
+            path: "test-bundles",
+            name: ROUTE_NAMES.ADMIN_TEST_BUNDLES,
+            component: TestBundleManagement,
+            meta: {
+              title: "TestBundle Management",
             },
           },
           {

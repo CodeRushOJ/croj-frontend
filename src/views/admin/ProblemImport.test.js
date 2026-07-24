@@ -60,7 +60,9 @@ describe("ProblemImport", () => {
     render(ProblemImport);
     const file = await upload();
 
-    await waitFor(() => expect(problemImportApi.preflight).toHaveBeenCalledWith(file));
+    await waitFor(() => expect(problemImportApi.preflight).toHaveBeenCalledWith(file, {
+      signal: expect.any(AbortSignal),
+    }));
     expect(await screen.findByText("FPS_XML")).toBeVisible();
     expect(screen.getByText("2 道题目")).toBeVisible();
     expect(screen.getByText("5 个测试用例")).toBeVisible();
@@ -72,7 +74,9 @@ describe("ProblemImport", () => {
     expect(screen.getByText("题目 CR-2 缺少来源信息")).toBeVisible();
 
     await fireEvent.click(screen.getByRole("button", { name: "确认导入 2 道题目" }));
-    await waitFor(() => expect(problemImportApi.commit).toHaveBeenCalledWith("job-42"));
+    await waitFor(() => expect(problemImportApi.commit).toHaveBeenCalledWith("job-42", {
+      signal: expect.any(AbortSignal),
+    }));
     expect(await screen.findByText("已成功导入 2 道题目")).toBeVisible();
   });
 
@@ -104,7 +108,9 @@ describe("ProblemImport", () => {
     await fireEvent.click(screen.getByRole("button", { name: "重试预检" }));
 
     await waitFor(() => expect(problemImportApi.preflight).toHaveBeenCalledTimes(2));
-    expect(problemImportApi.preflight).toHaveBeenLastCalledWith(file);
+    expect(problemImportApi.preflight).toHaveBeenLastCalledWith(file, {
+      signal: expect.any(AbortSignal),
+    });
     expect(await screen.findByText("FPS_XML")).toBeVisible();
   });
 
@@ -122,7 +128,9 @@ describe("ProblemImport", () => {
     await fireEvent.click(screen.getByRole("button", { name: "重试导入 2 道题目" }));
 
     await waitFor(() => expect(problemImportApi.commit).toHaveBeenCalledTimes(2));
-    expect(problemImportApi.commit).toHaveBeenLastCalledWith("job-42");
+    expect(problemImportApi.commit).toHaveBeenLastCalledWith("job-42", {
+      signal: expect.any(AbortSignal),
+    });
     expect(await screen.findByText("已成功导入 2 道题目")).toBeVisible();
   });
 
@@ -132,5 +140,18 @@ describe("ProblemImport", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("仅支持 .xml 或 .zip");
     expect(problemImportApi.preflight).not.toHaveBeenCalled();
+  });
+
+  it("lets an administrator cancel a long-running preflight", async () => {
+    problemImportApi.preflight.mockImplementation((_file, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener("abort", () => reject(Object.assign(new Error("canceled"), { code: "ERR_CANCELED" })));
+    }));
+
+    render(ProblemImport);
+    await upload();
+    await fireEvent.click(await screen.findByRole("button", { name: "取消上传" }));
+
+    await waitFor(() => expect(screen.queryByText("正在上传并预检题目包…")).not.toBeInTheDocument());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

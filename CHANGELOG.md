@@ -19,6 +19,7 @@ All notable frontend changes are recorded here.
 - Submission detail API normalization for stable polling of integer backend statuses.
 - Real problem and contest submission flow with ID-based contest routes, immutable roster statement/limit snapshots, bounded exponential-backoff polling, terminal result metrics, strict workflow deadlines, and navigation cancellation.
 - Component/API contract tests for real problem data, administrator navigation, and submission detail polling.
+- Administrator TestBundle workspace with problem-scoped version discovery, DRAFT selection, strong-ETag upload/publish concurrency, explicit stale refresh, long-upload cancellation, and contract-specific error states.
 
 ### Changed
 
@@ -34,6 +35,9 @@ All notable frontend changes are recorded here.
 - Upgraded the application and quality toolchains to patched Axios, Vue, Element Plus, Vite 8, Vitest 4, jsdom, Sass, and ESLint 10 releases; the complete production and development dependency tree now passes `pnpm audit`.
 - Bounded Vitest to four workers so jsdom component suites remain deterministic on both developer workstations and shared CI runners.
 - Added a high-severity dependency audit gate to frontend CI and migrated linting to ESLint flat config.
+- Fixed forum category filtering to send `categoryId`, and made confirmed 401 session-expiry logout redirect through the application router.
+- Removed the dead administrator contests navigation entry and replaced reviewed blue/purple hero gradients with the warm-neutral visual system.
+- Added long deadlines and cancellation to administrator problem-import uploads.
 
 ### Removed
 

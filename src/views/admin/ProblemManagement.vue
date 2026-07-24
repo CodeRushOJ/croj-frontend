@@ -63,13 +63,16 @@
                     </el-tag>
                 </template>
             </el-table-column>
-            <el-table-column :label="$t('admin.actions')" fixed="right" width="200" align="center">
+            <el-table-column :label="$t('admin.actions')" fixed="right" width="280" align="center">
                 <template #default="scope">
                     <el-button type="primary" size="small" @click="handleEdit(scope.row)" plain>
                         {{ $t('admin.edit') }}
                     </el-button>
                     <el-button type="success" size="small" @click="handlePreview(scope.row)" plain>
                         {{ $t('admin.preview') }}
+                    </el-button>
+                    <el-button size="small" @click="handleTestBundles(scope.row)" plain>
+                        测试包
                     </el-button>
                     <el-button type="danger" size="small" @click="handleDelete(scope.row)">
                         {{ $t('admin.delete') }}
@@ -272,6 +275,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search, Plus, Delete, Warning } from '@element-plus/icons-vue';
 import { problemApi } from '@/api/problem';
 import { tagApi } from '@/api/tag';
+import { adminTestBundlesLocation } from '@/constants/routes';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -454,6 +458,10 @@ const handlePreview = (problem) => {
         name: 'ProblemDetail',
         params: { problemNo: problem.problemNo }
     });
+};
+
+const handleTestBundles = (problem) => {
+    router.push(adminTestBundlesLocation(problem.id));
 };
 
 // Handle delete problem

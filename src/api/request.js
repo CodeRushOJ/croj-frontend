@@ -98,6 +98,9 @@ service.interceptors.response.use(
       return Promise.reject(new Error(res.message || "Error"));
     }
 
+    if (response.config.includeResponseHeaders) {
+      return { ...res, headers: response.headers };
+    }
     return res;
   },
   (error) => {
@@ -119,10 +122,11 @@ service.interceptors.response.use(
           confirmButtonText: t("auth.login"),
           cancelButtonText: t("common.cancel"),
           type: "warning",
-        }).then(() => {
+        }).then(async () => {
           // Log out and redirect to login
-          authStore.logout();
-        });
+          const { default: router } = await import("@/router");
+          authStore.logout(router);
+        }).catch(() => {});
       }
       // Handle 403 - Forbidden
       else if (status === 403) {

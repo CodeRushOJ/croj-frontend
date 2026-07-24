@@ -44,7 +44,8 @@
 
       <div v-if="preflighting" class="progress-state" aria-live="polite">
         <span class="spinner" aria-hidden="true"></span>
-        正在上传并预检题目包…
+        <span>正在上传并预检题目包…</span>
+        <button type="button" class="secondary-button" @click="cancelPreflight">取消上传</button>
       </div>
 
       <div v-if="requestError" class="request-error" role="alert">
@@ -148,7 +149,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onUnmounted, ref } from "vue";
 import { problemImportApi } from "@/api/problemImport";
 
 const fileInput = ref(null);
@@ -159,6 +160,8 @@ const committing = ref(false);
 const requestError = ref("");
 const commitError = ref("");
 const successMessage = ref("");
+let preflightController = null;
+let commitController = null;
 
 const errors = computed(() => preflight.value?.errors || []);
 const warnings = computed(() => preflight.value?.warnings || []);
@@ -208,38 +211,64 @@ const preflightSelectedFile = async () => {
   commitError.value = "";
   successMessage.value = "";
   preflight.value = null;
+  preflightController?.abort();
+  const controller = new AbortController();
+  preflightController = controller;
 
   try {
-    const response = await problemImportApi.preflight(selectedFile.value);
+    const response = await problemImportApi.preflight(selectedFile.value, { signal: controller.signal });
     preflight.value = response.data;
   } catch (error) {
-    requestError.value = errorMessage(error);
+    if (error?.code !== "ERR_CANCELED" && error?.name !== "AbortError") {
+      requestError.value = errorMessage(error);
+    }
   } finally {
-    preflighting.value = false;
+    if (preflightController === controller) {
+      preflightController = null;
+      preflighting.value = false;
+    }
   }
+};
+
+const cancelPreflight = () => {
+  preflightController?.abort();
 };
 
 const commitImport = async () => {
   if (!canCommit.value || committing.value) return;
   committing.value = true;
   commitError.value = "";
+  commitController?.abort();
+  const controller = new AbortController();
+  commitController = controller;
 
   try {
-    const response = await problemImportApi.commit(preflight.value.jobId);
+    const response = await problemImportApi.commit(preflight.value.jobId, { signal: controller.signal });
     const importedCount = response.data?.importedCount ?? preflight.value.problemCount;
     successMessage.value = `已成功导入 ${importedCount} 道题目`;
   } catch (error) {
-    commitError.value = errorMessage(error);
+    if (error?.code !== "ERR_CANCELED" && error?.name !== "AbortError") {
+      commitError.value = errorMessage(error);
+    }
   } finally {
-    committing.value = false;
+    if (commitController === controller) {
+      commitController = null;
+      committing.value = false;
+    }
   }
 };
 
 const clearSelection = () => {
+  preflightController?.abort();
   selectedFile.value = null;
   resetResult();
   if (fileInput.value) fileInput.value.value = "";
 };
+
+onUnmounted(() => {
+  preflightController?.abort();
+  commitController?.abort();
+});
 
 const formatBytes = (bytes) => {
   if (bytes < 1024) return `${bytes} B`;
@@ -316,6 +345,7 @@ const problemNotes = (problem) => [...(problem.errors || []), ...(problem.warnin
 
 .progress-state,
 .request-error { align-items: center; display: flex; gap: 10px; margin-top: 16px; }
+.progress-state .secondary-button { margin-left: auto; }
 .request-error { background: #fff4f1; border-radius: 9px; color: #8d3429; justify-content: space-between; padding: 12px 14px; }
 .request-error p { margin: 3px 0 0; }
 .spinner { animation: spin .8s linear infinite; border: 2px solid var(--line); border-top-color: #8a4f34; border-radius: 50%; height: 16px; width: 16px; }

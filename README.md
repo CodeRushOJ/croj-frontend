@@ -85,6 +85,8 @@ pnpm audit --audit-level high
 4. 只有全局和逐题错误均为空时，页面才允许调用 `POST /api/v1/admin/problem-imports/{jobId}/commit`。
 5. 上传或确认失败时保留当前文件/预检任务，管理员可以直接重试，不会假装已经导入成功。
 
+上传和提交使用 5 分钟请求期限；预检期间可以主动取消，取消不会显示为网络故障。
+
 第一阶段以 [FreeProblemSet](https://github.com/zhblue/freeproblemset/tree/master) XML 为基准格式；ZIP 是安全归档载体，具体内容仍由后端适配器识别。后续 Polygon、DOMjudge、Hydro/QDUOJ 等格式通过相同预检响应契约扩展，前端不根据文件名伪判格式。解析、压缩炸弹/路径穿越防护、大小上限、重复题策略和测试包不可变发布都必须由后端强制执行。
 
 API 响应中的预检核心字段为：
@@ -95,6 +97,17 @@ errors[], warnings[], problems[]
 ```
 
 `problems[]` 展示 `sourceId`、标题、测试用例数、状态以及逐题错误/警告。确认响应返回实际 `importedCount`。
+
+## 管理端测试包发布
+
+管理员可在“题目管理”的每一题操作区进入“测试包”，或直接打开 `/admin/test-bundles?problemId={id}`。页面通过真实 API 列出该题版本，只把 `DRAFT` 版本作为可选发布目标：
+
+- `GET /api/v1/admin/problems/{problemId}/versions`
+- `GET /api/v1/admin/problems/{problemId}/versions/{versionId}/test-bundle`
+- `PUT /api/v1/admin/problems/{problemId}/versions/{versionId}/test-bundle`
+- `POST /api/v1/admin/problems/{problemId}/versions/{versionId}/test-bundle/publish`
+
+元数据响应的强 ETag 会随上传结果更新，并作为下一次上传或发布的 `If-Match`。HTTP 412 会保留已选 ZIP，必须由管理员显式刷新；400、403、404、409、413、422 与 428 都有独立状态。上传使用 5 分钟期限并支持取消。浏览器不解析或伪造测试包，格式、大小、归档安全和不可变发布均由服务端强制执行。
 
 ## 论坛与题解 API
 

@@ -35,17 +35,17 @@
                         </el-icon>
                         <span>题目导入</span>
                     </el-menu-item>
+                    <el-menu-item index="/admin/test-bundles">
+                        <el-icon>
+                            <Files />
+                        </el-icon>
+                        <span>测试包管理</span>
+                    </el-menu-item>
                     <el-menu-item index="/admin/tags">
                         <el-icon>
                             <CollectionTag />
                         </el-icon>
                         <span>{{ $t('admin.tags') }}</span>
-                    </el-menu-item>
-                    <el-menu-item index="/admin/contests">
-                        <el-icon>
-                            <Trophy />
-                        </el-icon>
-                        <span>{{ $t('admin.contests') }}</span>
                     </el-menu-item>
                     <el-menu-item index="/admin/announcements">
                         <el-icon>
@@ -69,7 +69,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { Monitor, User, Document, CollectionTag, Trophy, Bell, UploadFilled } from '@element-plus/icons-vue';
+import { Monitor, User, Document, CollectionTag, Bell, UploadFilled, Files } from '@element-plus/icons-vue';
 
 const route = useRoute();
 

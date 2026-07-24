@@ -11,7 +11,7 @@
 
     <section class="toolbar" aria-label="论坛筛选">
       <el-input v-model="filters.keyword" clearable placeholder="搜索标题或内容" @keyup.enter="applyFilters" />
-      <el-select v-model="filters.category" placeholder="全部分类" clearable @change="applyFilters">
+      <el-select v-model="filters.categoryId" placeholder="全部分类" clearable @change="applyFilters">
         <el-option v-for="category in categories" :key="category.id" :label="category.name" :value="category.id" />
       </el-select>
       <el-button @click="applyFilters">搜索</el-button>
@@ -102,7 +102,7 @@ onMounted(() => { loadCategories(); fetchPosts(); });
 
 <style scoped>
 .community-page { max-width: 1080px; margin: 0 auto; padding: 8px 8px 40px; }
-.hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; padding: 34px; margin-bottom: 22px; border-radius: 24px; background: linear-gradient(135deg, #172a46, #254b78 62%, #327bc2); box-shadow: 0 18px 45px rgba(24, 58, 96, .25); }
+.hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; padding: 34px; margin-bottom: 22px; border-radius: 24px; background: #3b3733; box-shadow: 0 18px 45px rgba(61, 49, 39, .18); }
 .hero h1, .hero p, .hero .eyebrow { color: #fff; }
 .hero h1 { margin: 7px 0 8px; font-size: clamp(26px, 4vw, 42px); line-height: 1.12; }
 .hero p { max-width: 650px; margin: 0; opacity: .78; }

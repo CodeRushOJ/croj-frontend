@@ -12,6 +12,19 @@ const renderPage = () => render(ForumList, {
   global: {
     stubs: {
       RouterLink: { template: "<a><slot /></a>" },
+      ElSelect: {
+        props: ["modelValue", "placeholder"],
+        emits: ["update:modelValue", "change"],
+        template: `<select
+          :aria-label="placeholder"
+          :value="modelValue"
+          @change="$emit('update:modelValue', Number($event.target.value)); $emit('change')"
+        ><slot /></select>`,
+      },
+      ElOption: {
+        props: ["label", "value"],
+        template: "<option :value=\"value\">{{ label }}</option>",
+      },
     },
   },
 });
@@ -54,5 +67,19 @@ describe("ForumList", () => {
     await fireEvent.click(await screen.findByRole("button", { name: "重新加载" }));
     await waitFor(() => expect(forumApi.listPosts).toHaveBeenCalledTimes(2));
     expect(await screen.findByText("还没有讨论，来发布第一篇吧")).toBeVisible();
+  });
+
+  it("sends the selected category as categoryId", async () => {
+    forumApi.listPosts.mockResolvedValue({ data: { records: [], total: 0 } });
+    renderPage();
+
+    await screen.findByText("算法讨论");
+    await fireEvent.update(screen.getByRole("combobox", { name: "全部分类" }), "3");
+
+    await waitFor(() => expect(forumApi.listPosts).toHaveBeenLastCalledWith({
+      current: 1,
+      size: 12,
+      categoryId: 3,
+    }));
   });
 });

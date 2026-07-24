@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ROUTE_NAMES, ROUTE_PATHS } from "@/constants/routes";
+import { adminTestBundlesLocation } from "@/constants/routes";
 import routes from "./routes";
 
 describe("administrator problem import route", () => {
@@ -15,6 +16,24 @@ describe("administrator problem import route", () => {
       meta: { title: "Problem Import" },
     });
     expect(ROUTE_PATHS.ADMIN_PROBLEM_IMPORTS).toBe("/admin/problem-imports");
+  });
+});
+
+describe("administrator TestBundle route", () => {
+  it("exposes the guarded immutable test-bundle workspace", () => {
+    const adminShell = routes.find((route) => route.path === "/admin");
+    const adminLayout = adminShell.children.find((route) => route.path === "");
+    const bundleRoute = adminLayout.children.find((route) => route.path === "test-bundles");
+
+    expect(bundleRoute).toMatchObject({
+      name: ROUTE_NAMES.ADMIN_TEST_BUNDLES,
+      meta: { title: "TestBundle Management" },
+    });
+    expect(ROUTE_PATHS.ADMIN_TEST_BUNDLES).toBe("/admin/test-bundles");
+    expect(adminTestBundlesLocation(42)).toEqual({
+      name: ROUTE_NAMES.ADMIN_TEST_BUNDLES,
+      query: { problemId: "42" },
+    });
   });
 });
 

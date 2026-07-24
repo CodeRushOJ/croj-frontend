@@ -24,14 +24,18 @@ describe("problem import API contract", () => {
     expect(config.data).toBeInstanceOf(FormData);
     expect(config.data.get("file")).toBe(file);
     expect(config.headers).toEqual({ "Content-Type": "multipart/form-data" });
+    expect(config.timeout).toBe(5 * 60 * 1000);
   });
 
   it("commits an already validated import job", () => {
-    problemImportApi.commit("job-42");
+    const signal = new AbortController().signal;
+    problemImportApi.commit("job-42", { signal });
 
     expect(request).toHaveBeenCalledWith({
       url: "/v1/admin/problem-imports/job-42/commit",
       method: "post",
+      signal,
+      timeout: 5 * 60 * 1000,
     });
   });
 });
