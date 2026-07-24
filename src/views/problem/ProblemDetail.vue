@@ -12,7 +12,7 @@
             <p>{{ problemLoadErrorMessage }}</p>
             <div>
                 <el-button type="primary" @click="fetchProblemDetail">重新加载</el-button>
-                <el-button @click="router.push({ name: 'ProblemList' })">返回题库</el-button>
+                <el-button @click="router.push({ name: ROUTE_NAMES.PROBLEMS })">返回题库</el-button>
             </div>
         </section>
 
@@ -249,6 +249,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import { contestApi, problemApi, submissionApi } from '@/api';
+import { ROUTE_NAMES } from '@/constants/routes';
 import CodeEditor from '@/components/problem/CodeEditor.vue';
 import ProblemSolutions from '@/components/problem/ProblemSolutions.vue';
 import ProblemDiscussions from '@/components/problem/ProblemDiscussions.vue';

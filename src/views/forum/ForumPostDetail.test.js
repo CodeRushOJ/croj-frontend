@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("vue-router", () => ({ useRoute: () => ({ params: { postId: "7" } }) }));
 vi.mock("@/api/community", () => ({
   forumApi: {
+    listCategories: vi.fn(),
     getPost: vi.fn(),
     listComments: vi.fn(),
     createComment: vi.fn(),
@@ -18,12 +19,16 @@ describe("ForumPostDetail", () => {
     vi.clearAllMocks();
     forumApi.getPost.mockResolvedValue({ data: {
       id: 7,
+      categoryId: 3,
       title: "线段树讨论",
       contentMarkdown: "这里记录复杂度分析。",
       authorId: 2,
       authorName: "Grace",
       createdAt: "2026-07-18T08:00:00Z",
     } });
+    forumApi.listCategories.mockResolvedValue({
+      data: [{ id: 3, name: "算法讨论" }],
+    });
     forumApi.listComments.mockResolvedValue({ data: { items: [], total: 0 } });
     forumApi.createComment.mockResolvedValue({ data: { id: 9 } });
   });
@@ -41,5 +46,15 @@ describe("ForumPostDetail", () => {
       content: "这个证明很清晰",
     }));
     expect(forumApi.listComments).toHaveBeenCalledTimes(2);
+  });
+
+  it("resolves the real category name from the post categoryId", async () => {
+    render(ForumPostDetail, {
+      global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+    });
+
+    expect(await screen.findByText("算法讨论")).toBeVisible();
+    expect(forumApi.listCategories).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("综合讨论")).not.toBeInTheDocument();
   });
 });

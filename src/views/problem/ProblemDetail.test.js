@@ -30,12 +30,14 @@ const route = reactive({
   params: { contestId: '20', problemId: '3001' },
   query: { tab: 'submit' },
 })
+const routerPush = vi.hoisted(() => vi.fn())
 vi.mock('vue-router', () => ({
   useRoute: () => route,
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: routerPush }),
 }))
 
 import { contestApi, problemApi, submissionApi } from '@/api'
+import { ROUTE_NAMES } from '@/constants/routes'
 import { i18n } from '@/i18n'
 import ProblemDetail from './ProblemDetail.vue'
 
@@ -122,6 +124,7 @@ describe('ProblemDetail real submission flow', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+    vi.restoreAllMocks()
   })
 
   it('renders and submits the fixed contest roster version', async () => {
@@ -182,6 +185,17 @@ describe('ProblemDetail real submission flow', () => {
       signal: expect.any(AbortSignal),
     })
     expect(contestApi.problems).not.toHaveBeenCalled()
+  })
+
+  it('returns a failed problem load through the registered problem-list route', async () => {
+    route.params = { problemNo: 'P404' }
+    problemApi.getProblemByNo.mockRejectedValueOnce(new Error('problem unavailable'))
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    renderPage()
+
+    await fireEvent.click(await screen.findByRole('button', { name: '返回题库' }))
+
+    expect(routerPush).toHaveBeenCalledWith({ name: ROUTE_NAMES.PROBLEMS })
   })
 
   it('sanitizes ordinary problem-bank HTML at the shared render boundary', async () => {

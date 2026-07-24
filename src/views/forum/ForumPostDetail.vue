@@ -3,7 +3,7 @@
     <router-link class="back-link" :to="{ name: 'Forum' }">← 返回讨论区</router-link>
     <AsyncState :loading="loading" :error="error" :empty="!post" empty-title="讨论不存在" @retry="loadPost">
       <article class="post-detail">
-        <el-tag effect="plain">{{ post.category || "综合讨论" }}</el-tag>
+        <el-tag effect="plain">{{ categoryLabel }}</el-tag>
         <h1>{{ post.title }}</h1>
         <div class="byline">{{ post.author?.username || "匿名用户" }} · {{ formatDate(post.createdAt) }}</div>
         <div class="content">{{ post.content }}</div>
@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { forumApi } from "@/api/community";
@@ -40,6 +40,7 @@ import AsyncState from "@/components/community/AsyncState.vue";
 
 const route = useRoute();
 const post = ref(null);
+const categories = ref([]);
 const comments = ref([]);
 const loading = ref(true);
 const commentsLoading = ref(true);
@@ -50,7 +51,18 @@ const commentContent = ref("");
 const commentError = ref("");
 const postId = String(route.params.postId);
 
+const categoryLabel = computed(() => {
+  const categoryId = post.value?.categoryId;
+  if (categoryId == null) return "综合讨论";
+  return categories.value.find(
+    (category) => String(category.id) === String(categoryId),
+  )?.name || `分类 #${categoryId}`;
+});
 const formatDate = (value) => value ? new Intl.DateTimeFormat("zh-CN", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "刚刚";
+const loadCategories = async () => {
+  try { categories.value = (await forumApi.listCategories()).data || []; }
+  catch { categories.value = []; }
+};
 const loadPost = async () => {
   loading.value = true; error.value = "";
   try { post.value = normalizeForumPost((await forumApi.getPost(postId)).data); }
@@ -79,7 +91,7 @@ const publishComment = async () => {
   } catch { commentError.value = "发布失败，请稍后重试。"; }
   finally { commenting.value = false; }
 };
-onMounted(() => { loadPost(); loadComments(); });
+onMounted(() => { loadCategories(); loadPost(); loadComments(); });
 </script>
 
 <style scoped>
