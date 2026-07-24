@@ -4,7 +4,7 @@ CodeRushOJ 的 Vue 3 Web 应用，提供用户端和管理端界面。当前实�
 
 ## 技术栈
 
-- Vue 3 + Vite 5
+- Vue 3 + Vite 8
 - Vue Router + 路由权限守卫
 - Pinia + 持久化状态
 - Element Plus
@@ -70,6 +70,7 @@ Axios 当前固定使用同源 `/api`，由 Vite/Gateway 代理；历史 `.env` 
 pnpm lint
 pnpm test:run
 pnpm build
+pnpm audit --audit-level high
 ```
 
 社区模块已经沉淀 API 契约与组件交互测试。新增功能必须同步添加 Vitest 组件测试或 Playwright 流程测试；CI 应强制执行 lint、测试和生产构建。

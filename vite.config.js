@@ -11,6 +11,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    maxWorkers: 4,
     setupFiles: ["./src/test/setup.js"],
     css: true,
     server: {
@@ -66,15 +67,13 @@ export default defineConfig({
     // Optimize production build for Monaco Editor
     rollupOptions: {
       output: {
-        manualChunks: {
-          monaco: ["monaco-editor/esm/vs/editor/editor.api"],
-          "monaco-languages": [
-            "monaco-editor/esm/vs/basic-languages/cpp/cpp.contribution",
-            "monaco-editor/esm/vs/basic-languages/java/java.contribution",
-            "monaco-editor/esm/vs/basic-languages/python/python.contribution",
-            "monaco-editor/esm/vs/basic-languages/javascript/javascript.contribution",
-            "monaco-editor/esm/vs/basic-languages/go/go.contribution",
-          ],
+        manualChunks(id) {
+          if (id.includes("monaco-editor/esm/vs/basic-languages/")) {
+            return "monaco-languages";
+          }
+          if (id.includes("monaco-editor/esm/vs/")) {
+            return "monaco";
+          }
         },
       },
     },

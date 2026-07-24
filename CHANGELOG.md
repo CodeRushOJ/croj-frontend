@@ -31,6 +31,9 @@ All notable frontend changes are recorded here.
 - Imported statement HTML is sanitized through one strict allowlist for both contest and public problem routes, and intentional Axios cancellations no longer surface as network failures.
 - Frontend CI now rejects every ESLint warning; duplicate locale keys and unused imports from the original implementation were removed.
 - Removed global Element Plus/plugin icon registration in favor of compile-time component imports; the initial application JavaScript dropped from roughly 404 KiB to 130 KiB gzip while Monaco remains lazy-loaded on the editor path.
+- Upgraded the application and quality toolchains to patched Axios, Vue, Element Plus, Vite 8, Vitest 4, jsdom, Sass, and ESLint 10 releases; the complete production and development dependency tree now passes `pnpm audit`.
+- Bounded Vitest to four workers so jsdom component suites remain deterministic on both developer workstations and shared CI runners.
+- Added a high-severity dependency audit gate to frontend CI and migrated linting to ESLint flat config.
 
 ### Removed
 
