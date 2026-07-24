@@ -42,15 +42,10 @@
         <b>{{ String.fromCharCode(65 + index) }}</b>
         <div><strong>{{ problem.title || `题目 ${problem.label || index + 1}` }}</strong><small>{{ problem.problemNo || `#${problem.problemId}` }}<template v-if="problem.tags?.length"> · {{ problem.tags.map(tag => tag.name).join(' / ') }}</template></small></div>
         <span :class="`difficulty-${problem.difficulty || 0}`">{{ problem.difficulty ? difficultyLabel(problem.difficulty) : `${problem.score || 100} 分` }}</span>
-        <router-link
-          v-if="problem.problemNo"
-          :to="{
-            name: 'ProblemDetail',
-            params: { problemNo: problem.problemNo },
-            query: { contestId: contest.id },
-          }"
-        >开始解题 →</router-link>
-        <span v-else class="contract-pending">等待题目摘要</span>
+        <router-link :to="{
+          name: 'ContestProblemDetail',
+          params: { contestId: contest.id, problemId: problem.problemId },
+        }">开始解题 →</router-link>
       </article>
     </div>
 
@@ -72,6 +67,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { contestApi } from '@/api/contest'
+import { normalizeContestProblem } from '@/views/problem/contestProblem'
 
 const route = useRoute()
 const contest = ref(null)
@@ -116,7 +112,9 @@ const loadContest = async () => {
     contestApi.problems(id),
     contestApi.scoreboard(id),
   ])
-  contestProblems.value = problems.status === 'fulfilled' ? problems.value.data || [] : []
+  contestProblems.value = problems.status === 'fulfilled'
+    ? (problems.value.data || []).map(item => normalizeContestProblem(item, id))
+    : []
   scoreboard.value = board.status === 'fulfilled' ? board.value.data?.rows || [] : []
 }
 

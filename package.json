@@ -16,6 +16,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "axios": "^1.6.2",
+    "dompurify": "^3.2.6",
     "element-plus": "^2.9.7",
     "lodash-es": "^4.17.21",
     "monaco-editor": "^0.52.2",

@@ -17,7 +17,7 @@ All notable frontend changes are recorded here.
 - Contest API client, responsive contest discovery page, phase filters, contest overview, registration, problem roster, and ACM scoreboard.
 - Real API failure and retry states for the problem library and problem details.
 - Submission detail API normalization for stable polling of integer backend statuses.
-- Real problem and contest submission flow with contest context, bounded exponential-backoff polling, terminal result metrics, timeout/error states, and navigation cancellation.
+- Real problem and contest submission flow with ID-based contest routes, immutable roster statement/limit snapshots, bounded exponential-backoff polling, terminal result metrics, strict workflow deadlines, and navigation cancellation.
 - Component/API contract tests for real problem data, administrator navigation, and submission detail polling.
 
 ### Changed
@@ -27,6 +27,8 @@ All notable frontend changes are recorded here.
 - Moved the administrator workspace entry from primary navigation into the authenticated user menu.
 - Corrected acceptance-rate rendering to match the backend percentage contract.
 - Decoupled contest detail loading from protected problem/scoreboard requests so a single 403 no longer replaces the whole page with a fetch failure.
+- Contest submissions now use the roster-validated `contestId + problemId` pair so the backend selects the arranged immutable `problemVersionId`; route reuse cancels all stale statement and judging requests.
+- Imported contest statement HTML is sanitized through a strict allowlist before rendering, and intentional Axios cancellations no longer surface as network failures.
 
 ### Removed
 

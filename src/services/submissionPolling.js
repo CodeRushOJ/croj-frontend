@@ -20,11 +20,16 @@ const defaultWait = (delayMs, signal) => new Promise((resolve, reject) => {
     return
   }
 
-  const timeout = setTimeout(resolve, delayMs)
-  signal?.addEventListener('abort', () => {
+  const finish = () => {
+    signal?.removeEventListener('abort', onAbort)
+    resolve()
+  }
+  const timeout = setTimeout(finish, delayMs)
+  const onAbort = () => {
     clearTimeout(timeout)
     reject(abortError())
-  }, { once: true })
+  }
+  signal?.addEventListener('abort', onAbort, { once: true })
 })
 
 export class SubmissionPollingTimeoutError extends Error {
@@ -41,6 +46,7 @@ export const isTerminalSubmissionStatus = status => TERMINAL_STATUSES.has(status
 export const pollSubmissionUntilComplete = async (submissionId, {
   getSubmission,
   onUpdate = () => {},
+  controller,
   signal,
   timeoutMs = 60_000,
   initialDelayMs = 500,
@@ -53,13 +59,65 @@ export const pollSubmissionUntilComplete = async (submissionId, {
     throw new TypeError('getSubmission is required')
   }
 
+  const requestSignal = controller?.signal || signal
   const startedAt = now()
+  const deadlineAt = startedAt + timeoutMs
   let delayMs = initialDelayMs
 
-  for (;;) {
-    if (signal?.aborted) throw abortError()
+  const timeoutError = () => new SubmissionPollingTimeoutError(submissionId, timeoutMs)
+  const failAtDeadline = (operation) => {
+    const remainingMs = deadlineAt - now()
+    if (remainingMs <= 0) {
+      controller?.abort(timeoutError())
+      return Promise.reject(timeoutError())
+    }
 
-    const response = await getSubmission(submissionId)
+    return new Promise((resolve, reject) => {
+      let settled = false
+      const cleanup = () => {
+        clearTimeout(deadline)
+        requestSignal?.removeEventListener('abort', onAbort)
+      }
+      const onAbort = () => {
+        if (settled) return
+        settled = true
+        cleanup()
+        reject(abortError())
+      }
+      const deadline = setTimeout(() => {
+        if (settled) return
+        settled = true
+        const error = timeoutError()
+        cleanup()
+        reject(error)
+        controller?.abort(error)
+      }, remainingMs)
+      requestSignal?.addEventListener('abort', onAbort, { once: true })
+
+      Promise.resolve(operation).then(
+        value => {
+          if (settled) return
+          settled = true
+          cleanup()
+          resolve(value)
+        },
+        error => {
+          if (settled) return
+          settled = true
+          cleanup()
+          reject(error)
+        },
+      )
+    })
+  }
+
+  for (;;) {
+    if (requestSignal?.aborted) throw abortError()
+
+    const response = await failAtDeadline(getSubmission(submissionId, {
+      signal: requestSignal,
+    }))
+    if (requestSignal?.aborted) throw abortError()
     const submission = response?.data
     if (!submission?.status) {
       throw new Error('Submission status response is missing data')
@@ -68,12 +126,14 @@ export const pollSubmissionUntilComplete = async (submissionId, {
     onUpdate(submission)
     if (isTerminalSubmissionStatus(submission.status)) return submission
 
-    const elapsedMs = now() - startedAt
-    if (elapsedMs + delayMs >= timeoutMs) {
-      throw new SubmissionPollingTimeoutError(submissionId, timeoutMs)
+    if (now() + delayMs >= deadlineAt) {
+      const error = timeoutError()
+      controller?.abort(error)
+      throw error
     }
 
-    await wait(delayMs, signal)
+    await failAtDeadline(wait(delayMs, requestSignal))
+    if (requestSignal?.aborted) throw abortError()
     delayMs = Math.min(maxDelayMs, Math.ceil(delayMs * backoffFactor))
   }
 }

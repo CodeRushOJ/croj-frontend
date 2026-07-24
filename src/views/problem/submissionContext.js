@@ -4,13 +4,13 @@ const positiveInteger = value => {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
 }
 
-export const buildSubmissionPayload = (submission, problemId, contestId) => {
+export const buildSubmissionPayload = (submission, context) => {
   const payload = {
-    problemId: positiveInteger(problemId),
+    problemId: positiveInteger(context?.problemId),
     language: submission.language,
     code: submission.code,
   }
-  const normalizedContestId = positiveInteger(contestId)
+  const normalizedContestId = positiveInteger(context?.contestId)
 
   if (normalizedContestId) payload.contestId = normalizedContestId
   return payload

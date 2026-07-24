@@ -8,6 +8,7 @@ import { tagApi } from "./tag";
 import { submissionApi } from "./submission";
 import { forumApi, solutionApi } from "./community";
 import { announcementApi, adminAnnouncementApi } from "./announcement";
+import { contestApi } from "./contest";
 
 export {
   authApi,
@@ -21,4 +22,5 @@ export {
   solutionApi,
   announcementApi,
   adminAnnouncementApi,
+  contestApi,
 };

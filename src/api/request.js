@@ -101,6 +101,10 @@ service.interceptors.response.use(
     return res;
   },
   (error) => {
+    if (axios.isCancel(error) || error.code === "ERR_CANCELED") {
+      return Promise.reject(error);
+    }
+
     const { t } = i18n.global;
     const authStore = useAuthStore();
 

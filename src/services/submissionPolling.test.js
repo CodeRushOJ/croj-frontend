@@ -69,4 +69,23 @@ describe('submission polling', () => {
 
     expect(getSubmission).not.toHaveBeenCalled()
   })
+
+  it('aborts a slow status request at the absolute deadline', async () => {
+    vi.useFakeTimers()
+    const controller = new AbortController()
+    const getSubmission = vi.fn(() => new Promise(() => {}))
+
+    const polling = pollSubmissionUntilComplete(81, {
+      getSubmission,
+      controller,
+      timeoutMs: 1000,
+    })
+    const timeout = expect(polling)
+      .rejects.toBeInstanceOf(SubmissionPollingTimeoutError)
+    await vi.advanceTimersByTimeAsync(1000)
+
+    await timeout
+    expect(controller.signal.aborted).toBe(true)
+    vi.useRealTimers()
+  })
 })

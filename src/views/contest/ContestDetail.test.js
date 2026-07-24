@@ -45,7 +45,18 @@ describe('ContestDetail resilient loading', () => {
       },
     })
     contestApi.problems.mockResolvedValue({
-      data: [{ id: 7, problemId: 3001, problemNo: 'CR3001', title: '真实比赛题目' }],
+      data: [{
+        problemId: 3001,
+        problemVersionId: 7001,
+        label: 'A',
+        score: 100,
+        statementJson: JSON.stringify({
+          title: '固定版本比赛题目',
+          description: '不可变题面',
+          samples: [],
+        }),
+        limitsJson: JSON.stringify({ timeLimit: 1000, memoryLimit: 256 }),
+      }],
     })
     contestApi.scoreboard.mockResolvedValue({ data: { rows: [] } })
   })
@@ -67,9 +78,8 @@ describe('ContestDetail resilient loading', () => {
     const link = await screen.findByRole('link', { name: '开始解题 →' })
 
     expect(JSON.parse(link.dataset.to)).toEqual({
-      name: 'ProblemDetail',
-      params: { problemNo: 'CR3001' },
-      query: { contestId: 20 },
+      name: 'ContestProblemDetail',
+      params: { contestId: 20, problemId: 3001 },
     })
   })
 })

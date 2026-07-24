@@ -72,6 +72,16 @@ const routes = [
         },
       },
       {
+        path: "contests/:contestId/problems/:problemId",
+        name: ROUTE_NAMES.CONTEST_PROBLEM_DETAIL,
+        component: ProblemDetail,
+        meta: {
+          title: "Contest Problem",
+          requiresAuth: true,
+          icon: "el-icon-document",
+        },
+      },
+      {
         path: "forum",
         name: ROUTE_NAMES.FORUM,
         component: ForumList,

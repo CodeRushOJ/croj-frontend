@@ -20,10 +20,11 @@ export const problemApi = {
    * @param {string} problemNo - Problem number
    * @returns {Promise} Promise with problem details
    */
-  getProblemByNo: (problemNo) => {
+  getProblemByNo: (problemNo, { signal } = {}) => {
     return request({
       url: `/problem/no/${problemNo}`,
       method: "get",
+      signal,
     });
   },
 
@@ -32,10 +33,11 @@ export const problemApi = {
    * @param {number} id - Problem ID
    * @returns {Promise} Promise with problem details
    */
-  getProblemById: (id) => {
+  getProblemById: (id, { signal } = {}) => {
     return request({
       url: `/problem/${id}`,
       method: "get",
+      signal,
     });
   },
 
