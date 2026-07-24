@@ -76,13 +76,13 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false;
       }
     },
-    
+
     /**
      * 获取当前用户信息
      */
     async fetchCurrentUser() {
       if (!this.token) return null;
-      
+
       try {
         const response = await authApi.getCurrentUser();
         this.user = response.data;

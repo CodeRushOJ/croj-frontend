@@ -1,9 +1,6 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
-import ElementPlus from "element-plus";
-import * as ElementPlusIconsVue from "@element-plus/icons-vue";
-import "element-plus/dist/index.css";
 import { i18n } from "./i18n";
 import { registerDirectives } from "./directives";
 import App from "./App.vue";
@@ -19,11 +16,6 @@ const app = createApp(App);
 const pinia = createPinia();
 pinia.use(piniaPluginPersistedstate);
 
-// 注册Element Plus图标
-for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
-  app.component(key, component);
-}
-
 // 注册自定义指令
 registerDirectives(app);
 
@@ -31,7 +23,6 @@ registerDirectives(app);
 app.use(pinia);
 app.use(router);
 app.use(i18n);
-app.use(ElementPlus);
 
 // 从存储中设置初始主题
 import { useAppStore } from "./store/modules/app";

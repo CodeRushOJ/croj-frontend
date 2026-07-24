@@ -7,6 +7,7 @@ export default {
     home: "Home",
     dashboard: "Dashboard",
     problems: "Problems",
+    forum: "Forum",
     contests: "Contests",
     ranking: "Ranking",
     profile: "Profile",
@@ -30,7 +31,6 @@ export default {
     remember: "Remember me",
     forgot_password: "Forgot password?",
     confirm_password: "Confirm Password",
-    verification_code: "Verification Code",
     already_registered: "Already have an account?",
     no_account: "Don't have an account?",
     register_success:
@@ -233,7 +233,6 @@ export default {
     unsolved: 'Unsolved',
     tags: 'Tags',
     no_problems: 'No problems found',
-    fetch_error: 'Failed to fetch problems',
     problem_not_found: 'Problem not found',
     invalid_problem_id: 'Invalid problem ID',
     fetch_error: 'Failed to fetch problem details',
@@ -250,9 +249,7 @@ export default {
     source: 'Source',
     solution_placeholder: 'Solutions will be available after you solve the problem or when the contest ends.',
     submissions_placeholder: 'Your submissions will appear here.',
-    submit_solution: 'Submit Solution',
     submit_placeholder: 'Submission functionality coming soon.',
-    submit: 'Submit Code',
 
     /* Submission */
     submit: 'Submit Code',
@@ -285,7 +282,6 @@ export default {
     dashboard: 'Dashboard',
     users: 'Users',
     problems: 'Problems',
-    tags: 'Tags',
     contests: 'Contests',
 
     /* Dashboard */
@@ -298,12 +294,7 @@ export default {
     recent_users: 'Recent Users',
     view_all: 'View All',
     register_time: 'Registration Time',
-    status: 'Status',
-    actions: 'Actions',
     details: 'Details',
-    email_verified: 'Email Status',
-    verified: 'Verified',
-    unverified: 'Unverified',
     fetch_data_error: 'Failed to fetch dashboard data',
 
     /* Admin Dashboard */
@@ -318,7 +309,6 @@ export default {
     view: 'View',
     disable: 'Disable',
     enable: 'Enable',
-    delete: 'Delete',
     user_details: 'User Details',
     user_id: 'User ID',
     last_login: 'Last Login',
@@ -326,9 +316,7 @@ export default {
     bio: 'Bio',
     school: 'School',
     github: 'GitHub',
-    confirm_delete: 'Confirm Delete',
     delete_confirmation: 'Are you sure you want to delete the user {username}? This action cannot be undone.',
-    confirm: 'Confirm',
     status_confirmation: 'Are you sure you want to {action} the user {username}?',
     cannot_change_super_admin: 'Cannot modify super admin',
     cannot_delete_super_admin: 'Cannot delete super admin',
@@ -348,9 +336,7 @@ export default {
     add_problem: 'Add Problem',
     edit_problem: 'Edit Problem',
     delete_problem: 'Delete Problem',
-    confirm_delete: 'Confirm Delete',
     delete_problem_confirmation: 'Are you sure you want to delete the problem "{title}"? This action cannot be undone.',
-    confirm: 'Confirm',
     discard_changes: 'Discard unsaved changes?',
     problem_deleted: 'Problem deleted successfully',
     problem_updated: 'Problem updated successfully',
@@ -383,7 +369,6 @@ export default {
     input_required: 'Input is required',
     output_required: 'Output is required',
     edit: 'Edit',
-    preview: 'Preview',
     delete: 'Delete',
     status_visible: 'Visible',
     status_hidden: 'Hidden',
@@ -432,6 +417,7 @@ export default {
     submit_time: 'Submit Time',
     submitting: 'Submitting',
     poll_error: 'Error polling submission status',
+    poll_timeout: 'Judging is still in progress. Check the submission history again shortly.',
     accepted: 'Accepted',
     finished_with_status: 'Finished with status',
     already_submitting: 'Already submitting, please wait...',
@@ -441,4 +427,3 @@ export default {
     view_code_title: 'View Code',
   },
 };
-

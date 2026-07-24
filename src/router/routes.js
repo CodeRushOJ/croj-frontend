@@ -17,13 +17,23 @@ const NotFound = () => import("@/views/error/NotFound.vue");
 // Problem pages
 const ProblemList = () => import("@/views/problem/ProblemList.vue");
 const ProblemDetail = () => import("@/views/problem/ProblemDetail.vue");
+const ForumList = () => import("@/views/forum/ForumList.vue");
+const ForumPostDetail = () => import("@/views/forum/ForumPostDetail.vue");
+const ForumPostCreate = () => import("@/views/forum/ForumPostCreate.vue");
+const SolutionDetail = () => import("@/views/solution/SolutionDetail.vue");
+const ContestList = () => import("@/views/contest/ContestList.vue");
+const ContestDetail = () => import("@/views/contest/ContestDetail.vue");
+const AnnouncementList = () => import("@/views/announcement/AnnouncementList.vue");
+const AnnouncementDetail = () => import("@/views/announcement/AnnouncementDetail.vue");
 
 // Admin pages
 const AdminLayout = () => import("@/views/admin/AdminLayout.vue");
 const AdminDashboard = () => import("@/views/admin/Dashboard.vue");
 const UserManagement = () => import("@/views/admin/UserManagement.vue");
 const ProblemManagement = () => import("@/views/admin/ProblemManagement.vue");
+const ProblemImport = () => import("@/views/admin/ProblemImport.vue");
 const TagManagement = () => import("@/views/admin/TagManagement.vue");
+const AnnouncementManagement = () => import("@/views/admin/AnnouncementManagement.vue");
 
 // Route configuration
 const routes = [
@@ -53,13 +63,71 @@ const routes = [
       },
       {
         path: "problem/:problemNo",
-        name: "ProblemDetail",
+        name: ROUTE_NAMES.PROBLEM_DETAIL,
         component: ProblemDetail,
         meta: {
           title: "Problem Detail",
           requiresAuth: true,
           icon: "el-icon-document",
         },
+      },
+      {
+        path: "contests/:contestId/problems/:problemId",
+        name: ROUTE_NAMES.CONTEST_PROBLEM_DETAIL,
+        component: ProblemDetail,
+        meta: {
+          title: "Contest Problem",
+          requiresAuth: true,
+          icon: "el-icon-document",
+        },
+      },
+      {
+        path: "forum",
+        name: ROUTE_NAMES.FORUM,
+        component: ForumList,
+        meta: { title: "Forum", requiresAuth: false, icon: "el-icon-chat-dot-round" },
+      },
+      {
+        path: "forum/new",
+        name: ROUTE_NAMES.FORUM_POST_CREATE,
+        component: ForumPostCreate,
+        meta: { title: "New discussion", requiresAuth: true },
+      },
+      {
+        path: "forum/:postId",
+        name: ROUTE_NAMES.FORUM_POST_DETAIL,
+        component: ForumPostDetail,
+        meta: { title: "Discussion", requiresAuth: false },
+      },
+      {
+        path: "problems/:problemId/solutions/:solutionId",
+        name: ROUTE_NAMES.SOLUTION_DETAIL,
+        component: SolutionDetail,
+        meta: { title: "Solution", requiresAuth: false },
+      },
+      {
+        path: "contests",
+        name: ROUTE_NAMES.CONTESTS,
+        component: ContestList,
+        meta: { title: "Contests", requiresAuth: false },
+      },
+      {
+        path: "contests/:contestId",
+        name: ROUTE_NAMES.CONTEST_DETAIL,
+        component: ContestDetail,
+        meta: { title: "Contest", requiresAuth: false },
+      },
+      {
+        path: "announcements",
+        name: ROUTE_NAMES.ANNOUNCEMENTS,
+        component: AnnouncementList,
+        meta: { title: "Announcements", requiresAuth: false },
+      },
+      {
+        path: "announcements/:announcementId",
+        name: ROUTE_NAMES.ANNOUNCEMENT_DETAIL,
+        component: AnnouncementDetail,
+        meta: { title: "Announcement", requiresAuth: false },
       },
       {
         path: "profile",
@@ -124,12 +192,29 @@ const routes = [
             },
           },
           {
+            path: "problem-imports",
+            name: ROUTE_NAMES.ADMIN_PROBLEM_IMPORTS,
+            component: ProblemImport,
+            meta: {
+              title: "Problem Import",
+            },
+          },
+          {
             path: "tags",
             name: "AdminTags",
             component: TagManagement,
             meta: {
               title: "Tag Management",
               icon: "el-icon-collection-tag",
+            },
+          },
+          {
+            path: "announcements",
+            name: ROUTE_NAMES.ADMIN_ANNOUNCEMENTS,
+            component: AnnouncementManagement,
+            meta: {
+              title: "Announcement Management",
+              icon: "el-icon-bell",
             },
           },
         ],

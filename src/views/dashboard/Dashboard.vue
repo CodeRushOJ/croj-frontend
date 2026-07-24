@@ -88,10 +88,8 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import { useAuthStore } from '@/store/modules/auth'
-import { useI18n } from 'vue-i18n'
 import EmailVerificationBanner from '@/components/common/EmailVerificationBanner.vue'
 
-const { t } = useI18n()
 const authStore = useAuthStore()
 
 // 获取用户

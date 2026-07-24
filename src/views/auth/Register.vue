@@ -71,7 +71,6 @@ import { useAuthStore } from '@/store/modules/auth'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ROUTE_NAMES } from '@/constants/routes'
-import { User, Lock, Message, Key } from '@element-plus/icons-vue'
 import Captcha from '@/components/common/Captcha.vue'
 import { emailApi } from '@/api'
 

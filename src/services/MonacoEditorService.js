@@ -28,7 +28,7 @@ export const MonacoEditorService = {
 
     try {
       // Dynamically import Monaco Editor
-      const monaco = await import("monaco-editor");
+      const monaco = await import("monaco-editor/esm/vs/editor/editor.api");
       monacoInstance = monaco;
 
       // Register language features once

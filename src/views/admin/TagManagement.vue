@@ -113,10 +113,8 @@ import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search, Plus, Warning } from '@element-plus/icons-vue';
 import { tagApi } from '@/api/tag';
-import { useAppStore } from '@/store/modules/app';
 
 const { t } = useI18n();
-const appStore = useAppStore();
 
 // State
 const loading = ref(false);

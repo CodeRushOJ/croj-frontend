@@ -55,7 +55,6 @@ import { emailApi } from '@/api'
 import { ElMessage } from 'element-plus'
 import { ROUTE_NAMES } from '@/constants/routes'
 import { useI18n } from 'vue-i18n'
-import { Loading } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()

@@ -57,7 +57,6 @@ import { useAuthStore } from '@/store/modules/auth'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { ROUTE_NAMES } from '@/constants/routes'
-import { User, Lock } from '@element-plus/icons-vue'
 import Captcha from '@/components/common/Captcha.vue'
 
 // Get route, router and auth store
@@ -178,4 +177,5 @@ onMounted(() => {
 .mb-4 {
     margin-bottom: 16px;
 }
+
 </style>

@@ -79,6 +79,7 @@ service.interceptors.response.use(
           break;
         case 40013: // UPLOAD_ERROR
           errorMessageKey = "errors.upload_error";
+          break;
         case 40100: // FORBIDDEN
           errorMessageKey = "errors.unauthorized";
           break;
@@ -100,6 +101,10 @@ service.interceptors.response.use(
     return res;
   },
   (error) => {
+    if (axios.isCancel(error) || error.code === "ERR_CANCELED") {
+      return Promise.reject(error);
+    }
+
     const { t } = i18n.global;
     const authStore = useAuthStore();
 
