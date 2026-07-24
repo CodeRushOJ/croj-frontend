@@ -39,6 +39,7 @@ All notable frontend changes are recorded here.
 - Removed the dead administrator contests navigation entry and replaced reviewed blue/purple hero gradients with the warm-neutral visual system.
 - Added long deadlines and cancellation to administrator problem-import uploads.
 - Isolated administrator TestBundle state by problem/version target, aborting uploads on problem changes and ignoring stale list, metadata, upload, and publish responses.
+- Locked TestBundle targets and route departure during non-cancellable publication, and made version refreshes revalidate preserved drafts without accepting stale metadata.
 
 ### Removed
 

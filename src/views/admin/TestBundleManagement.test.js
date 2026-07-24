@@ -11,7 +11,11 @@ vi.mock("@/api/testBundle", () => ({
 }));
 
 const routeQuery = vi.hoisted(() => ({}));
+const routeLeaveGuard = vi.hoisted(() => ({ callback: null }));
 vi.mock("vue-router", () => ({
+  onBeforeRouteLeave: (callback) => {
+    routeLeaveGuard.callback = callback;
+  },
   useRoute: () => ({ query: routeQuery }),
 }));
 
@@ -64,6 +68,7 @@ describe("TestBundleManagement", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     Object.keys(routeQuery).forEach((key) => delete routeQuery[key]);
+    routeLeaveGuard.callback = null;
     adminTestBundleApi.listVersions.mockResolvedValue({
       data: [
         { versionId: 101, versionNo: 3, state: "DRAFT", attached: false, etag: draft.etag },
@@ -98,6 +103,95 @@ describe("TestBundleManagement", () => {
       42, 101, '"tb-v1-101-DRAFT-abc"',
     ));
     expect(await screen.findByText("PUBLISHED")).toBeVisible();
+  });
+
+  it("locks the problem target until a publish request settles", async () => {
+    const publication = deferred();
+    adminTestBundleApi.describe.mockResolvedValue({
+      data: { ...draft.data, attached: true, sha256: "abc" },
+      etag: '"tb-v1-101-DRAFT-abc"',
+    });
+    adminTestBundleApi.publish.mockReturnValue(publication.promise);
+    render(TestBundleManagement);
+    await loadDraft();
+
+    await fireEvent.click(screen.getByRole("button", { name: "发布题目版本" }));
+    await waitFor(() => expect(adminTestBundleApi.publish).toHaveBeenCalledWith(
+      42, 101, '"tb-v1-101-DRAFT-abc"',
+    ));
+
+    expect(screen.getByLabelText("题目 ID")).toBeDisabled();
+    expect(screen.getByLabelText("草稿版本")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "加载版本" })).toBeDisabled();
+
+    publication.resolve({
+      data: { ...draft.data, attached: true, state: "PUBLISHED", sha256: "abc" },
+      etag: '"tb-v1-101-PUBLISHED-abc"',
+    });
+
+    expect(await screen.findByText("题目版本及其不可变测试包已发布。")).toBeVisible();
+    expect(screen.getByText("PUBLISHED")).toBeVisible();
+    expect(screen.getByLabelText("题目 ID")).toBeEnabled();
+  });
+
+  it("blocks route departure with an accessible notice until publishing settles", async () => {
+    const publication = deferred();
+    adminTestBundleApi.describe.mockResolvedValue({
+      data: { ...draft.data, attached: true, sha256: "abc" },
+      etag: '"tb-v1-101-DRAFT-abc"',
+    });
+    adminTestBundleApi.publish.mockReturnValue(publication.promise);
+    render(TestBundleManagement);
+    await loadDraft();
+    await fireEvent.click(screen.getByRole("button", { name: "发布题目版本" }));
+    await waitFor(() => expect(adminTestBundleApi.publish).toHaveBeenCalledOnce());
+
+    expect(routeLeaveGuard.callback).toEqual(expect.any(Function));
+    expect(routeLeaveGuard.callback()).toBe(false);
+    expect(await screen.findByText("发布请求仍在处理中，请等待结果后再离开。")).toBeVisible();
+
+    publication.resolve({
+      data: { ...draft.data, attached: true, state: "PUBLISHED", sha256: "abc" },
+      etag: '"tb-v1-101-PUBLISHED-abc"',
+    });
+    await screen.findByText("题目版本及其不可变测试包已发布。");
+
+    expect(routeLeaveGuard.callback()).toBe(true);
+  });
+
+  it("reloads metadata when version discovery preserves the selected draft", async () => {
+    render(TestBundleManagement);
+    await loadDraft();
+    expect(adminTestBundleApi.describe).toHaveBeenCalledTimes(1);
+
+    await fireEvent.click(screen.getByRole("button", { name: "加载版本" }));
+
+    await waitFor(() => expect(adminTestBundleApi.listVersions).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(adminTestBundleApi.describe).toHaveBeenCalledTimes(2));
+    expect(screen.getByLabelText("草稿版本")).toHaveValue("101");
+    expect(screen.getByLabelText("测试包服务器状态")).toBeVisible();
+    expect(screen.getByRole("button", { name: "上传并校验测试包" })).toBeVisible();
+  });
+
+  it("does not write an old empty-state notice after refreshed metadata becomes stale", async () => {
+    const refreshedDescription = deferred();
+    adminTestBundleApi.describe
+      .mockResolvedValueOnce(draft)
+      .mockReturnValueOnce(refreshedDescription.promise);
+    render(TestBundleManagement);
+    await loadDraft();
+
+    await fireEvent.click(screen.getByRole("button", { name: "加载版本" }));
+    await waitFor(() => expect(adminTestBundleApi.describe).toHaveBeenCalledTimes(2));
+    await fireEvent.update(screen.getByLabelText("题目 ID"), "43");
+
+    refreshedDescription.resolve(draft);
+    await refreshedDescription.promise;
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(screen.queryByText("这个题目目前没有可管理的草稿版本。")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("测试包服务器状态")).not.toBeInTheDocument();
   });
 
   it("discovers DRAFT versions from the problemId route query", async () => {
@@ -243,6 +337,7 @@ describe("TestBundleManagement", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "加载版本" })).toBeEnabled());
     expect(screen.queryByRole("option", { name: "版本 3 · DRAFT" })).not.toBeInTheDocument();
     expect(screen.getByLabelText("草稿版本")).toBeDisabled();
+    expect(adminTestBundleApi.describe).not.toHaveBeenCalled();
   });
 
   it("ignores a describe response for a previous problem target", async () => {

@@ -16,6 +16,7 @@
           aria-label="题目 ID"
           inputmode="numeric"
           required
+          :disabled="publishing"
           @input="handleProblemTargetChange"
         />
       </label>
@@ -94,7 +95,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { onBeforeRouteLeave, useRoute } from "vue-router";
 import { adminTestBundleApi } from "@/api/testBundle";
 
 const STATUS_MESSAGES = {
@@ -205,6 +206,20 @@ const applyResponse = (response, snapshot) => {
   return true;
 };
 
+const describeTarget = async (snapshot) => {
+  try {
+    applyResponse(
+      await adminTestBundleApi.describe(snapshot.problem, snapshot.version),
+      snapshot,
+    );
+  } catch (error) {
+    if (!currentTarget(snapshot)) return;
+    metadata.value = null;
+    etag.value = "";
+    recordError(error);
+  }
+};
+
 const loadVersions = async () => {
   if (busy.value) return;
   const value = requireProblemId();
@@ -222,7 +237,12 @@ const loadVersions = async () => {
     const selectedStillExists = draftVersions.value.some(
       (version) => String(version.versionId) === String(versionId.value),
     );
-    if (!selectedStillExists) versionId.value = "";
+    if (selectedStillExists) {
+      await describeTarget({ ...ids(), epoch: snapshot.epoch });
+      if (!currentProblemTarget(snapshot)) return;
+    } else {
+      versionId.value = "";
+    }
     if (!draftVersions.value.length) {
       notice.value = "这个题目目前没有可管理的草稿版本。";
     }
@@ -245,15 +265,7 @@ const loadMetadata = async () => {
   notice.value = "";
   clearError();
   try {
-    applyResponse(
-      await adminTestBundleApi.describe(value.problem, value.version),
-      snapshot,
-    );
-  } catch (error) {
-    if (!currentTarget(snapshot)) return;
-    metadata.value = null;
-    etag.value = "";
-    recordError(error);
+    await describeTarget(snapshot);
   } finally {
     if (snapshot.epoch === targetEpoch) loading.value = false;
   }
@@ -265,7 +277,6 @@ const handleProblemTargetChange = () => {
   uploadController = null;
   loading.value = false;
   uploading.value = false;
-  publishing.value = false;
   activeUpload?.abort();
   versions.value = [];
   versionId.value = "";
@@ -368,6 +379,7 @@ const publishBundle = async () => {
     }
   } catch (error) {
     if (!currentTarget(snapshot)) return;
+    notice.value = "";
     recordError(error);
   } finally {
     if (snapshot.epoch === targetEpoch) publishing.value = false;
@@ -386,6 +398,11 @@ onMounted(() => {
     problemId.value = String(queryProblemId);
     loadVersions();
   }
+});
+onBeforeRouteLeave(() => {
+  if (!publishing.value) return true;
+  notice.value = "发布请求仍在处理中，请等待结果后再离开。";
+  return false;
 });
 onUnmounted(() => {
   targetEpoch += 1;
