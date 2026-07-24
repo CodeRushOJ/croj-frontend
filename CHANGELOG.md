@@ -38,6 +38,7 @@ All notable frontend changes are recorded here.
 - Fixed forum category filtering to send `categoryId`, and made confirmed 401 session-expiry logout redirect through the application router.
 - Removed the dead administrator contests navigation entry and replaced reviewed blue/purple hero gradients with the warm-neutral visual system.
 - Added long deadlines and cancellation to administrator problem-import uploads.
+- Isolated administrator TestBundle state by problem/version target, aborting uploads on problem changes and ignoring stale list, metadata, upload, and publish responses.
 
 ### Removed
 

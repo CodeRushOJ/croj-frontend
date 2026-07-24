@@ -29,6 +29,16 @@ const draft = {
   etag: '"tb-v1-101-DRAFT-none"',
 };
 
+const deferred = () => {
+  let resolve;
+  let reject;
+  const promise = new Promise((promiseResolve, promiseReject) => {
+    resolve = promiseResolve;
+    reject = promiseReject;
+  });
+  return { promise, reject, resolve };
+};
+
 const loadDraft = async () => {
   await fireEvent.update(screen.getByLabelText("题目 ID"), "42");
   await fireEvent.click(screen.getByRole("button", { name: "加载版本" }));
@@ -160,7 +170,7 @@ describe("TestBundleManagement", () => {
     expect(screen.getByRole("button", { name: "上传并校验测试包" })).toBeDisabled();
   });
 
-  it("clears the selected archive when the problem target changes", async () => {
+  it("clears all target-bound state when the problem target changes", async () => {
     render(TestBundleManagement);
     await loadDraft();
     await selectBundle();
@@ -170,7 +180,10 @@ describe("TestBundleManagement", () => {
 
     expect(screen.queryByText(/tests\.zip/)).not.toBeInTheDocument();
     expect(input.value).toBe("");
-    expect(screen.getByRole("button", { name: "上传并校验测试包" })).toBeDisabled();
+    expect(screen.getByLabelText("草稿版本")).toHaveValue("");
+    expect(screen.getByLabelText("草稿版本")).toBeDisabled();
+    expect(screen.queryByLabelText("测试包服务器状态")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "上传并校验测试包" })).not.toBeInTheDocument();
   });
 
   it("refuses to upload when the selected archive target no longer matches the form", async () => {
@@ -179,9 +192,76 @@ describe("TestBundleManagement", () => {
     await selectBundle();
 
     await fireEvent.update(screen.getByLabelText("题目 ID"), "43");
-    await fireEvent.click(screen.getByRole("button", { name: "上传并校验测试包" }));
 
+    expect(screen.queryByRole("button", { name: "上传并校验测试包" })).not.toBeInTheDocument();
     expect(adminTestBundleApi.upload).not.toHaveBeenCalled();
+  });
+
+  it("aborts an active upload and ignores its response after the problem target changes", async () => {
+    const upload = deferred();
+    let uploadSignal;
+    adminTestBundleApi.upload.mockImplementation(
+      (problemId, versionId, file, etag, { signal }) => {
+        uploadSignal = signal;
+        return upload.promise;
+      },
+    );
+    render(TestBundleManagement);
+    await loadDraft();
+    await selectBundle();
+    await fireEvent.click(screen.getByRole("button", { name: "上传并校验测试包" }));
+    await waitFor(() => expect(adminTestBundleApi.upload).toHaveBeenCalledOnce());
+
+    await fireEvent.update(screen.getByLabelText("题目 ID"), "43");
+    expect(uploadSignal.aborted).toBe(true);
+    expect(screen.queryByText("取消上传")).not.toBeInTheDocument();
+    upload.resolve({
+      data: { ...draft.data, attached: true, sha256: "stale-sha" },
+      etag: '"stale-etag"',
+    });
+
+    await waitFor(() => expect(screen.queryByText("取消上传")).not.toBeInTheDocument());
+    expect(screen.queryByLabelText("测试包服务器状态")).not.toBeInTheDocument();
+    expect(screen.queryByText("stale-sha")).not.toBeInTheDocument();
+    expect(screen.queryByText("测试包已通过校验并附加；发布前请核对摘要。")).not.toBeInTheDocument();
+  });
+
+  it("ignores a versions response for a previous problem target", async () => {
+    const versions = deferred();
+    adminTestBundleApi.listVersions.mockReturnValueOnce(versions.promise);
+    render(TestBundleManagement);
+    await fireEvent.update(screen.getByLabelText("题目 ID"), "42");
+    await fireEvent.click(screen.getByRole("button", { name: "加载版本" }));
+    await waitFor(() => expect(adminTestBundleApi.listVersions).toHaveBeenCalledWith(42));
+
+    await fireEvent.update(screen.getByLabelText("题目 ID"), "43");
+    expect(screen.getByRole("button", { name: "加载版本" })).toBeEnabled();
+    versions.resolve({
+      data: [{ versionId: 101, versionNo: 3, state: "DRAFT", attached: false }],
+    });
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "加载版本" })).toBeEnabled());
+    expect(screen.queryByRole("option", { name: "版本 3 · DRAFT" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("草稿版本")).toBeDisabled();
+  });
+
+  it("ignores a describe response for a previous problem target", async () => {
+    const description = deferred();
+    adminTestBundleApi.describe.mockReturnValueOnce(description.promise);
+    render(TestBundleManagement);
+    await fireEvent.update(screen.getByLabelText("题目 ID"), "42");
+    await fireEvent.click(screen.getByRole("button", { name: "加载版本" }));
+    await screen.findByRole("option", { name: "版本 3 · DRAFT" });
+    await fireEvent.update(screen.getByLabelText("草稿版本"), "101");
+    await waitFor(() => expect(adminTestBundleApi.describe).toHaveBeenCalledWith(42, 101));
+
+    await fireEvent.update(screen.getByLabelText("题目 ID"), "43");
+    expect(screen.getByRole("button", { name: "加载版本" })).toBeEnabled();
+    description.resolve(draft);
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "加载版本" })).toBeEnabled());
+    expect(screen.queryByLabelText("测试包服务器状态")).not.toBeInTheDocument();
+    expect(screen.queryByText(draft.etag)).not.toBeInTheDocument();
   });
 
   it("lets an administrator cancel an active upload", async () => {

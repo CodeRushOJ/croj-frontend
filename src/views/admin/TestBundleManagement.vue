@@ -124,6 +124,7 @@ const errorMessage = ref("");
 const stale = ref(false);
 const notice = ref("");
 let uploadController = null;
+let targetEpoch = 0;
 const route = useRoute();
 
 const busy = computed(() => loading.value || uploading.value || publishing.value);
@@ -141,6 +142,15 @@ const sameTarget = (left, right) => Boolean(
   && right
   && left.problem === right.problem
   && left.version === right.version,
+);
+const targetSnapshot = () => ({ ...ids(), epoch: targetEpoch });
+const currentProblemTarget = (snapshot) => (
+  snapshot.epoch === targetEpoch
+  && snapshot.problem === positiveId(problemId.value)
+);
+const currentTarget = (snapshot) => (
+  snapshot.epoch === targetEpoch
+  && sameTarget(snapshot, ids())
 );
 
 const clearSelectedFile = () => {
@@ -188,15 +198,18 @@ const requireProblemId = () => {
   return null;
 };
 
-const applyResponse = (response) => {
+const applyResponse = (response, snapshot) => {
+  if (!currentTarget(snapshot)) return false;
   metadata.value = response.data;
   etag.value = response.etag;
+  return true;
 };
 
 const loadVersions = async () => {
   if (busy.value) return;
   const value = requireProblemId();
   if (!value) return;
+  const snapshot = { epoch: targetEpoch, problem: value };
   loading.value = true;
   notice.value = "";
   clearError();
@@ -204,6 +217,7 @@ const loadVersions = async () => {
   etag.value = "";
   try {
     const response = await adminTestBundleApi.listVersions(value);
+    if (!currentProblemTarget(snapshot)) return;
     versions.value = Array.isArray(response.data) ? response.data : [];
     const selectedStillExists = draftVersions.value.some(
       (version) => String(version.versionId) === String(versionId.value),
@@ -213,11 +227,12 @@ const loadVersions = async () => {
       notice.value = "这个题目目前没有可管理的草稿版本。";
     }
   } catch (error) {
+    if (!currentProblemTarget(snapshot)) return;
     versions.value = [];
     versionId.value = "";
     recordError(error);
   } finally {
-    loading.value = false;
+    if (snapshot.epoch === targetEpoch) loading.value = false;
   }
 };
 
@@ -225,26 +240,49 @@ const loadMetadata = async () => {
   if (busy.value) return;
   const value = requireIds();
   if (!value) return;
+  const snapshot = targetSnapshot();
   loading.value = true;
   notice.value = "";
   clearError();
   try {
-    applyResponse(await adminTestBundleApi.describe(value.problem, value.version));
+    applyResponse(
+      await adminTestBundleApi.describe(value.problem, value.version),
+      snapshot,
+    );
   } catch (error) {
+    if (!currentTarget(snapshot)) return;
     metadata.value = null;
     etag.value = "";
     recordError(error);
   } finally {
-    loading.value = false;
+    if (snapshot.epoch === targetEpoch) loading.value = false;
   }
 };
 
 const handleProblemTargetChange = () => {
-  clearFileForChangedTarget();
+  targetEpoch += 1;
+  const activeUpload = uploadController;
+  uploadController = null;
+  loading.value = false;
+  uploading.value = false;
+  publishing.value = false;
+  activeUpload?.abort();
+  versions.value = [];
+  versionId.value = "";
+  metadata.value = null;
+  etag.value = "";
+  notice.value = "";
+  clearError();
+  clearSelectedFile();
 };
 
 const handleVersionTargetChange = async () => {
+  targetEpoch += 1;
   clearFileForChangedTarget();
+  metadata.value = null;
+  etag.value = "";
+  notice.value = "";
+  clearError();
   await loadMetadata();
 };
 
@@ -276,6 +314,9 @@ const uploadBundle = async () => {
     errorMessage.value = "请为当前题目和草稿版本重新选择 TestBundle ZIP。";
     return;
   }
+  const snapshot = targetSnapshot();
+  const file = selectedFile.value;
+  const currentEtag = etag.value;
   uploading.value = true;
   notice.value = "";
   clearError();
@@ -285,20 +326,25 @@ const uploadBundle = async () => {
     applyResponse(await adminTestBundleApi.upload(
       value.problem,
       value.version,
-      selectedFile.value,
-      etag.value,
+      file,
+      currentEtag,
       { signal: controller.signal },
-    ));
-    notice.value = "测试包已通过校验并附加；发布前请核对摘要。";
+    ), snapshot);
+    if (currentTarget(snapshot)) {
+      notice.value = "测试包已通过校验并附加；发布前请核对摘要。";
+    }
   } catch (error) {
+    if (!currentTarget(snapshot)) return;
     if (controller.signal.aborted || error?.code === "ERR_CANCELED") {
       notice.value = "上传已取消，文件仍保留。";
     } else {
       recordError(error);
     }
   } finally {
-    if (uploadController === controller) uploadController = null;
-    uploading.value = false;
+    if (uploadController === controller) {
+      uploadController = null;
+      uploading.value = false;
+    }
   }
 };
 
@@ -307,16 +353,24 @@ const cancelUpload = () => uploadController?.abort();
 const publishBundle = async () => {
   const value = requireIds();
   if (!value || !etag.value || publishing.value) return;
+  const snapshot = targetSnapshot();
+  const currentEtag = etag.value;
   publishing.value = true;
   notice.value = "";
   clearError();
   try {
-    applyResponse(await adminTestBundleApi.publish(value.problem, value.version, etag.value));
-    notice.value = "题目版本及其不可变测试包已发布。";
+    applyResponse(
+      await adminTestBundleApi.publish(value.problem, value.version, currentEtag),
+      snapshot,
+    );
+    if (currentTarget(snapshot)) {
+      notice.value = "题目版本及其不可变测试包已发布。";
+    }
   } catch (error) {
+    if (!currentTarget(snapshot)) return;
     recordError(error);
   } finally {
-    publishing.value = false;
+    if (snapshot.epoch === targetEpoch) publishing.value = false;
   }
 };
 
@@ -333,7 +387,10 @@ onMounted(() => {
     loadVersions();
   }
 });
-onUnmounted(cancelUpload);
+onUnmounted(() => {
+  targetEpoch += 1;
+  cancelUpload();
+});
 </script>
 
 <style scoped>
