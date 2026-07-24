@@ -17,6 +17,7 @@ All notable frontend changes are recorded here.
 - Contest API client, responsive contest discovery page, phase filters, contest overview, registration, problem roster, and ACM scoreboard.
 - Real API failure and retry states for the problem library and problem details.
 - Submission detail API normalization for stable polling of integer backend statuses.
+- Real problem and contest submission flow with contest context, bounded exponential-backoff polling, terminal result metrics, timeout/error states, and navigation cancellation.
 - Component/API contract tests for real problem data, administrator navigation, and submission detail polling.
 
 ### Changed
@@ -25,10 +26,12 @@ All notable frontend changes are recorded here.
 - Reworked the visual foundation to a restrained warm neutral palette with simpler surfaces and hierarchy.
 - Moved the administrator workspace entry from primary navigation into the authenticated user menu.
 - Corrected acceptance-rate rendering to match the backend percentage contract.
+- Decoupled contest detail loading from protected problem/scoreboard requests so a single 403 no longer replaces the whole page with a fetch failure.
 
 ### Removed
 
 - Removed preview administrator authentication and all preview problem/contest fixtures from product code. Local development now uses real backend APIs only.
+- Removed the simulated editor submit/run timers; the editor now emits directly into the real backend submission workflow, and no fake run action is exposed.
 
 ## 0.1.0 - Initial implementation
 

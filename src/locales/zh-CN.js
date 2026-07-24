@@ -427,6 +427,7 @@ export default {
     submit_time: '提交时间',
     submitting: '提交中',
     poll_error: '轮询提交状态失败',
+    poll_timeout: '判题仍在处理中，请稍后到提交记录查看结果。',
     accepted: '通过',
     finished_with_status: '评测完成，状态',
     already_submitting: '正在提交中，请稍候...',

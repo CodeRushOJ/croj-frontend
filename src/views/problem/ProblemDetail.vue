@@ -183,7 +183,7 @@
                 <el-tab-pane :label="$t('problems.submit')" name="submit">
                     <div class="submit-section">
                          <!-- Submission Status Feedback Area -->
-                        <div v-if="isSubmitting || submissionResult" class="submission-status-container submit-feedback">
+                        <div v-if="isSubmitting || isPolling || submissionResult" class="submission-status-container submit-feedback">
                             <div v-if="isSubmitting">
                                 <p>{{ $t('submissions.submitting') }}...</p>
                                 <el-progress :percentage="100" status="success" :indeterminate="true" :duration="1" />
@@ -197,14 +197,14 @@
                                      </strong>
                                  </p>
                                 <el-progress
-                                    v-if="pollingInterval !== null && ['PENDING', 'RUNNING', 'COMPILING'].includes(submissionResult.status)"
+                                    v-if="isPolling && submissionResult.status === 'PENDING'"
                                     :percentage="100"
                                     :indeterminate="true"
                                     status="success"
                                     :duration="1"
                                     style="margin-top: 10px;"
                                  />
-                                 <div v-if="!pollingInterval && submissionResult.status !== 'PENDING'">
+                                 <div v-if="!isPolling && submissionResult.status !== 'PENDING'">
                                      <p v-if="submissionResult.time != null">{{ $t('submissions.time') }}: {{ submissionResult.time }} ms</p>
                                      <p v-if="submissionResult.memory != null">{{ $t('submissions.memory') }}: {{ submissionResult.memory }} KB</p>
                                      <p v-if="submissionResult.message">{{ $t('submissions.message') }}: {{ submissionResult.message }}</p>
@@ -215,7 +215,11 @@
                             </div>
                         </div>
 
-                        <code-editor :problem="problem" @submit="handleSubmitCode" :disabled="isSubmitting" />
+                        <code-editor
+                            :problem="problem"
+                            :disabled="isSubmitting || isPolling"
+                            @submit="handleSubmitCode"
+                        />
                     </div>
                 </el-tab-pane>
             </el-tabs>
@@ -243,6 +247,11 @@ import { problemApi, submissionApi } from '@/api';
 import CodeEditor from '@/components/problem/CodeEditor.vue';
 import ProblemSolutions from '@/components/problem/ProblemSolutions.vue';
 import ProblemDiscussions from '@/components/problem/ProblemDiscussions.vue';
+import {
+    SubmissionPollingTimeoutError,
+    pollSubmissionUntilComplete,
+} from '@/services/submissionPolling';
+import { buildSubmissionPayload } from './submissionContext';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -256,7 +265,8 @@ const activeTab = ref(route.query.tab || 'description');
 
 // State for the submission initiated from THIS component instance
 const isSubmitting = ref(false); // Loading state for the submit button
-const pollingInterval = ref(null);
+const isPolling = ref(false);
+const pollingController = ref(null);
 const submissionResult = ref(null); // Stores the LATEST submission result initiated from this page
 
 // State for the submissions list tab
@@ -383,58 +393,57 @@ const getDifficultyLabel = (difficulty) => {
 
 // Stop polling when component is unmounted
 onUnmounted(() => {
-    if (pollingInterval.value) {
-        clearInterval(pollingInterval.value);
-    }
+    pollingController.value?.abort();
 });
 
 // Function to poll submission status
-const pollSubmissionStatus = (submissionId) => {
-    if (pollingInterval.value) {
-        clearInterval(pollingInterval.value);
-    }
+const pollSubmissionStatus = async (submissionId) => {
+    pollingController.value?.abort();
+    const controller = new AbortController();
+    pollingController.value = controller;
+    isPolling.value = true;
     submissionResult.value = { id: submissionId, status: 'PENDING' }; // Initial status for Submit Tab
-    console.log(`Starting polling for submission ID: ${submissionId}`);
 
-    pollingInterval.value = setInterval(async () => {
-        try {
-            const res = await submissionApi.getSubmission(submissionId);
-            console.log('Polling response:', res);
-
-            if (res.success && res.data) {
-                const currentSubmission = res.data;
+    try {
+        const completed = await pollSubmissionUntilComplete(submissionId, {
+            getSubmission: submissionApi.getSubmission,
+            signal: controller.signal,
+            onUpdate: currentSubmission => {
                 submissionResult.value = currentSubmission;
+            },
+        });
 
-                const finalStatuses = ['ACCEPTED', 'WRONG_ANSWER', 'COMPILE_ERROR', 'TIME_LIMIT_EXCEEDED', 'MEMORY_LIMIT_EXCEEDED', 'RUNTIME_ERROR', 'SYSTEM_ERROR'];
-                if (finalStatuses.includes(currentSubmission.status)) {
-                    clearInterval(pollingInterval.value);
-                    pollingInterval.value = null;
-
-                    if (activeTab.value === 'submissions') {
-                        fetchSubmissions();
-                    }
-
-                    if (currentSubmission.status === 'ACCEPTED') {
-                        ElMessage.success(t('submissions.accepted'));
-                    } else {
-                        ElMessage.warning(`${t('submissions.finished_with_status')}: ${currentSubmission.status}`);
-                    }
-                }
-            } else {
-                console.warn(`Polling: Submission ${submissionId} returned no data.`);
-            }
-        } catch (error) {
-            console.error(`Error polling submission status for ID ${submissionId}:`, error);
-            ElMessage.error(t('submissions.poll_error'));
-            clearInterval(pollingInterval.value);
-            pollingInterval.value = null;
-            if (submissionResult.value && submissionResult.value.id === submissionId) {
-                 submissionResult.value.status = 'POLL_ERROR';
-            } else {
-                submissionResult.value = { id: submissionId, status: 'POLL_ERROR' };
-            }
+        if (activeTab.value === 'submissions') {
+            fetchSubmissions();
         }
-    }, 1000); // Poll every 1 second
+        if (completed.status === 'ACCEPTED') {
+            ElMessage.success(t('submissions.accepted'));
+        } else {
+            ElMessage.warning(`${t('submissions.finished_with_status')}: ${completed.status}`);
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') return;
+        console.error(`Error polling submission status for ID ${submissionId}:`, error);
+        if (error instanceof SubmissionPollingTimeoutError) {
+            submissionResult.value = {
+                id: submissionId,
+                status: 'POLL_TIMEOUT',
+                message: t('submissions.poll_timeout'),
+            };
+        } else {
+            ElMessage.error(t('submissions.poll_error'));
+            submissionResult.value = {
+                id: submissionId,
+                status: 'POLL_ERROR',
+                message: error.message || t('errors.unknown_error'),
+            };
+        }
+    } finally {
+        if (pollingController.value === controller) {
+            pollingController.value = null;
+            isPolling.value = false;
+        }
+    }
 };
 
 // Handle submit code
@@ -446,12 +455,15 @@ const handleSubmitCode = async (submissionData) => {
 
     isSubmitting.value = true;
     submissionResult.value = null; // Clear previous submit tab result
-    if (pollingInterval.value) {
-        clearInterval(pollingInterval.value);
-        pollingInterval.value = null;
-    }
+    pollingController.value?.abort();
+    pollingController.value = null;
+    isPolling.value = false;
 
-    const fullSubmissionData = { ...submissionData, problemId: problem.value?.id };
+    const fullSubmissionData = buildSubmissionPayload(
+        submissionData,
+        problem.value?.id,
+        route.query.contestId,
+    );
 
     if (!fullSubmissionData.problemId) {
         ElMessage.error(t('problems.invalid_problem_id'));
@@ -459,16 +471,13 @@ const handleSubmitCode = async (submissionData) => {
         return;
     }
 
-    console.log('Submitting code with data:', fullSubmissionData);
-
     try {
         const res = await submissionApi.submitCode(fullSubmissionData);
-        console.log('Submission response:', res);
 
         if (res.success && res.data) {
             const submissionId = res.data;
             ElMessage.success(t('problems.submission_sent'));
-            pollSubmissionStatus(submissionId); // Start polling for Submit Tab feedback
+            void pollSubmissionStatus(submissionId);
         } else {
             console.error('Submission API request failed logically:', res);
              submissionResult.value = { status: 'SUBMIT_FAILED', message: res.message || t('errors.unknown_error') };
