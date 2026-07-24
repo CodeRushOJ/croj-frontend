@@ -11,7 +11,13 @@
     <form class="lookup-panel" @submit.prevent="loadVersions">
       <label>
         <span>题目 ID</span>
-        <input v-model="problemId" aria-label="题目 ID" inputmode="numeric" required />
+        <input
+          v-model="problemId"
+          aria-label="题目 ID"
+          inputmode="numeric"
+          required
+          @input="handleProblemTargetChange"
+        />
       </label>
       <label>
         <span>草稿版本</span>
@@ -19,7 +25,7 @@
           v-model="versionId"
           aria-label="草稿版本"
           :disabled="busy || !draftVersions.length"
-          @change="loadMetadata"
+          @change="handleVersionTargetChange"
         >
           <option value="">{{ draftVersions.length ? "请选择草稿版本" : "暂无草稿版本" }}</option>
           <option
@@ -108,6 +114,7 @@ const versions = ref([]);
 const metadata = ref(null);
 const etag = ref("");
 const selectedFile = ref(null);
+const selectedFileTarget = ref(null);
 const fileInput = ref(null);
 const loading = ref(false);
 const uploading = ref(false);
@@ -129,6 +136,24 @@ const ids = () => ({
   problem: positiveId(problemId.value),
   version: positiveId(versionId.value),
 });
+const sameTarget = (left, right) => Boolean(
+  left
+  && right
+  && left.problem === right.problem
+  && left.version === right.version,
+);
+
+const clearSelectedFile = () => {
+  selectedFile.value = null;
+  selectedFileTarget.value = null;
+  if (fileInput.value) fileInput.value.value = "";
+};
+
+const clearFileForChangedTarget = () => {
+  if (selectedFileTarget.value && !sameTarget(selectedFileTarget.value, ids())) {
+    clearSelectedFile();
+  }
+};
 
 const clearError = () => {
   errorTitle.value = "";
@@ -214,6 +239,15 @@ const loadMetadata = async () => {
   }
 };
 
+const handleProblemTargetChange = () => {
+  clearFileForChangedTarget();
+};
+
+const handleVersionTargetChange = async () => {
+  clearFileForChangedTarget();
+  await loadMetadata();
+};
+
 const refreshMetadata = async () => {
   clearError();
   await loadMetadata();
@@ -224,17 +258,24 @@ const selectFile = (event) => {
   notice.value = "";
   clearError();
   if (file && !/\.zip$/i.test(file.name)) {
-    selectedFile.value = null;
+    clearSelectedFile();
     errorTitle.value = "请求格式不正确";
     errorMessage.value = "TestBundle 必须是 .zip 文件。";
     return;
   }
   selectedFile.value = file;
+  selectedFileTarget.value = file ? ids() : null;
 };
 
 const uploadBundle = async () => {
   const value = requireIds();
   if (!value || !selectedFile.value || !etag.value || uploading.value) return;
+  if (!sameTarget(selectedFileTarget.value, value)) {
+    clearSelectedFile();
+    errorTitle.value = "测试包目标已经变化";
+    errorMessage.value = "请为当前题目和草稿版本重新选择 TestBundle ZIP。";
+    return;
+  }
   uploading.value = true;
   notice.value = "";
   clearError();

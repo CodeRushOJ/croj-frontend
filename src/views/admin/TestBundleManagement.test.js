@@ -41,6 +41,11 @@ const selectBundle = async () => {
   const file = new File(["zip"], "tests.zip", { type: "application/zip" });
   const input = screen.getByLabelText("TestBundle ZIP");
   Object.defineProperty(input, "files", { configurable: true, value: [file] });
+  Object.defineProperty(input, "value", {
+    configurable: true,
+    writable: true,
+    value: "C:\\fakepath\\tests.zip",
+  });
   await fireEvent(input, new Event("change", { bubbles: true }));
   return file;
 };
@@ -119,6 +124,7 @@ describe("TestBundleManagement", () => {
     render(TestBundleManagement);
     await loadDraft();
     const file = await selectBundle();
+    const input = screen.getByLabelText("TestBundle ZIP");
     await fireEvent.click(screen.getByRole("button", { name: "上传并校验测试包" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("服务器版本已经变化");
@@ -126,7 +132,56 @@ describe("TestBundleManagement", () => {
     await fireEvent.click(screen.getByRole("button", { name: "刷新服务器版本" }));
     await waitFor(() => expect(adminTestBundleApi.describe).toHaveBeenCalledTimes(2));
     expect(screen.getByText(/tests\.zip/)).toBeVisible();
+    expect(input.value).toBe("C:\\fakepath\\tests.zip");
     expect(file.name).toBe("tests.zip");
+  });
+
+  it("clears the selected archive when the draft version target changes", async () => {
+    adminTestBundleApi.listVersions.mockResolvedValue({
+      data: [
+        { versionId: 102, versionNo: 4, state: "DRAFT", attached: false },
+        { versionId: 101, versionNo: 3, state: "DRAFT", attached: false },
+      ],
+    });
+    adminTestBundleApi.describe.mockImplementation((_problemId, versionId) => Promise.resolve({
+      data: { ...draft.data, versionId, state: "DRAFT" },
+      etag: `"tb-v1-${versionId}-DRAFT-none"`,
+    }));
+    render(TestBundleManagement);
+    await loadDraft();
+    await selectBundle();
+    const input = screen.getByLabelText("TestBundle ZIP");
+
+    await fireEvent.update(screen.getByLabelText("草稿版本"), "102");
+    await screen.findByText('"tb-v1-102-DRAFT-none"');
+
+    expect(screen.queryByText(/tests\.zip/)).not.toBeInTheDocument();
+    expect(input.value).toBe("");
+    expect(screen.getByRole("button", { name: "上传并校验测试包" })).toBeDisabled();
+  });
+
+  it("clears the selected archive when the problem target changes", async () => {
+    render(TestBundleManagement);
+    await loadDraft();
+    await selectBundle();
+    const input = screen.getByLabelText("TestBundle ZIP");
+
+    await fireEvent.update(screen.getByLabelText("题目 ID"), "43");
+
+    expect(screen.queryByText(/tests\.zip/)).not.toBeInTheDocument();
+    expect(input.value).toBe("");
+    expect(screen.getByRole("button", { name: "上传并校验测试包" })).toBeDisabled();
+  });
+
+  it("refuses to upload when the selected archive target no longer matches the form", async () => {
+    render(TestBundleManagement);
+    await loadDraft();
+    await selectBundle();
+
+    await fireEvent.update(screen.getByLabelText("题目 ID"), "43");
+    await fireEvent.click(screen.getByRole("button", { name: "上传并校验测试包" }));
+
+    expect(adminTestBundleApi.upload).not.toHaveBeenCalled();
   });
 
   it("lets an administrator cancel an active upload", async () => {
