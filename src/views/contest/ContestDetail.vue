@@ -42,8 +42,10 @@
         <b>{{ String.fromCharCode(65 + index) }}</b>
         <div><strong>{{ problem.title || `题目 ${problem.label || index + 1}` }}</strong><small>{{ problem.problemNo || `#${problem.problemId}` }}<template v-if="problem.tags?.length"> · {{ problem.tags.map(tag => tag.name).join(' / ') }}</template></small></div>
         <span :class="`difficulty-${problem.difficulty || 0}`">{{ problem.difficulty ? difficultyLabel(problem.difficulty) : `${problem.score || 100} 分` }}</span>
-        <router-link v-if="problem.problemNo" :to="{ name: 'ProblemDetail', params: { problemNo: problem.problemNo } }">开始解题 →</router-link>
-        <span v-else class="contract-pending">等待题目摘要</span>
+        <router-link :to="{
+          name: 'ContestProblemDetail',
+          params: { contestId: contest.id, problemId: problem.problemId },
+        }">开始解题 →</router-link>
       </article>
     </div>
 
@@ -53,6 +55,11 @@
       <div v-for="(row, index) in scoreboard" :key="row.rank || row.userId" class="score-row"><b>{{ row.rank || index + 1 }}</b><strong>{{ row.username || `用户 #${row.userId}` }}</strong><span>{{ row.solved }}</span><span>{{ row.penalty ?? row.penaltyMinutes }}</span></div>
     </div>
   </section>
+  <section v-else-if="loadError" class="panel contest-load-error" role="alert">
+    <h1>暂时无法加载比赛</h1>
+    <p>比赛详情服务没有返回有效数据，请稍后重试。</p>
+    <button type="button" @click="loadContest">重新加载</button>
+  </section>
   <el-skeleton v-else :rows="12" animated />
 </template>
 
@@ -60,9 +67,11 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { contestApi } from '@/api/contest'
+import { normalizeContestProblem } from '@/views/problem/contestProblem'
 
 const route = useRoute()
 const contest = ref(null)
+const loadError = ref(false)
 const registered = ref(false)
 const activeTab = ref('overview')
 const contestProblems = ref([])
@@ -83,13 +92,33 @@ const toggleRegistration = async () => {
   registered.value = !registered.value
 }
 
-onMounted(async () => {
+const loadContest = async () => {
   const id = Number(route.params.contestId)
-  const [detail, problems, board] = await Promise.all([contestApi.detail(id), contestApi.problems(id), contestApi.scoreboard(id)])
-  contest.value = detail.data.contest ? { ...detail.data.contest, phase: detail.data.phase } : detail.data
-  contestProblems.value = problems.data || []
-  scoreboard.value = board.data.rows || []
-})
+  loadError.value = false
+
+  try {
+    const detail = await contestApi.detail(id)
+    contest.value = detail.data.contest
+      ? { ...detail.data.contest, phase: detail.data.phase }
+      : detail.data
+  } catch (error) {
+    console.error('Failed to load contest detail:', error)
+    contest.value = null
+    loadError.value = true
+    return
+  }
+
+  const [problems, board] = await Promise.allSettled([
+    contestApi.problems(id),
+    contestApi.scoreboard(id),
+  ])
+  contestProblems.value = problems.status === 'fulfilled'
+    ? (problems.value.data || []).map(item => normalizeContestProblem(item, id))
+    : []
+  scoreboard.value = board.status === 'fulfilled' ? board.value.data?.rows || [] : []
+}
+
+onMounted(loadContest)
 </script>
 
 <style scoped>

@@ -42,11 +42,12 @@ export const submissionApi = {
    * @param {SubmissionDTO} data
    * @returns {Promise<ResultLong>}
    */
-  submitCode(data) {
+  submitCode(data, { signal } = {}) {
     return request({
       url: '/submission',
       method: 'post',
-      data
+      data,
+      signal,
     })
   },
 
@@ -55,19 +56,21 @@ export const submissionApi = {
    * @param {SubmissionQueryDTO} data
    * @returns {Promise<ResultIPageSubmissionVO>}
    */
-  getSubmissionList(data) {
+  getSubmissionList(data, { signal } = {}) {
     return request({
       url: '/submission/list',
       method: 'post',
-      data
+      data,
+      signal,
     }).then(normalizeListResponse)
   },
 
   /** 获取单条提交及其最新判题状态。 */
-  getSubmission(id) {
+  getSubmission(id, { signal } = {}) {
     return request({
       url: `/submission/${id}`,
-      method: 'get'
+      method: 'get',
+      signal,
     }).then(normalizeDetailResponse)
   }
 };

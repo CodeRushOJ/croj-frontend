@@ -42,40 +42,31 @@
         </div>
 
         <div class="editor-footer">
-            <el-button type="primary" :loading="submitting" @click="submitCode" size="large">
+            <el-button type="primary" :disabled="disabled" @click="submitCode" size="large">
                 <el-icon>
                     <Upload />
                 </el-icon>
                 {{ $t('problems.submit_solution') }}
             </el-button>
-            <el-button @click="runCode" size="large" :disabled="runningCode">
-                <el-icon :class="{ 'is-loading': runningCode }">
-                    <VideoPlay v-if="!runningCode" />
-                    <Loading v-else />
-                </el-icon>
-                {{ runningCode ? $t('problems.running_code') : $t('problems.run_code') }}
-            </el-button>
-            <div class="submission-info" v-if="lastSubmissionTime">
-                <el-icon>
-                    <Clock />
-                </el-icon>
-                <span>{{ $t('problems.last_submitted') }}: {{ formatDate(lastSubmissionTime) }}</span>
-            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick, toRaw } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed, nextTick, toRaw } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ElMessage } from 'element-plus';
-import { Brush, Refresh, Upload, VideoPlay, Loading, Clock } from '@element-plus/icons-vue';
+import { Brush, Refresh, Upload, Loading } from '@element-plus/icons-vue';
 import MonacoEditorService from '@/services/MonacoEditorService';
 
 const props = defineProps({
     problem: {
         type: Object,
         required: true
+    },
+    disabled: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -86,9 +77,6 @@ const editorContainer = ref(null);
 const editor = ref(null);
 const monaco = ref(null);
 const selectedLanguage = ref('cpp');
-const submitting = ref(false);
-const runningCode = ref(false);
-const lastSubmissionTime = ref(null);
 const initializing = ref(true);
 const editorInitialized = ref(false);
 const visible = ref(false);
@@ -307,63 +295,19 @@ const handleLanguageChange = async (language) => {
 };
 
 // Submit code
-const submitCode = async () => {
-    if (!editor.value) return;
+const submitCode = () => {
+    if (!editor.value || props.disabled) return;
 
-    submitting.value = true;
-    try {
-        const code = toRaw(editor.value).getValue();
-
-        // TODO: Implement actual submission API call
-        console.log('Submitting code:', code);
-
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        lastSubmissionTime.value = new Date();
-        ElMessage.success(t('problems.submission_success'));
-
-        // Emit submission event
-        emit('submit', {
-            code,
-            language: selectedLanguage.value,
-            problemId: props.problem.id
-        });
-    } catch (error) {
-        console.error('Error submitting code:', error);
+    const code = toRaw(editor.value).getValue();
+    if (!code.trim()) {
         ElMessage.error(t('problems.submission_error'));
-    } finally {
-        submitting.value = false;
+        return;
     }
-};
 
-// Run code
-const runCode = async () => {
-    if (!editor.value) return;
-
-    runningCode.value = true;
-    try {
-        const code = toRaw(editor.value).getValue();
-
-        // TODO: Implement actual code running API call
-        console.log('Running code:', code);
-
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        ElMessage.success(t('problems.run_success'));
-    } catch (error) {
-        console.error('Error running code:', error);
-        ElMessage.error(t('problems.run_error'));
-    } finally {
-        runningCode.value = false;
-    }
-};
-
-// Format date
-const formatDate = (date) => {
-    if (!date) return '';
-    return new Date(date).toLocaleString();
+    emit('submit', {
+        code,
+        language: selectedLanguage.value
+    });
 };
 
 // Set up intersection observer to initialize editor only when visible

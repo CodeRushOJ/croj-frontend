@@ -39,7 +39,7 @@ const submitPost = async () => {
   if (form.content.length < 20) { error.value = "正文至少需要 20 个字符。"; return; }
   error.value = ""; submitting.value = true;
   try {
-    const response = await forumApi.createPost({ ...form });
+    const response = await forumApi.createPost({ ...form, resourceType: "GENERAL" });
     ElMessage.success("讨论已发布");
     await router.push({ name: "ForumPostDetail", params: { postId: response.data?.id ?? response.data } });
   } catch { error.value = "发布失败，内容已保留，请稍后重试。"; }

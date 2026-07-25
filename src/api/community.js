@@ -3,11 +3,22 @@ import request from "./request";
 export const forumApi = {
   listCategories: () => request({ url: "/v1/forum/categories", method: "get" }),
   listPosts: (params) => request({ url: "/v1/forum/posts", method: "get", params }),
+  listProblemPosts: (problemId, params) => request({
+    url: "/v1/forum/posts",
+    method: "get",
+    params: { ...params, resourceType: "PROBLEM", resourceId: problemId },
+  }),
   getPost: (postId) => request({ url: `/v1/forum/posts/${postId}`, method: "get" }),
-  createPost: ({ categoryId, title, content }) => request({
+  createPost: ({ categoryId, resourceType = "GENERAL", resourceId, title, content }) => request({
     url: "/v1/forum/posts",
     method: "post",
-    data: { categoryId, title, contentMarkdown: content },
+    data: {
+      categoryId,
+      resourceType,
+      ...(resourceId == null ? {} : { resourceId }),
+      title,
+      contentMarkdown: content,
+    },
   }),
   listComments: (postId, params) => request({
     url: `/v1/forum/posts/${postId}/comments`,

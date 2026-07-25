@@ -23,13 +23,17 @@ const ForumPostCreate = () => import("@/views/forum/ForumPostCreate.vue");
 const SolutionDetail = () => import("@/views/solution/SolutionDetail.vue");
 const ContestList = () => import("@/views/contest/ContestList.vue");
 const ContestDetail = () => import("@/views/contest/ContestDetail.vue");
+const AnnouncementList = () => import("@/views/announcement/AnnouncementList.vue");
+const AnnouncementDetail = () => import("@/views/announcement/AnnouncementDetail.vue");
 
 // Admin pages
 const AdminLayout = () => import("@/views/admin/AdminLayout.vue");
 const AdminDashboard = () => import("@/views/admin/Dashboard.vue");
 const UserManagement = () => import("@/views/admin/UserManagement.vue");
 const ProblemManagement = () => import("@/views/admin/ProblemManagement.vue");
+const ProblemImport = () => import("@/views/admin/ProblemImport.vue");
 const TagManagement = () => import("@/views/admin/TagManagement.vue");
+const AnnouncementManagement = () => import("@/views/admin/AnnouncementManagement.vue");
 
 // Route configuration
 const routes = [
@@ -63,6 +67,16 @@ const routes = [
         component: ProblemDetail,
         meta: {
           title: "Problem Detail",
+          requiresAuth: true,
+          icon: "el-icon-document",
+        },
+      },
+      {
+        path: "contests/:contestId/problems/:problemId",
+        name: ROUTE_NAMES.CONTEST_PROBLEM_DETAIL,
+        component: ProblemDetail,
+        meta: {
+          title: "Contest Problem",
           requiresAuth: true,
           icon: "el-icon-document",
         },
@@ -102,6 +116,18 @@ const routes = [
         name: ROUTE_NAMES.CONTEST_DETAIL,
         component: ContestDetail,
         meta: { title: "Contest", requiresAuth: false },
+      },
+      {
+        path: "announcements",
+        name: ROUTE_NAMES.ANNOUNCEMENTS,
+        component: AnnouncementList,
+        meta: { title: "Announcements", requiresAuth: false },
+      },
+      {
+        path: "announcements/:announcementId",
+        name: ROUTE_NAMES.ANNOUNCEMENT_DETAIL,
+        component: AnnouncementDetail,
+        meta: { title: "Announcement", requiresAuth: false },
       },
       {
         path: "profile",
@@ -166,12 +192,29 @@ const routes = [
             },
           },
           {
+            path: "problem-imports",
+            name: ROUTE_NAMES.ADMIN_PROBLEM_IMPORTS,
+            component: ProblemImport,
+            meta: {
+              title: "Problem Import",
+            },
+          },
+          {
             path: "tags",
             name: "AdminTags",
             component: TagManagement,
             meta: {
               title: "Tag Management",
               icon: "el-icon-collection-tag",
+            },
+          },
+          {
+            path: "announcements",
+            name: ROUTE_NAMES.ADMIN_ANNOUNCEMENTS,
+            component: AnnouncementManagement,
+            meta: {
+              title: "Announcement Management",
+              icon: "el-icon-bell",
             },
           },
         ],

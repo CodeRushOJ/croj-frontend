@@ -6,6 +6,10 @@ export const contestApi = {
   registration: (contestId) => request({ url: `/v1/contests/${contestId}/me`, method: 'get' }),
   register: (contestId) => request({ url: `/v1/contests/${contestId}/registrations`, method: 'post' }),
   cancelRegistration: (contestId) => request({ url: `/v1/contests/${contestId}/registrations/me`, method: 'delete' }),
-  problems: (contestId) => request({ url: `/v1/contests/${contestId}/problems`, method: 'get' }),
+  problems: (contestId, { signal } = {}) => request({
+    url: `/v1/contests/${contestId}/problems`,
+    method: 'get',
+    signal,
+  }),
   scoreboard: (contestId) => request({ url: `/v1/contests/${contestId}/scoreboard`, method: 'get' }),
 }

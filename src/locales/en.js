@@ -433,6 +433,7 @@ export default {
     submit_time: 'Submit Time',
     submitting: 'Submitting',
     poll_error: 'Error polling submission status',
+    poll_timeout: 'Judging is still in progress. Check the submission history again shortly.',
     accepted: 'Accepted',
     finished_with_status: 'Finished with status',
     already_submitting: 'Already submitting, please wait...',
