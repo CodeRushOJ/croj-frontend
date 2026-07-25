@@ -5,6 +5,7 @@
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "dev": "vite",
+    "dev:preview": "vite --mode preview --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest",

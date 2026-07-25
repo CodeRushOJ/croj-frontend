@@ -1,446 +1,182 @@
 <template>
-    <el-container class="app-container">
-        <!-- 侧边栏 -->
-        <el-aside :width="isCollapse ? '64px' : '210px'" class="sidebar-container">
-            <div class="logo-container">
-                <h1 class="logo">{{ $t('app.title') }}</h1>
-            </div>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar__inner">
+        <router-link class="brand" to="/" aria-label="CodeRush OJ home">
+          <span class="brand__mark">CR</span>
+          <span class="brand__copy">
+            <strong>CodeRush</strong>
+            <small>Online Judge</small>
+          </span>
+        </router-link>
 
-            <el-menu :default-active="activeIndex" class="el-menu-vertical" :collapse="isCollapse"
-                background-color="var(--sidebar-bg)" text-color="var(--sidebar-text)"
-                active-text-color="var(--sidebar-active)" router>
-                <el-menu-item index="/">
-                    <el-icon>
-                        <house />
-                    </el-icon>
-                    <template #title>{{ $t('routes.dashboard') }}</template>
-                </el-menu-item>
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <router-link to="/problems">题库</router-link>
+          <router-link to="/contests">竞赛</router-link>
+          <router-link to="/forum">讨论</router-link>
+          <router-link v-if="isAdmin" to="/admin">管理</router-link>
+        </nav>
 
-                <el-menu-item index="/problems">
-                    <el-icon>
-                        <document />
-                    </el-icon>
-                    <template #title>{{ $t('routes.problems') }}</template>
-                </el-menu-item>
+        <div class="topbar__actions">
+          <ThemeToggler />
+          <el-dropdown @command="handleLanguageChange">
+            <button class="quiet-action" type="button">{{ currentLanguage }}</button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="zh-CN">中文</el-dropdown-item>
+                <el-dropdown-item command="en">English</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
 
-                <el-menu-item index="/forum">
-                    <el-icon>
-                        <chat-dot-round />
-                    </el-icon>
-                    <template #title>{{ $t('routes.forum') }}</template>
-                </el-menu-item>
+          <el-dropdown v-if="user" @command="handleCommand">
+            <button class="user-action" type="button">
+              <span class="user-action__avatar">{{ userInitial }}</span>
+              <span class="user-action__name">{{ user.username }}</span>
+              <el-icon><ArrowDown /></el-icon>
+            </button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人主页</el-dropdown-item>
+                <el-dropdown-item command="settings">设置</el-dropdown-item>
+                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+          <router-link v-else class="login-action" :to="loginTarget">登录</router-link>
+        </div>
+      </div>
+    </header>
 
-                <el-menu-item index="/contests">
-                    <el-icon>
-                        <trophy />
-                    </el-icon>
-                    <template #title>{{ $t('routes.contests') }}</template>
-                </el-menu-item>
-
-                <el-menu-item index="/ranking">
-                    <el-icon>
-                        <list />
-                    </el-icon>
-                    <template #title>{{ $t('routes.ranking') }}</template>
-                </el-menu-item>
-
-                <!-- 管理员菜单 -->
-                <el-menu-item v-if="isAdmin" index="/admin">
-                    <el-icon>
-                        <setting />
-                    </el-icon>
-                    <template #title>{{ $t('routes.admin') }}</template>
-                </el-menu-item>
-            </el-menu>
-
-            <!-- 折叠按钮 -->
-            <div class="collapse-btn" @click="toggleSidebar">
-                <el-icon v-if="isCollapse">
-                    <d-arrow-right />
-                </el-icon>
-                <el-icon v-else>
-                    <d-arrow-left />
-                </el-icon>
-            </div>
-        </el-aside>
-
-        <!-- 主内容区 -->
-        <el-container class="main-container">
-            <!-- 头部 -->
-            <el-header class="app-header">
-                <div class="header-left">
-                    <el-breadcrumb separator="/">
-                        <el-breadcrumb-item :to="{ path: '/' }">{{ $t('routes.dashboard') }}</el-breadcrumb-item>
-                        
-                        <!-- Handle nested routes correctly -->
-                        <template v-if="breadcrumbs.length > 0">
-                            <el-breadcrumb-item 
-                                v-for="(breadcrumb, index) in breadcrumbs"
-                                :key="index"
-                                :to="breadcrumb.path">
-                                {{ breadcrumb.title }}
-                            </el-breadcrumb-item>
-                        </template>
-                    </el-breadcrumb>
-                </div>
-
-                <div class="header-right">
-                    <!-- 主题切换 -->
-                    <ThemeToggler class="header-item" />
-
-                    <!-- 语言下拉 -->
-                    <el-dropdown @command="handleLanguageChange" class="header-item">
-                        <span class="el-dropdown-link">
-                            {{ currentLanguage }}
-                            <el-icon class="el-icon--right">
-                                <arrow-down />
-                            </el-icon>
-                        </span>
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item command="en">English</el-dropdown-item>
-                                <el-dropdown-item command="zh-CN">中文</el-dropdown-item>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
-
-                    <!-- 用户下拉 -->
-                    <el-dropdown v-if="user" @command="handleCommand" class="header-item">
-                        <span class="el-dropdown-link user-dropdown">
-                            <el-avatar :size="32" :src="userAvatar" />
-                            <span class="username">{{ user?.username }}</span>
-                            <el-icon class="el-icon--right">
-                                <arrow-down />
-                            </el-icon>
-                        </span>
-                        <template #dropdown>
-                            <el-dropdown-menu>
-                                <el-dropdown-item command="profile">
-                                    <template #default>
-                                        <el-icon>
-                                            <User />
-                                        </el-icon>
-                                        <span>{{ $t('routes.profile') }}</span>
-                                    </template>
-                                </el-dropdown-item>
-                                <el-dropdown-item command="settings">
-                                    <template #default>
-                                        <el-icon>
-                                            <setting />
-                                        </el-icon>
-                                        <span>{{ $t('routes.settings') }}</span>
-                                    </template>
-                                </el-dropdown-item>
-                                <el-dropdown-item divided command="logout">
-                                    <template #default>
-                                        <el-icon><switch-button /></el-icon>
-                                        <span>{{ $t('auth.logout') }}</span>
-                                    </template>
-                                </el-dropdown-item>
-                            </el-dropdown-menu>
-                        </template>
-                    </el-dropdown>
-                    <router-link v-else :to="{ name: ROUTE_NAMES.LOGIN, query: { redirect: route.fullPath } }">
-                        <el-button type="primary" plain>{{ $t('auth.login') }}</el-button>
-                    </router-link>
-                </div>
-            </el-header>
-
-            <!-- 主内容 -->
-            <el-main>
-                <router-view />
-            </el-main>
-
-            <!-- 底部 -->
-            <el-footer height="50px" class="app-footer">
-                <div>CodeRush Online Judge &copy; {{ currentYear }}</div>
-            </el-footer>
-        </el-container>
-    </el-container>
+    <main class="page-scroll">
+      <div class="page-frame">
+        <router-view />
+      </div>
+      <footer>CodeRush OJ · Build, submit, improve.</footer>
+    </main>
+  </div>
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n';
-import {
-    House,
-    Document,
-    Trophy,
-    List,
-    Setting,
-    User,
-    SwitchButton,
-    DArrowLeft,
-    DArrowRight,
-    ArrowDown,
-    ChatDotRound
-} from '@element-plus/icons-vue'
+import { ArrowDown } from '@element-plus/icons-vue'
+import { ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/store/modules/auth'
 import { useAppStore } from '@/store/modules/app'
 import { ROUTE_NAMES } from '@/constants/routes'
-import { ElMessageBox } from 'element-plus'
 import ThemeToggler from '@/components/common/ThemeToggler.vue'
 
 const route = useRoute()
 const router = useRouter()
-
 const authStore = useAuthStore()
 const appStore = useAppStore()
-const { t } = useI18n();
 
-onMounted(async () => {
-    // 如果有 token 但没有用户数据，则获取用户信息
-    if (authStore.token && !authStore.currentUser) {
-        await authStore.fetchCurrentUser();
-    }
-});
-
-// 当前路由
-const currentRoute = computed(() => route)
-
-// 活动菜单索引
-const activeIndex = computed(() => route.path)
-
-// 当前年份
-const currentYear = computed(() => new Date().getFullYear())
-
-// 获取用户
 const user = computed(() => authStore.currentUser)
-
-// 检查用户是否是管理员
 const isAdmin = computed(() => authStore.isAdmin)
+const userInitial = computed(() => user.value?.username?.slice(0, 1).toUpperCase() || 'U')
+const currentLanguage = computed(() => appStore.language === 'zh-CN' ? '中' : 'EN')
+const loginTarget = computed(() => ({ name: ROUTE_NAMES.LOGIN, query: { redirect: route.fullPath } }))
 
-// 获取用户头像
-const userAvatar = computed(() => {
-    return user.value?.avatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
-})
+const handleLanguageChange = (language) => appStore.setLanguage(language)
 
-// 获取侧边栏折叠状态
-const isCollapse = computed(() => appStore.sidebarCollapsed)
-
-// 获取当前语言
-const currentLanguage = computed(() => {
-    switch (appStore.language) {
-        case 'zh-CN':
-            return '中文'
-        case 'en':
-        default:
-            return 'English'
-    }
-})
-
-// Generate breadcrumbs for current route
-const breadcrumbs = computed(() => {
-    const crumbs = [];
-    const pathFragments = route.path.split('/').filter(Boolean);
-    let path = '';
-    
-    // Process each path fragment
-    pathFragments.forEach((fragment, index) => {
-        path += `/${fragment}`;
-        
-        // Find matching route
-        const matchedRoute = router.getRoutes().find(r => r.path === path);
-        if (matchedRoute) {
-            // Determine title based on fragment or route meta
-            let title = '';
-            
-            if (matchedRoute.meta && matchedRoute.meta.title) {
-                // Try to translate the title from route meta
-                const translationKey = `routes.${matchedRoute.meta.title.toLowerCase()}`;
-                title = t(translationKey);
-                
-                // If translation returns the key itself, it means no translation found
-                if (title === translationKey) {
-                    // Fallback to formatted fragment
-                    title = fragment.charAt(0).toUpperCase() + fragment.slice(1);
-                }
-            } else {
-                // Fallback to formatted fragment
-                title = fragment.charAt(0).toUpperCase() + fragment.slice(1);
-            }
-            
-            crumbs.push({
-                path,
-                title
-            });
-        }
-    });
-    
-    return crumbs;
-});
-
-// 切换侧边栏
-const toggleSidebar = () => {
-    appStore.toggleSidebar()
-}
-
-// 处理语言更改
-const handleLanguageChange = (lang) => {
-    appStore.setLanguage(lang)
-}
-
-// 处理下拉命令
 const handleCommand = (command) => {
-    switch (command) {
-        case 'profile':
-            router.push({ name: ROUTE_NAMES.PROFILE })
-            break
-        case 'settings':
-            router.push({ name: ROUTE_NAMES.SETTINGS })
-            break
-        case 'logout':
-            handleLogout()
-            break
-    }
-}
-
-// 处理登出
-const handleLogout = () => {
-    ElMessageBox.confirm(
-        t('auth.logout_confirm'),
-        t('auth.logout'),
-        {
-            confirmButtonText: t('auth.logout'),
-            cancelButtonText: t('common.cancel'),
-            type: 'warning'
-        }
-    ).then(() => {
-        authStore.logout(router)
-    }).catch(() => {
-        // 用户取消登出
-        console.log('Logout canceled')
-    })
+  if (command === 'profile') router.push({ name: ROUTE_NAMES.PROFILE })
+  if (command === 'settings') router.push({ name: ROUTE_NAMES.SETTINGS })
+  if (command === 'logout') {
+    ElMessageBox.confirm('确定退出当前账号吗？', '退出登录', {
+      confirmButtonText: '退出',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }).then(() => authStore.logout(router)).catch(() => {})
+  }
 }
 </script>
 
 <style scoped>
-.app-container {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
+.app-shell {
+  min-height: 100vh;
+  background: var(--bg-color);
 }
 
-.sidebar-container {
-    height: 100%;
-    transition: width 0.3s;
-    position: relative;
-    z-index: 10;
-    overflow: hidden;
+.topbar {
+  height: 68px;
+  border-bottom: 1px solid var(--border-color-light);
+  background: color-mix(in srgb, var(--header-bg) 92%, transparent);
+  backdrop-filter: blur(18px);
+  position: sticky;
+  top: 0;
+  z-index: 30;
 }
 
-.logo-container {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+.topbar__inner {
+  width: min(1320px, calc(100% - 40px));
+  height: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 220px 1fr auto;
+  align-items: center;
+  gap: 28px;
 }
 
-.logo {
-    color: var(--sidebar-text);
-    font-size: 18px;
-    white-space: nowrap;
-    margin: 0;
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-color);
 }
 
-.el-menu-vertical:not(.el-menu--collapse) {
-    width: 210px;
+.brand__mark {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #635bff, #00a7e1);
+  box-shadow: 0 8px 24px rgba(99, 91, 255, .22);
 }
 
-.collapse-btn {
-    position: absolute;
-    bottom: 20px;
-    left: 0;
-    right: 0;
-    text-align: center;
-    color: var(--sidebar-text);
-    cursor: pointer;
-    transition: 0.3s;
-    padding: 10px 0;
+.brand__copy { display: grid; line-height: 1.05; }
+.brand__copy strong { font-size: 16px; letter-spacing: -.02em; }
+.brand__copy small { color: var(--text-color-secondary); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; }
+
+.primary-nav { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.primary-nav a {
+  color: var(--text-color-secondary);
+  font-weight: 650;
+  padding: 9px 15px;
+  border-radius: 10px;
+  transition: .18s ease;
 }
+.primary-nav a:hover { color: var(--text-color); background: var(--border-color-light); }
+.primary-nav a.router-link-active { color: #635bff; background: rgba(99, 91, 255, .1); }
 
-.collapse-btn:hover {
-    color: var(--sidebar-active);
-    background-color: rgba(0, 0, 0, 0.1);
+.topbar__actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.quiet-action, .user-action, .login-action {
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 10px;
 }
+.quiet-action { background: transparent; color: var(--text-color-secondary); padding: 9px 10px; }
+.user-action { background: var(--border-color-light); color: var(--text-color); padding: 5px 9px 5px 5px; display: flex; align-items: center; gap: 8px; }
+.user-action__avatar { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: white; font-weight: 800; background: #14151a; }
+.user-action__name { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
+.login-action { color: white; background: #14151a; padding: 9px 14px; font-weight: 700; }
 
-.main-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    flex: 1;
-    overflow: hidden;
-}
+.page-scroll { height: calc(100vh - 68px); overflow-y: auto; }
+.page-frame { width: min(1240px, calc(100% - 40px)); margin: 0 auto; padding: 40px 0 64px; }
+footer { text-align: center; color: var(--text-color-secondary); padding: 22px 16px 32px; font-size: 12px; }
 
-.app-header {
-    color: var(--text-color);
-    line-height: 60px;
-    box-shadow: 0 1px 4px var(--shadow-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-}
-
-.header-right {
-    display: flex;
-    align-items: center;
-}
-
-.header-item {
-    margin-left: 20px;
-}
-
-.el-dropdown-link {
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-}
-
-.user-dropdown {
-    display: flex;
-    align-items: center;
-}
-
-.username {
-    margin: 0 5px;
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.app-footer {
-    color: var(--text-color-secondary);
-    text-align: center;
-    line-height: 50px;
-    font-size: 14px;
-}
-
-.el-main {
-    overflow-y: auto;
-    padding: 20px;
-    flex: 1;
-}
-
-@media (max-width: 768px) {
-    .header-left {
-        display: none;
-    }
-
-    .header-item {
-        margin-left: 10px;
-    }
+@media (max-width: 760px) {
+  .topbar__inner { width: min(100% - 24px, 1320px); grid-template-columns: auto 1fr; gap: 12px; }
+  .brand__copy, .user-action__name { display: none; }
+  .primary-nav { order: 3; grid-column: 1 / -1; justify-content: flex-start; overflow-x: auto; }
+  .topbar { height: 112px; }
+  .page-scroll { height: calc(100vh - 112px); }
+  .page-frame { width: min(100% - 24px, 1240px); padding-top: 26px; }
 }
 </style>

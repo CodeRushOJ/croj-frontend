@@ -3,6 +3,11 @@
 import { defineStore } from 'pinia'
 import { authApi } from '@/api/auth'
 import { ROUTE_NAMES } from '@/constants/routes'
+import {
+  createPreviewAdmin,
+  PREVIEW_AUTH_TOKEN,
+  previewAuthEnabled
+} from '@/auth/previewAuth'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -76,12 +81,25 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false;
       }
     },
+
+    loginAsPreviewAdmin() {
+      if (!previewAuthEnabled) return false
+      this.token = PREVIEW_AUTH_TOKEN
+      this.user = createPreviewAdmin()
+      this.error = null
+      return true
+    },
     
     /**
      * 获取当前用户信息
      */
     async fetchCurrentUser() {
       if (!this.token) return null;
+
+      if (previewAuthEnabled && this.token === PREVIEW_AUTH_TOKEN) {
+        this.user = createPreviewAdmin()
+        return this.user
+      }
       
       try {
         const response = await authApi.getCurrentUser();

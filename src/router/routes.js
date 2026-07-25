@@ -21,6 +21,8 @@ const ForumList = () => import("@/views/forum/ForumList.vue");
 const ForumPostDetail = () => import("@/views/forum/ForumPostDetail.vue");
 const ForumPostCreate = () => import("@/views/forum/ForumPostCreate.vue");
 const SolutionDetail = () => import("@/views/solution/SolutionDetail.vue");
+const ContestList = () => import("@/views/contest/ContestList.vue");
+const ContestDetail = () => import("@/views/contest/ContestDetail.vue");
 
 // Admin pages
 const AdminLayout = () => import("@/views/admin/AdminLayout.vue");
@@ -88,6 +90,18 @@ const routes = [
         name: ROUTE_NAMES.SOLUTION_DETAIL,
         component: SolutionDetail,
         meta: { title: "Solution", requiresAuth: false },
+      },
+      {
+        path: "contests",
+        name: ROUTE_NAMES.CONTESTS,
+        component: ContestList,
+        meta: { title: "Contests", requiresAuth: false },
+      },
+      {
+        path: "contests/:contestId",
+        name: ROUTE_NAMES.CONTEST_DETAIL,
+        component: ContestDetail,
+        meta: { title: "Contest", requiresAuth: false },
       },
       {
         path: "profile",

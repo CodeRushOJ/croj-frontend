@@ -9,6 +9,7 @@ export const ROUTE_NAMES = {
   FORUM_POST_CREATE: "ForumPostCreate",
   SOLUTION_DETAIL: "SolutionDetail",
   CONTESTS: "Contests",
+  CONTEST_DETAIL: "ContestDetail",
   RANKING: "Ranking",
   PROFILE: "Profile",
   SETTINGS: "Settings",
