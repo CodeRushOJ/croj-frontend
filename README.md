@@ -227,6 +227,24 @@ Nginx 对 Vue Router history 深链回退到 `index.html`；带 hash 的 `/asset
 
 CI 在前端质量检查后实际构建镜像，并通过一次性、non-root、只读根容器验证 health、首页、history fallback、缓存和安全头。随后构建 `linux/amd64` 与 `linux/arm64` OCI 镜像，确保两个平台共享同一份静态产物与运行配置。
 
+### 发布 GHCR 镜像
+
+Pull request 与 `main` push 继续执行质量检查和容器合同。正式发布由指向待发布提交的 signed annotated SemVer tag 触发；tag 必须严格匹配 `vX.Y.Z`，且签名必须在 GitHub 上显示为 verified：
+
+```bash
+git tag -s v1.2.3 -m "Release v1.2.3" <commit>
+git push origin v1.2.3
+```
+
+验证通过后，CI 使用 Buildx 推送 `linux/amd64` 与 `linux/arm64` manifest，并生成最大模式 provenance 与 SBOM：
+
+```text
+ghcr.io/coderushoj/croj-frontend:v1.2.3
+ghcr.io/coderushoj/croj-frontend:sha-<full-commit-sha>
+```
+
+同一次 workflow run 会上传 `image-artifact-v1.2.3` artifact，其中 `image-artifact.json` 只包含 `repository`、`tag`、`revision`、`digest` 和 `platforms`，可供平台部署或发布审计按 digest 消费；文件不包含 registry token 或其他 secret。
+
 ### 仅构建静态文件
 
 生产静态构建输出位于 `dist/`：

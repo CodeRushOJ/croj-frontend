@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+    tags: ['v*.*.*']
 
 permissions:
   contents: read
@@ -14,6 +15,7 @@ concurrency:
 
 jobs:
   quality:
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -75,3 +77,89 @@ jobs:
             VCS_REF=${{ github.sha }}
             VERSION=0.1.0
           cache-from: type=gha
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - name: Verify signed annotated SemVer release tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::Release tag must match vX.Y.Z exactly."
+            exit 1
+          }
+
+          tag_ref="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$GITHUB_REF_NAME")"
+          tag_sha="$(jq -er 'select(.object.type == "tag") | .object.sha' <<<"$tag_ref")" || {
+            echo "::error::Release tag must be annotated."
+            exit 1
+          }
+          tag_object="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha")"
+          jq -e '
+            .verification.verified == true
+            and .object.type == "commit"
+            and .object.sha == env.GITHUB_SHA
+          ' <<<"$tag_object" >/dev/null || {
+            echo "::error::Release tag must have a verified signature and target this commit."
+            exit 1
+          }
+      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Set reproducible release metadata
+        id: metadata
+        run: echo "build_date=$(git show -s --format=%cI "$GITHUB_SHA")" >> "$GITHUB_OUTPUT"
+      - name: Build and push release image
+        id: push
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/coderushoj/croj-frontend:${{ github.ref_name }}
+            ghcr.io/coderushoj/croj-frontend:sha-${{ github.sha }}
+          build-args: |
+            BUILD_DATE=${{ steps.metadata.outputs.build_date }}
+            OCI_SOURCE=${{ github.server_url }}/${{ github.repository }}.git
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
+      - name: Write image artifact metadata
+        env:
+          IMAGE_DIGEST: ${{ steps.push.outputs.digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg repository "ghcr.io/coderushoj/croj-frontend" \
+            --arg tag "$GITHUB_REF_NAME" \
+            --arg revision "$GITHUB_SHA" \
+            --arg digest "$IMAGE_DIGEST" \
+            '{repository:$repository,tag:$tag,revision:$revision,digest:$digest,platforms:["linux/amd64","linux/arm64"]}' \
+            > image-artifact.json
+      - name: Upload image artifact metadata
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: image-artifact-${{ github.ref_name }}
+          path: image-artifact.json
+          if-no-files-found: error
