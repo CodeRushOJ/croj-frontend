@@ -23,6 +23,13 @@
                     <template #title>{{ $t('routes.problems') }}</template>
                 </el-menu-item>
 
+                <el-menu-item index="/forum">
+                    <el-icon>
+                        <chat-dot-round />
+                    </el-icon>
+                    <template #title>{{ $t('routes.forum') }}</template>
+                </el-menu-item>
+
                 <el-menu-item index="/contests">
                     <el-icon>
                         <trophy />
@@ -98,7 +105,7 @@
                     </el-dropdown>
 
                     <!-- 用户下拉 -->
-                    <el-dropdown @command="handleCommand" class="header-item">
+                    <el-dropdown v-if="user" @command="handleCommand" class="header-item">
                         <span class="el-dropdown-link user-dropdown">
                             <el-avatar :size="32" :src="userAvatar" />
                             <span class="username">{{ user?.username }}</span>
@@ -133,6 +140,9 @@
                             </el-dropdown-menu>
                         </template>
                     </el-dropdown>
+                    <router-link v-else :to="{ name: ROUTE_NAMES.LOGIN, query: { redirect: route.fullPath } }">
+                        <el-button type="primary" plain>{{ $t('auth.login') }}</el-button>
+                    </router-link>
                 </div>
             </el-header>
 
@@ -163,7 +173,8 @@ import {
     SwitchButton,
     DArrowLeft,
     DArrowRight,
-    ArrowDown
+    ArrowDown,
+    ChatDotRound
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/store/modules/auth'
 import { useAppStore } from '@/store/modules/app'

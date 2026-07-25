@@ -106,9 +106,7 @@
                 </el-tab-pane>
 
                 <el-tab-pane :label="$t('problems.solution')" name="solution">
-                    <div class="solution-section">
-                        <p>{{ $t('problems.solution_placeholder') }}</p>
-                    </div>
+                    <ProblemSolutions v-if="problem.id" :problem-id="problem.id" />
                 </el-tab-pane>
 
                 <el-tab-pane :label="$t('problems.submissions')" name="submissions">
@@ -229,6 +227,7 @@ import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import { problemApi, submissionApi } from '@/api';
 import CodeEditor from '@/components/problem/CodeEditor.vue';
+import ProblemSolutions from '@/components/problem/ProblemSolutions.vue';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -237,7 +236,7 @@ const router = useRouter();
 // State for problem detail
 const loading = ref(true);
 const problem = ref(null);
-const activeTab = ref('description');
+const activeTab = ref(route.query.tab || 'description');
 
 // State for the submission initiated from THIS component instance
 const isSubmitting = ref(false); // Loading state for the submit button

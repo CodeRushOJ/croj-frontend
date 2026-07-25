@@ -6,5 +6,16 @@ import { adminApi } from "./admin";
 import { problemApi } from "./problem";
 import { tagApi } from "./tag";
 import { submissionApi } from "./submission";
+import { forumApi, solutionApi } from "./community";
 
-export { authApi, captchaApi, emailApi, adminApi, problemApi, tagApi, submissionApi };
+export {
+  authApi,
+  captchaApi,
+  emailApi,
+  adminApi,
+  problemApi,
+  tagApi,
+  submissionApi,
+  forumApi,
+  solutionApi,
+};

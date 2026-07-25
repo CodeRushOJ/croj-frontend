@@ -1,6 +1,6 @@
 # CodeRushOJ Frontend
 
-CodeRushOJ 的 Vue 3 Web 应用，提供用户端和管理端界面。当前实现覆盖登录注册、邮箱验证、个人资料、题目列表与详情、Monaco 代码编辑器、提交查询，以及用户/题目/标签管理基础页面；竞赛、论坛和题解界面将在对应 Issue 中继续实现。
+CodeRushOJ 的 Vue 3 Web 应用，提供用户端和管理端界面。当前实现覆盖登录注册、邮箱验证、个人资料、题目列表与详情、Monaco 代码编辑器、提交查询、论坛与评论、题解发布与阅读，以及用户/题目/标签管理基础页面。
 
 ## 技术栈
 
@@ -11,6 +11,7 @@ CodeRushOJ 的 Vue 3 Web 应用，提供用户端和管理端界面。当前实�
 - Monaco Editor（C++、Java、Python、JavaScript、Go）
 - Vue I18n（中文/英文）
 - Axios API client
+- Vitest + Vue Testing Library 组件测试
 - Sass 主题与组件样式
 
 ## 目录
@@ -18,7 +19,7 @@ CodeRushOJ 的 Vue 3 Web 应用，提供用户端和管理端界面。当前实�
 ```text
 src/
 ├── api/          # 后端 API 模块与 Axios 拦截器
-├── components/   # 验证码、语言选择、代码编辑器等复用组件
+├── components/   # 代码编辑器、社区卡片、异步状态等复用组件
 ├── router/       # 路由、鉴权与管理员守卫
 ├── store/        # Pinia 应用和认证状态
 ├── locales/      # 中英文文案
@@ -66,10 +67,24 @@ Axios 当前固定使用同源 `/api`，由 Vite/Gateway 代理；历史 `.env` 
 
 ```bash
 pnpm lint
+pnpm test:run
 pnpm build
 ```
 
-当前仓库尚未沉淀组件与端到端测试，这是 v1 前端迭代的明确缺口。新增功能必须同步添加 Vitest 组件测试或 Playwright 流程测试，CI 最终会强制执行 lint、测试和生产构建。
+社区模块已经沉淀 API 契约与组件交互测试。新增功能必须同步添加 Vitest 组件测试或 Playwright 流程测试；CI 应强制执行 lint、测试和生产构建。
+
+## 论坛与题解 API
+
+Axios 的 `baseURL` 是同源 `/api`，社区请求集中在 `src/api/community.js`：
+
+- `GET/POST /api/v1/forum/posts`
+- `GET /api/v1/forum/categories`
+- `GET /api/v1/forum/posts/{postId}`
+- `GET/POST /api/v1/forum/posts/{postId}/comments`
+- `GET/POST /api/v1/problems/{problemId}/solutions`
+- `GET /api/v1/problems/{problemId}/solutions/{solutionId}`
+
+`community.js` 在边界上把页面的 `content` 模型映射为后端 `contentMarkdown` DTO，并把 `authorName`、`publishedAt` 等 VO 字段规范化后再交给组件。论坛列表、帖子详情和题解详情允许匿名阅读；发布、评论和题解写入仍需要登录。页面支持加载骨架、空态、可重试错误态和移动端单列布局。正文以纯文本安全呈现；当前 MVP 不引入富文本和付费能力。
 
 ## 部署
 
@@ -84,9 +99,9 @@ pnpm preview --host 0.0.0.0
 
 ## 功能状态
 
-- 已有：认证、邮箱验证、题目浏览、代码编辑、基础提交、个人设置、管理端基础页面、主题和国际化。
+- 已有：认证、邮箱验证、题目浏览、代码编辑、基础提交、论坛、评论、题解、个人设置、管理端基础页面、主题和国际化。
 - 迭代中：真实判题状态体验、响应式视觉统一、错误/空/加载状态、无障碍与性能优化。
-- 待实现：竞赛、排行榜、论坛、评论、题解、举报审核和通知中心。
+- 待实现：竞赛、排行榜、举报审核、通知中心和端到端浏览器测试。
 - 不在 v1 范围：付费、订阅和商业计费。
 
 需求通过 GitHub Issues 管理，改动使用 `codex/*` 分支和 Draft PR。发布遵循平台 SemVer 与跨仓库发版日志。

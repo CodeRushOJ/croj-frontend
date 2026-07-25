@@ -7,6 +7,7 @@ export default {
     home: "首页",
     dashboard: "控制台",
     problems: "题库",
+    forum: "讨论区",
     contests: "竞赛", 
     ranking: "排名",
     profile: "个人中心",

@@ -79,6 +79,7 @@ service.interceptors.response.use(
           break;
         case 40013: // UPLOAD_ERROR
           errorMessageKey = "errors.upload_error";
+          break;
         case 40100: // FORBIDDEN
           errorMessageKey = "errors.unauthorized";
           break;
