@@ -60,6 +60,10 @@ All notable frontend changes are recorded here.
 - Isolated administrator TestBundle state by problem/version target, aborting uploads on problem changes and ignoring stale list, metadata, upload, and publish responses.
 - Locked TestBundle targets and route departure during non-cancellable publication, and made version refreshes revalidate preserved drafts without accepting stale metadata.
 
+### Fixed
+
+- Granted the release publish job `attestations: write` so GitHub OIDC provenance publication no longer fails with HTTP 403 after a successful GHCR image push.
+
 ### Removed
 
 - Removed preview administrator authentication and all preview problem/contest fixtures from product code. Local development now uses real backend APIs only.

@@ -43,6 +43,7 @@ describe('release image workflow contract', () => {
     expect(publish).toContain('needs: [quality, container]')
     expect(publish).toContain('packages: write')
     expect(publish).toContain('id-token: write')
+    expect(publish).toContain('attestations: write')
     expect(publish).toContain('contents: read')
     expect(publish).toContain('Verify annotated SemVer release tag')
     expect(publish).toContain(
