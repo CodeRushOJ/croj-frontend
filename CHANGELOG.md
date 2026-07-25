@@ -7,7 +7,7 @@ All notable frontend changes are recorded here.
 ### Added
 
 - Administrator judge-configuration fields that model ACM/OI scoring independently from exact/token/special output checking and submit the real backend draft DTO.
-- Session-scoped judge configuration recovery, strict runtime DTO contracts, OI total-score validation, and automatic stale SPJ secret clearing.
+- User/problem/base-version-scoped judge configuration recovery, strict runtime DTO contracts, OI total-score validation, logout cleanup, best-effort storage, and automatic stale SPJ secret clearing.
 - Administrator-only immutable-version SPJ source loading for lossless edits, with strict problem/version response matching and no public ProblemVO source dependency.
 - Server-validated TestBundle v2 previews for ordered OI case weights and sandboxed SPJ language, source path, digest, time, and memory limits, without rendering checker source text.
 - Rule-aware contest scoreboards that preserve legacy ACM solved/penalty rows and render OI total plus per-problem scores.

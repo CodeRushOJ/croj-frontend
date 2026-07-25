@@ -112,8 +112,10 @@ errors[], warnings[], problems[]
 
 保存题目配置只会请求真实 create/update API，由后端生成新的 DRAFT
 版本；前端不会修改已选择的不可变版本。未成功提交的判题配置保存在当前
-标签页的 `sessionStorage`，按“新题/题目 ID”隔离，成功写入后立即清除，
-不会进入持久化 `localStorage`。编辑已有 SPJ 时，管理端先查询题目版本，
+标签页的 `sessionStorage`，按“管理员 ID / 新题或题目 ID / 基线版本 ID”
+隔离，成功写入、登出或认证失效后立即清除，不会进入持久化
+`localStorage`。存储被浏览器禁用、配额不足或源码过大时仅失去本地恢复
+能力，不会阻止真实 create/update 请求。编辑已有 SPJ 时，管理端先查询题目版本，
 优先选择最新 DRAFT、否则选择最新 PUBLISHED，再通过仅限管理员的
 `GET /api/v1/admin/problems/{problemId}/versions/{versionId}/source`
 取回 checker 源码；公共 ProblemVO 不返回、公共题目页也不请求该字段。

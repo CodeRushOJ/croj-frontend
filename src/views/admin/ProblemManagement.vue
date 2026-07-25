@@ -258,6 +258,7 @@ import { Search, Plus, Delete, Warning } from '@element-plus/icons-vue';
 import { problemApi } from '@/api/problem';
 import { tagApi } from '@/api/tag';
 import { adminTestBundleApi } from '@/api/testBundle';
+import { useAuthStore } from '@/store/modules/auth';
 import { adminTestBundlesLocation } from '@/constants/routes';
 import JudgeConfigurationFields from '@/components/admin/JudgeConfigurationFields.vue';
 import {
@@ -266,13 +267,14 @@ import {
 } from '@/domain/judgeConfiguration';
 import {
     configurationForProblemEditor,
-    loadProblemJudgeConfiguration,
+    loadProblemJudgeEditorState,
     persistProblemJudgeDraft,
     submitProblemJudgeDraft,
 } from './problemJudgeWorkflow';
 
 const { t } = useI18n();
 const router = useRouter();
+const authStore = useAuthStore();
 
 // State
 const loading = ref(false);
@@ -292,6 +294,11 @@ const selectedProblem = ref(null);
 const submitLoading = ref(false);
 const deleteLoading = ref(false);
 const judgeErrors = ref([]);
+const judgeDraftContext = ref({
+    userId: authStore.currentUser?.id,
+    problemId: null,
+    baseVersionId: null,
+});
 
 // Problem form
 const problemFormRef = ref(null);
@@ -360,7 +367,7 @@ const judgeConfiguration = computed({
         Object.assign(problemForm, configuration);
         judgeErrors.value = validateJudgeConfiguration(configuration);
         if (!judgeErrors.value.length) {
-            persistProblemJudgeDraft(problemForm.id, configuration);
+            persistProblemJudgeDraft(judgeDraftContext.value, configuration);
         }
     },
 });
@@ -444,7 +451,15 @@ const removeHint = (index) => {
 const handleAdd = () => {
     isEdit.value = false;
     resetForm();
-    Object.assign(problemForm, configurationForProblemEditor(null, problemForm));
+    judgeDraftContext.value = {
+        userId: authStore.currentUser?.id,
+        problemId: null,
+        baseVersionId: null,
+    };
+    Object.assign(problemForm, configurationForProblemEditor(
+        judgeDraftContext.value,
+        problemForm,
+    ));
     dialogVisible.value = true;
 };
 
@@ -568,14 +583,14 @@ const submitForm = async () => {
 
         if (isEdit.value) {
             await submitProblemJudgeDraft({
-                problemId: problemForm.id,
+                draftContext: judgeDraftContext.value,
                 problem: { ...problemForm },
                 write: problemApi.updateProblem,
             });
             ElMessage.success(t('admin.problem_updated'));
         } else {
             await submitProblemJudgeDraft({
-                problemId: null,
+                draftContext: judgeDraftContext.value,
                 problem: { ...problemForm },
                 write: problemApi.createProblem,
             });
@@ -657,12 +672,15 @@ const fetchProblemDetails = async (id) => {
             problemForm.hints = [];
         }
 
-        Object.assign(problemForm, await loadProblemJudgeConfiguration({
+        const judgeState = await loadProblemJudgeEditorState({
+            userId: authStore.currentUser?.id,
             problemId: id,
             problem: problemForm,
             listVersions: adminTestBundleApi.listVersions,
             loadVersionSource: adminTestBundleApi.loadVersionSource,
-        }));
+        });
+        judgeDraftContext.value = judgeState.draftContext;
+        Object.assign(problemForm, judgeState.configuration);
         judgeErrors.value = validateJudgeConfiguration(problemForm);
         dialogVisible.value = true;
     } catch (error) {

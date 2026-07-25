@@ -11,8 +11,8 @@ import {
   saveJudgeConfigurationDraft,
 } from "@/services/judgeConfigurationDraft";
 
-export const configurationForProblemEditor = (problemId, problem) => (
-  loadJudgeConfigurationDraft(problemId)
+export const configurationForProblemEditor = (draftContext, problem) => (
+  loadJudgeConfigurationDraft(draftContext)
   || judgeConfigurationFromProblem({
     ...problem,
     // The public problem adapter is not an authorized checker-source boundary.
@@ -22,28 +22,37 @@ export const configurationForProblemEditor = (problemId, problem) => (
 
 const sameIdentifier = (left, right) => String(left) === String(right);
 
-export const loadProblemJudgeConfiguration = async ({
+export const loadProblemJudgeEditorState = async ({
+  userId,
   problemId,
   problem,
   listVersions,
   loadVersionSource,
 }) => {
-  const configuration = configurationForProblemEditor(problemId, problem);
+  let selected = null;
+  if (problemId !== null && problemId !== undefined) {
+    const versionsResponse = await listVersions(problemId);
+    const versions = versionsResponse?.data;
+    if (!Array.isArray(versions)) {
+      throw new JudgeConfigurationContractError("管理员题目版本响应无效。");
+    }
+    selected = versions.find(({ state }) => state === "DRAFT")
+      || versions.find(({ state }) => state === "PUBLISHED")
+      || null;
+  }
+  const draftContext = {
+    userId,
+    problemId,
+    baseVersionId: selected?.versionId ?? null,
+  };
+  const configuration = configurationForProblemEditor(draftContext, problem);
   if (
     configuration.checker !== CHECKERS.SPECIAL
     || configuration.specialJudgeCode.trim()
+    || !selected
   ) {
-    return configuration;
+    return { configuration, draftContext };
   }
-
-  const versionsResponse = await listVersions(problemId);
-  const versions = versionsResponse?.data;
-  if (!Array.isArray(versions)) {
-    throw new JudgeConfigurationContractError("管理员题目版本响应无效。");
-  }
-  const selected = versions.find(({ state }) => state === "DRAFT")
-    || versions.find(({ state }) => state === "PUBLISHED");
-  if (!selected) return configuration;
 
   const sourceResponse = await loadVersionSource(problemId, selected.versionId);
   const source = sourceResponse?.data;
@@ -64,25 +73,33 @@ export const loadProblemJudgeConfiguration = async ({
   }
 
   return {
-    ...configuration,
-    judgeMode: source.judgeMode,
-    specialJudgeLanguage: source.checkerLanguage,
-    specialJudgeCode: source.checkerSource,
+    draftContext,
+    configuration: {
+      ...configuration,
+      judgeMode: source.judgeMode,
+      specialJudgeLanguage: source.checkerLanguage,
+      specialJudgeCode: source.checkerSource,
+    },
   };
 };
 
-export const persistProblemJudgeDraft = (problemId, configuration) => (
-  saveJudgeConfigurationDraft(problemId, configuration)
+export const loadProblemJudgeConfiguration = async (options) => (
+  (await loadProblemJudgeEditorState(options)).configuration
+);
+
+export const persistProblemJudgeDraft = (draftContext, configuration) => (
+  saveJudgeConfigurationDraft(draftContext, configuration)
 );
 
 export const submitProblemJudgeDraft = async ({
-  problemId,
+  draftContext,
   problem,
   write,
 }) => {
   const payload = toProblemJudgePayload(problem);
-  persistProblemJudgeDraft(problemId, payload);
+  // Draft persistence is recovery only. Browser storage must never gate the write.
+  persistProblemJudgeDraft(draftContext, payload);
   const response = await write(payload);
-  clearJudgeConfigurationDraft(problemId);
+  clearJudgeConfigurationDraft(draftContext);
   return response;
 };

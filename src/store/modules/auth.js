@@ -3,6 +3,7 @@
 import { defineStore } from 'pinia'
 import { authApi } from '@/api/auth'
 import { ROUTE_NAMES } from '@/constants/routes'
+import { clearAllJudgeConfigurationDrafts } from '@/services/judgeConfigurationDraft'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -33,6 +34,7 @@ export const useAuthStore = defineStore('auth', {
   
   actions: {
     clearSession() {
+      clearAllJudgeConfigurationDrafts();
       this.token = null;
       this.user = null;
     },
