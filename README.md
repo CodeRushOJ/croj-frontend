@@ -231,10 +231,11 @@ CI 在前端质量检查后实际构建镜像，并通过一次性、non-root、
 
 ### 发布 GHCR 镜像
 
-Pull request 与 `main` push 继续执行质量检查和容器合同。正式发布由指向待发布提交的 annotated SemVer tag 触发；tag 必须严格匹配 `vX.Y.Z`，并直接指向本次 workflow 的提交：
+Pull request、`main` push 与 release tag 都执行完整质量检查和容器合同；tag 发布只有在 `quality` 与 `container` 同时成功后才开始。正式发布由 annotated SemVer tag 触发；tag 必须严格匹配 `vX.Y.Z`，直接指向本次 workflow 的提交，并且该提交必须仍是重新 fetch 后的最新 `origin/main` HEAD：
 
 ```bash
-git tag -a v1.2.3 -m "Release v1.2.3" <commit>
+git fetch origin main
+git tag -a v1.2.3 -m "Release v1.2.3" origin/main
 git push origin v1.2.3
 ```
 

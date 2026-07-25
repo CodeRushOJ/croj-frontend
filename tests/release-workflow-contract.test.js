@@ -26,21 +26,21 @@ function yamlBlock(source, key, indent = 2) {
 
 describe('release image workflow contract', () => {
   const quality = yamlBlock(workflow, 'quality')
+  const container = yamlBlock(workflow, 'container')
   const publish = yamlBlock(workflow, 'publish')
 
-  it('keeps pull requests and main on quality/container while adding release tags', () => {
+  it('runs quality and container for pull requests, main, and release tags', () => {
     expect(workflow).toContain('pull_request:')
     expect(workflow).toMatch(/branches:\s*\[main\]/)
     expect(workflow).toMatch(/tags:\s*\['v\*\.\*\.\*'\]/)
-    expect(quality).toContain(
-      "if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'",
-    )
-    expect(workflow).toContain('  container:')
-    expect(workflow).toContain('    needs: quality')
+    expect(quality).not.toMatch(/^\s+if:/m)
+    expect(container).toContain('needs: quality')
+    expect(container).not.toMatch(/^\s+if:/m)
   })
 
-  it('publishes only exact annotated SemVer tags that target the workflow commit', () => {
+  it('publishes only the latest main commit through an exact annotated SemVer tag', () => {
     expect(publish).toContain("if: startsWith(github.ref, 'refs/tags/')")
+    expect(publish).toContain('needs: [quality, container]')
     expect(publish).toContain('packages: write')
     expect(publish).toContain('id-token: write')
     expect(publish).toContain('contents: read')
@@ -51,6 +51,11 @@ describe('release image workflow contract', () => {
     expect(publish).toContain("object.type == \"tag\"")
     expect(publish).toContain("object.type == \"commit\"")
     expect(publish).toContain("object.sha == env.GITHUB_SHA")
+    expect(publish).toContain(
+      'git fetch --no-tags origin main:refs/remotes/origin/main',
+    )
+    expect(publish).toContain('main_sha="$(git rev-parse origin/main)"')
+    expect(publish).toContain('[[ "$GITHUB_SHA" == "$main_sha" ]]')
     expect(publish).not.toContain('verification.verified')
     expect(publish).not.toContain('signed')
   })
