@@ -36,6 +36,26 @@ describe('submission polling', () => {
     expect(onUpdate).toHaveBeenCalledTimes(3)
   })
 
+  it('treats output limit exceeded as terminal without another wait', async () => {
+    const getSubmission = vi.fn().mockResolvedValue({
+      data: { id: 43, status: 'OUTPUT_LIMIT_EXCEEDED', message: 'output quota exceeded' },
+    })
+    const wait = vi.fn().mockResolvedValue()
+
+    const result = await pollSubmissionUntilComplete(43, {
+      getSubmission,
+      wait,
+      timeoutMs: 10_000,
+    })
+
+    expect(result).toMatchObject({
+      status: 'OUTPUT_LIMIT_EXCEEDED',
+      message: 'output quota exceeded',
+    })
+    expect(getSubmission).toHaveBeenCalledTimes(1)
+    expect(wait).not.toHaveBeenCalled()
+  })
+
   it('stops with an explicit timeout instead of polling forever', async () => {
     const getSubmission = vi.fn().mockResolvedValue({
       data: { id: 91, status: 'PENDING' },

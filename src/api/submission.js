@@ -9,6 +9,7 @@ const STATUS_BY_CODE = {
   5: 'MEMORY_LIMIT_EXCEEDED',
   6: 'RUNTIME_ERROR',
   7: 'SYSTEM_ERROR',
+  8: 'OUTPUT_LIMIT_EXCEEDED',
 }
 
 const normalizeSubmission = submission => {

@@ -147,7 +147,9 @@
                              <el-table-column prop="id" label="ID" width="100" />
                              <el-table-column prop="status" :label="$t('submissions.status')">
                                  <template #default="{ row }">
-                                     <el-tag :type="getStatusTagType(row.status)">{{ row.status }}</el-tag>
+                                     <el-tag :type="getStatusTagType(row.status)">
+                                         {{ formatSubmissionStatus(row.status) }}
+                                     </el-tag>
                                  </template>
                              </el-table-column>
                              <el-table-column prop="language" :label="$t('submissions.language')" />
@@ -210,7 +212,7 @@
                                  <p>
                                      {{ $t('submissions.status') }}:
                                      <strong :class="`status-${submissionResult.status?.toLowerCase()}`">
-                                         {{ submissionResult.status }}
+                                         {{ formatSubmissionStatus(submissionResult.status) }}
                                      </strong>
                                  </p>
                                 <el-progress
@@ -527,7 +529,7 @@ const pollSubmissionStatus = async (submissionId, controller, timeoutMs) => {
     if (completed.status === 'ACCEPTED') {
         ElMessage.success(t('submissions.accepted'));
     } else {
-        ElMessage.warning(`${t('submissions.finished_with_status')}: ${completed.status}`);
+        ElMessage.warning(`${t('submissions.finished_with_status')}: ${formatSubmissionStatus(completed.status)}`);
     }
     return completed;
 };
@@ -671,6 +673,10 @@ const viewCode = (submission) => {
     codeDialogVisible.value = true;
 };
 
+const formatSubmissionStatus = status => status === 'OUTPUT_LIMIT_EXCEEDED'
+    ? 'OUTPUT_LIMIT_EXCEEDED (OLE)'
+    : status;
+
 // Helper function to get tag type for submission status in the table
 const getStatusTagType = (status) => {
     switch (status) {
@@ -681,6 +687,7 @@ const getStatusTagType = (status) => {
         case 'SYSTEM_ERROR': return 'danger';
         case 'TIME_LIMIT_EXCEEDED':
         case 'MEMORY_LIMIT_EXCEEDED':
+        case 'OUTPUT_LIMIT_EXCEEDED':
         case 'CANCELLED': return 'warning';
         case 'PENDING':
         case 'RUNNING':
@@ -922,6 +929,10 @@ pre {
      font-weight: bold;
 }
 .status-failed {
+     color: var(--el-color-warning);
+     font-weight: bold;
+}
+.status-output_limit_exceeded {
      color: var(--el-color-warning);
      font-weight: bold;
 }

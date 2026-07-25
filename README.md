@@ -174,6 +174,8 @@ maximumScore`，不把 OI 数据误标为 ACM 罚时。
 
 匿名用户可以阅读公开题面、题解和讨论。提交代码、查看个人提交记录、发布题解或发起讨论时才进入登录门禁。匿名点击提交时，编辑器的语言和代码只写入当前标签页的 `sessionStorage`，并按普通题目或“比赛 + 题目”隔离；登录回到原 URL 后自动恢复。只有后端接受提交 POST 后才清除草稿，登录失败或提交失败不会丢失内容。草稿不会写入持久化 `localStorage`。
 
+提交详情 API 会在边界上规范化后端整数判题状态。状态码 `8` 映射为终态 `OUTPUT_LIMIT_EXCEEDED`，页面显示 `OUTPUT_LIMIT_EXCEEDED (OLE)`，并沿用 TLE/MLE 的资源限制 warning 标签与颜色；轮询收到 OLE 后立即结束，不会继续请求直到超时。
+
 ## 论坛与题解 API
 
 Axios 的 `baseURL` 是同源 `/api`，社区请求集中在 `src/api/community.js`：

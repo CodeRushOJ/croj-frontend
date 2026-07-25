@@ -35,6 +35,7 @@ All notable frontend changes are recorded here.
 - Authentication-only submission history, code submission, solution publication, and problem-discussion creation controls while public reading remains available.
 - Signed annotated `vX.Y.Z` release-tag publishing to GHCR for `linux/amd64` and `linux/arm64`, with commit-addressed tags, maximum provenance, SBOM attestations, and secret-free digest metadata artifacts.
 - Release workflow contract tests covering event isolation, tag verification, package permissions, image names, platforms, attestations, and artifact fields.
+- End-to-end `OUTPUT_LIMIT_EXCEEDED` support for backend status code 8, including OLE labels, resource-limit warning styling, and terminal submission polling.
 
 ### Changed
 

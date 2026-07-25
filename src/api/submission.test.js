@@ -20,6 +20,18 @@ describe('submission API contract', () => {
     expect(response.data).toMatchObject({ id: 73, status: 'ACCEPTED', statusCode: 1 })
   })
 
+  it('normalizes backend status code 8 as output limit exceeded', async () => {
+    request.mockResolvedValue({ data: { id: 74, status: 8 } })
+
+    const response = await submissionApi.getSubmission(74)
+
+    expect(response.data).toMatchObject({
+      id: 74,
+      status: 'OUTPUT_LIMIT_EXCEEDED',
+      statusCode: 8,
+    })
+  })
+
   it('passes one request abort signal through POST and status GET', async () => {
     const controller = new AbortController()
     request

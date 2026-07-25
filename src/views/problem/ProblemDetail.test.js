@@ -173,6 +173,24 @@ describe('ProblemDetail real submission flow', () => {
     expect(screen.getByText(/1024 KB/)).toBeVisible()
   })
 
+  it('renders output limit exceeded with its OLE label and resource-limit color', async () => {
+    vi.useFakeTimers()
+    submissionApi.getSubmission
+      .mockReset()
+      .mockResolvedValueOnce({
+        success: true,
+        data: { id: 88, status: 'OUTPUT_LIMIT_EXCEEDED', message: 'output quota exceeded' },
+      })
+    renderPage()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'submit from editor' }))
+
+    const status = await screen.findByText('OUTPUT_LIMIT_EXCEEDED (OLE)')
+    expect(status).toBeVisible()
+    expect(status).toHaveClass('status-output_limit_exceeded')
+    expect(await screen.findByText(/output quota exceeded/)).toBeVisible()
+  })
+
   it('rejects a problem id that is not in the contest roster', async () => {
     route.params = { contestId: '20', problemId: '9999' }
     renderPage()
