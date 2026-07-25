@@ -12,6 +12,7 @@ export const problemApi = {
       url: "/problem/list",
       method: "post",
       data: params,
+      anonymousFallback: true,
     });
   },
 
@@ -25,6 +26,7 @@ export const problemApi = {
       url: `/problem/no/${problemNo}`,
       method: "get",
       signal,
+      anonymousFallback: true,
     });
   },
 
@@ -38,6 +40,7 @@ export const problemApi = {
       url: `/problem/${id}`,
       method: "get",
       signal,
+      anonymousFallback: true,
     });
   },
 

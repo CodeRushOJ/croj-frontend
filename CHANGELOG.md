@@ -24,6 +24,10 @@ All notable frontend changes are recorded here.
 - Nginx SPA history fallback, immutable hashed-asset caching, no-cache HTML, security headers, and fail-closed `/api`, WebSocket, and `/uploads` handling for Gateway-owned paths.
 - Container contracts that build and inspect the image, then use one non-root read-only container to verify health, homepage, deep links, caching, headers, and API routing boundaries.
 - CI production-image builds and linux/amd64 plus linux/arm64 OCI validation.
+- Administrator contest workspace backed only by real create, open-by-ID, draft update, immutable published-version arrangement, publish, and cancel APIs, with UTC-safe schedule editing, schedule/roster validation, stale-load protection, unsaved-change publication gates, confirmed lifecycle writes, stable test IDs, and HTTP 409 edit preservation.
+- Anonymous published-problem list and detail routes, including one-shot expired-token fallback for public problem/community reads while contest problem routes remain protected.
+- Session-scoped editor draft handoff through login, isolated by ordinary or contest problem context and cleared only after the backend accepts a submission.
+- Authentication-only submission history, code submission, solution publication, and problem-discussion creation controls while public reading remains available.
 
 ### Changed
 
@@ -40,7 +44,7 @@ All notable frontend changes are recorded here.
 - Bounded Vitest to four workers so jsdom component suites remain deterministic on both developer workstations and shared CI runners.
 - Added a high-severity dependency audit gate to frontend CI and migrated linting to ESLint flat config.
 - Fixed forum category filtering to send `categoryId`, and made confirmed 401 session-expiry logout redirect through the application router.
-- Removed the dead administrator contests navigation entry and replaced reviewed blue/purple hero gradients with the warm-neutral visual system.
+- Replaced the former dead administrator contests navigation entry with a real backend-aligned workspace and retained the warm-neutral visual system.
 - Added long deadlines and cancellation to administrator problem-import uploads.
 - Isolated administrator TestBundle state by problem/version target, aborting uploads on problem changes and ignoring stale list, metadata, upload, and publish responses.
 - Locked TestBundle targets and route departure during non-cancellable publication, and made version refreshes revalidate preserved drafts without accepting stale metadata.

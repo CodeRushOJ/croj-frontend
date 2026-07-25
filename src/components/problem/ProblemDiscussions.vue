@@ -5,7 +5,9 @@
         <h2>题目讨论</h2>
         <p>围绕这道题的思路、边界和实现细节交流。</p>
       </div>
-      <el-button type="primary" @click="drawerOpen = true">发起讨论</el-button>
+      <el-button type="primary" @click="openComposer">
+        {{ authenticated ? "发起讨论" : "登录后发起讨论" }}
+      </el-button>
     </header>
 
     <AsyncState
@@ -17,7 +19,9 @@
       @retry="loadPosts"
     >
       <template #empty-action>
-        <el-button type="primary" plain @click="drawerOpen = true">写第一篇讨论</el-button>
+        <el-button type="primary" plain @click="openComposer">
+          {{ authenticated ? "写第一篇讨论" : "登录后发起讨论" }}
+        </el-button>
       </template>
       <div class="post-list">
         <PostCard v-for="post in posts" :key="post.id" :post="post" />
@@ -60,7 +64,11 @@ import { normalizeCommunityPage, normalizeForumPost } from "@/types/community";
 import AsyncState from "@/components/community/AsyncState.vue";
 import PostCard from "@/components/community/PostCard.vue";
 
-const props = defineProps({ problemId: { type: [String, Number], required: true } });
+const props = defineProps({
+  problemId: { type: [String, Number], required: true },
+  authenticated: { type: Boolean, default: true },
+});
+const emit = defineEmits(["require-login"]);
 const categories = ref([]);
 const posts = ref([]);
 const loading = ref(true);
@@ -70,6 +78,14 @@ const drawerOpen = ref(false);
 const publishing = ref(false);
 const formError = ref("");
 const form = reactive({ categoryId: null, title: "", content: "" });
+
+const openComposer = () => {
+  if (!props.authenticated) {
+    emit("require-login");
+    return;
+  }
+  drawerOpen.value = true;
+};
 
 const loadCategories = async () => {
   categoryLoading.value = true;

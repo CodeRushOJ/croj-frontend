@@ -30,4 +30,18 @@ describe("ProblemSolutions", () => {
     }));
     expect(solutionApi.list).toHaveBeenCalledTimes(2);
   });
+
+  it("keeps public reading available but gates publication for anonymous users", async () => {
+    const onRequireLogin = vi.fn();
+    render(ProblemSolutions, {
+      props: { problemId: 1001, authenticated: false, onRequireLogin },
+    });
+
+    await screen.findByText("暂无题解，分享你的思路吧");
+    await fireEvent.click(screen.getAllByRole("button", { name: "登录后发布题解" })[0]);
+
+    expect(onRequireLogin).toHaveBeenCalledOnce();
+    expect(solutionApi.list).toHaveBeenCalled();
+    expect(solutionApi.create).not.toHaveBeenCalled();
+  });
 });

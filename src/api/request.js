@@ -17,6 +17,16 @@ service.interceptors.request.use(
   (config) => {
     const authStore = useAuthStore();
 
+    if (config.skipAuth) {
+      if (typeof config.headers?.delete === "function") {
+        config.headers.delete("Authorization");
+      } else if (config.headers) {
+        delete config.headers.Authorization;
+        delete config.headers.authorization;
+      }
+      return config;
+    }
+
     // Add token to headers if it exists
     if (authStore.token) {
       config.headers["Authorization"] = `Bearer ${authStore.token}`;
@@ -117,6 +127,25 @@ service.interceptors.response.use(
 
       // Handle 401 - Unauthorized
       if (status === 401) {
+        const config = error.config || {};
+        if (config.anonymousFallback) {
+          if (!config._anonymousRetry) {
+            authStore.clearSession();
+            const sourceHeaders = typeof config.headers?.toJSON === "function"
+              ? config.headers.toJSON()
+              : { ...(config.headers || {}) };
+            delete sourceHeaders.Authorization;
+            delete sourceHeaders.authorization;
+            return service.request({
+              ...config,
+              headers: sourceHeaders,
+              skipAuth: true,
+              _anonymousRetry: true,
+            });
+          }
+          return Promise.reject(error);
+        }
+
         // Show session expired dialog
         ElMessageBox.confirm(t("errors.session_expired"), t("common.warning"), {
           confirmButtonText: t("auth.login"),

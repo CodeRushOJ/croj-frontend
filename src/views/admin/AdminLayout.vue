@@ -41,6 +41,12 @@
                         </el-icon>
                         <span>测试包管理</span>
                     </el-menu-item>
+                    <el-menu-item index="/admin/contests" data-testid="admin-contests-nav">
+                        <el-icon>
+                            <Trophy />
+                        </el-icon>
+                        <span>比赛管理</span>
+                    </el-menu-item>
                     <el-menu-item index="/admin/tags">
                         <el-icon>
                             <CollectionTag />
@@ -69,7 +75,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { Monitor, User, Document, CollectionTag, Bell, UploadFilled, Files } from '@element-plus/icons-vue';
+import { Monitor, User, Document, CollectionTag, Bell, UploadFilled, Files, Trophy } from '@element-plus/icons-vue';
 
 const route = useRoute();
 

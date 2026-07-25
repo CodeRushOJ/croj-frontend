@@ -2,7 +2,9 @@
   <section class="solutions">
     <header class="solutions__header">
       <div><h2>社区题解</h2><p>从不同视角理解算法，也欢迎分享你的推导过程。</p></div>
-      <el-button type="primary" @click="drawerOpen = true">发布题解</el-button>
+      <el-button type="primary" @click="openComposer">
+        {{ authenticated ? "发布题解" : "登录后发布题解" }}
+      </el-button>
     </header>
 
     <AsyncState
@@ -13,7 +15,11 @@
       empty-description="好的题解不只给出代码，也解释为什么正确。"
       @retry="loadSolutions"
     >
-      <template #empty-action><el-button type="primary" plain @click="drawerOpen = true">写第一篇题解</el-button></template>
+      <template #empty-action>
+        <el-button type="primary" plain @click="openComposer">
+          {{ authenticated ? "写第一篇题解" : "登录后发布题解" }}
+        </el-button>
+      </template>
       <div class="solution-list"><SolutionCard v-for="solution in solutions" :key="solution.id" :problem-id="problemId" :solution="solution" /></div>
     </AsyncState>
 
@@ -36,7 +42,11 @@ import { normalizeCommunityPage, normalizeSolution } from "@/types/community";
 import AsyncState from "@/components/community/AsyncState.vue";
 import SolutionCard from "@/components/community/SolutionCard.vue";
 
-const props = defineProps({ problemId: { type: [String, Number], required: true } });
+const props = defineProps({
+  problemId: { type: [String, Number], required: true },
+  authenticated: { type: Boolean, default: true },
+});
+const emit = defineEmits(["require-login"]);
 const solutions = ref([]);
 const loading = ref(true);
 const error = ref("");
@@ -44,6 +54,14 @@ const drawerOpen = ref(false);
 const publishing = ref(false);
 const formError = ref("");
 const form = reactive({ title: "", content: "" });
+
+const openComposer = () => {
+  if (!props.authenticated) {
+    emit("require-login");
+    return;
+  }
+  drawerOpen.value = true;
+};
 
 const loadSolutions = async () => {
   if (!props.problemId) return;

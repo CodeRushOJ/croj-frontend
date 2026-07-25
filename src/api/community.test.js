@@ -15,6 +15,7 @@ describe("community API contract", () => {
       url: "/v1/forum/posts",
       method: "get",
       params: { current: 2, size: 12, categoryId: 3 },
+      anonymousFallback: true,
     });
   });
 
@@ -24,6 +25,7 @@ describe("community API contract", () => {
     expect(request).toHaveBeenCalledWith({
       url: "/v1/forum/categories",
       method: "get",
+      anonymousFallback: true,
     });
   });
 
@@ -76,6 +78,24 @@ describe("community API contract", () => {
       url: "/v1/forum/posts",
       method: "get",
       params: { current: 1, size: 20, resourceType: "PROBLEM", resourceId: 1001 },
+      anonymousFallback: true,
+    });
+  });
+
+  it("marks solution reads public without weakening solution writes", () => {
+    solutionApi.list(1001, { current: 1, size: 30 });
+    solutionApi.get(1001, 7);
+
+    expect(request).toHaveBeenNthCalledWith(1, {
+      url: "/v1/problems/1001/solutions",
+      method: "get",
+      params: { current: 1, size: 30 },
+      anonymousFallback: true,
+    });
+    expect(request).toHaveBeenNthCalledWith(2, {
+      url: "/v1/problems/1001/solutions/7",
+      method: "get",
+      anonymousFallback: true,
     });
   });
 });

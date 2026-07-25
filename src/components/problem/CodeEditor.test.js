@@ -17,6 +17,7 @@ vi.mock('@/services/MonacoEditorService', () => ({
 }))
 
 import { i18n } from '@/i18n'
+import MonacoEditorService from '@/services/MonacoEditorService'
 import CodeEditor from './CodeEditor.vue'
 
 describe('CodeEditor submission boundary', () => {
@@ -45,5 +46,22 @@ describe('CodeEditor submission boundary', () => {
       code: 'int main() { return 0; }',
       language: 'cpp',
     })
+  })
+
+  it('initializes Monaco with the language and code restored from the login handoff', async () => {
+    render(CodeEditor, {
+      props: {
+        problem: { id: 3001, problemNo: 'CR3001', title: 'A + B' },
+        initialLanguage: 'python',
+        initialCode: 'print("restored")',
+      },
+      global: { plugins: [i18n] },
+    })
+
+    await waitFor(() => expect(MonacoEditorService.getOrCreateModel).toHaveBeenCalledWith(
+      expect.anything(),
+      'python',
+      'print("restored")',
+    ))
   })
 })

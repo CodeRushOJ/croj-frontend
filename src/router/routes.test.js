@@ -37,6 +37,20 @@ describe("administrator TestBundle route", () => {
   });
 });
 
+describe("administrator contest route", () => {
+  it("exposes the guarded real-server contest workspace", () => {
+    const adminShell = routes.find((route) => route.path === "/admin");
+    const adminLayout = adminShell.children.find((route) => route.path === "");
+    const contestRoute = adminLayout.children.find((route) => route.path === "contests");
+
+    expect(contestRoute).toMatchObject({
+      name: ROUTE_NAMES.ADMIN_CONTESTS,
+      meta: { title: "Contest Management" },
+    });
+    expect(ROUTE_PATHS.ADMIN_CONTESTS).toBe("/admin/contests");
+  });
+});
+
 describe("contest problem route", () => {
   it("uses contest and problem ids instead of a mutable problem number", () => {
     const mainShell = routes.find((route) => route.path === "/");
@@ -47,5 +61,20 @@ describe("contest problem route", () => {
     expect(contestProblem.path).toBe("contests/:contestId/problems/:problemId");
     expect(ROUTE_PATHS.CONTEST_PROBLEM_DETAIL)
       .toBe("/contests/:contestId/problems/:problemId");
+  });
+});
+
+describe("public problem routes", () => {
+  it("allows anonymous list and detail reads but keeps contest problems guarded", () => {
+    const mainShell = routes.find((route) => route.path === "/");
+    const list = mainShell.children.find((route) => route.name === ROUTE_NAMES.PROBLEMS);
+    const detail = mainShell.children.find((route) => route.name === ROUTE_NAMES.PROBLEM_DETAIL);
+    const contestProblem = mainShell.children.find(
+      (route) => route.name === ROUTE_NAMES.CONTEST_PROBLEM_DETAIL,
+    );
+
+    expect(list.meta.requiresAuth).toBe(false);
+    expect(detail.meta.requiresAuth).toBe(false);
+    expect(contestProblem.meta.requiresAuth).toBe(true);
   });
 });

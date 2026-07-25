@@ -32,6 +32,11 @@ export const useAuthStore = defineStore('auth', {
   },
   
   actions: {
+    clearSession() {
+      this.token = null;
+      this.user = null;
+    },
+
     /**
      * 注册新用户
      */
@@ -98,9 +103,7 @@ export const useAuthStore = defineStore('auth', {
      * 用户登出
      */
     logout(router) {
-      // 清除令牌和用户数据
-      this.token = null;
-      this.user = null;
+      this.clearSession();
       
       // 重定向到登录页面
       router.push({ name: ROUTE_NAMES.LOGIN });

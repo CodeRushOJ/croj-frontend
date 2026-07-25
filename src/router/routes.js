@@ -33,6 +33,7 @@ const UserManagement = () => import("@/views/admin/UserManagement.vue");
 const ProblemManagement = () => import("@/views/admin/ProblemManagement.vue");
 const ProblemImport = () => import("@/views/admin/ProblemImport.vue");
 const TestBundleManagement = () => import("@/views/admin/TestBundleManagement.vue");
+const ContestManagement = () => import("@/views/admin/ContestManagement.vue");
 const TagManagement = () => import("@/views/admin/TagManagement.vue");
 const AnnouncementManagement = () => import("@/views/admin/AnnouncementManagement.vue");
 
@@ -58,7 +59,7 @@ const routes = [
         component: ProblemList,
         meta: {
           title: "Problems",
-          requiresAuth: true,
+          requiresAuth: false,
           icon: "el-icon-document",
         },
       },
@@ -68,7 +69,7 @@ const routes = [
         component: ProblemDetail,
         meta: {
           title: "Problem Detail",
-          requiresAuth: true,
+          requiresAuth: false,
           icon: "el-icon-document",
         },
       },
@@ -206,6 +207,15 @@ const routes = [
             component: TestBundleManagement,
             meta: {
               title: "TestBundle Management",
+            },
+          },
+          {
+            path: "contests",
+            name: ROUTE_NAMES.ADMIN_CONTESTS,
+            component: ContestManagement,
+            meta: {
+              title: "Contest Management",
+              icon: "el-icon-trophy",
             },
           },
           {

@@ -1,7 +1,16 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/vue";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("vue-router", () => ({ useRoute: () => ({ params: { postId: "7" } }) }));
+const push = vi.fn();
+const authState = { isAuthenticated: true };
+
+vi.mock("vue-router", () => ({
+  useRoute: () => ({ params: { postId: "7" }, fullPath: "/forum/posts/7?from=problem" }),
+  useRouter: () => ({ push }),
+}));
+vi.mock("@/store/modules/auth", () => ({
+  useAuthStore: () => authState,
+}));
 vi.mock("@/api/community", () => ({
   forumApi: {
     listCategories: vi.fn(),
@@ -17,6 +26,7 @@ import ForumPostDetail from "./ForumPostDetail.vue";
 describe("ForumPostDetail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    authState.isAuthenticated = true;
     forumApi.getPost.mockResolvedValue({ data: {
       id: 7,
       categoryId: 3,
@@ -56,5 +66,22 @@ describe("ForumPostDetail", () => {
     expect(await screen.findByText("算法讨论")).toBeVisible();
     expect(forumApi.listCategories).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("综合讨论")).not.toBeInTheDocument();
+  });
+
+  it("redirects anonymous comment writes to login without calling the write API", async () => {
+    authState.isAuthenticated = false;
+    render(ForumPostDetail, {
+      global: { stubs: { RouterLink: { template: "<a><slot /></a>" } } },
+    });
+
+    expect(await screen.findByText("线段树讨论")).toBeVisible();
+    await fireEvent.update(screen.getByLabelText("评论内容"), "登录后再参与讨论");
+    await fireEvent.click(screen.getByRole("button", { name: "登录后发表评论" }));
+
+    expect(forumApi.createComment).not.toHaveBeenCalled();
+    expect(push).toHaveBeenCalledWith({
+      name: "Login",
+      query: { redirect: "/forum/posts/7?from=problem" },
+    });
   });
 });

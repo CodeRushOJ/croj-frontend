@@ -109,6 +109,33 @@ errors[], warnings[], problems[]
 
 元数据响应的强 ETag 会随上传结果更新，并作为下一次上传或发布的 `If-Match`。HTTP 412 会保留已选 ZIP，必须由管理员显式刷新；400、403、404、409、413、422 与 428 都有独立状态。上传使用 5 分钟期限并支持取消。浏览器不解析或伪造测试包，格式、大小、归档安全和不可变发布均由服务端强制执行。
 
+## 管理端比赛工作台
+
+管理员可在管理工作台打开 `/admin/contests`。当前页面严格按后端已经提供的契约工作，不在 `localStorage` 或前端状态中伪造比赛列表：
+
+- `POST /api/v1/admin/contests` 创建草稿。
+- `GET /api/v1/contests/{contestId}` 与 `GET /api/v1/contests/{contestId}/problems` 按 ID 打开服务器记录。
+- `PUT /api/v1/admin/contests/{contestId}` 编辑草稿标题、说明、ACM/OI 赛制、PUBLIC/PRIVATE 可见性和报名/比赛/封榜时间。
+- `GET /api/v1/admin/problems/{problemId}/versions` 发现题目版本；只有 `PUBLISHED` 不可变版本可以加入比赛。
+- `PUT /api/v1/admin/contests/{contestId}/problems` 保存题目、版本、标签和分值。
+- `POST /api/v1/admin/contests/{contestId}/publish` 发布比赛；`DELETE /api/v1/admin/contests/{contestId}` 取消比赛。
+
+浏览器本地 `datetime-local` 值在 API 边界转换为 ISO-8601 UTC Instant，打开服务器记录再保存不会产生时区漂移，并保留秒精度。前端在写入前检查时间顺序、重复题目/标签、分值范围和最多 100 题；设置或编排存在未保存修改时禁止发布，确保页面所见与服务器将发布的版本一致。HTTP 409 会保留未保存输入，由管理员决定是否重新加载服务器版本。
+
+当前后端还没有管理员比赛列表、独立题目顺序字段、比赛写入 ETag/前置条件以及开放、关闭、归档端点。因此页面明确采用“创建或按 ID 打开”的服务器工作区，题目显示顺序遵循后端标签排序，也不会展示无法真正写入的生命周期操作。后端补齐这些契约时只需扩展 `src/api/contest.js` 的适配层。
+
+## 匿名题目浏览与登录门禁
+
+普通题库列表 `/problems` 与题目详情 `/problem/{problemNo}` 允许匿名访问，并读取后端已经发布的题目：
+
+- `POST /api/problem/list`
+- `GET /api/problem/{id}`
+- `GET /api/problem/no/{problemNo}`
+
+如果浏览器仍带有过期令牌，公开题目、论坛和题解 GET 请求会清除失效会话、移除 `Authorization`，并且只匿名重试一次；不会把公开题面清空或弹出受保护请求的会话失效流程。比赛题目仍要求登录，因为它们受比赛可见性与参赛状态约束。
+
+匿名用户可以阅读公开题面、题解和讨论。提交代码、查看个人提交记录、发布题解或发起讨论时才进入登录门禁。匿名点击提交时，编辑器的语言和代码只写入当前标签页的 `sessionStorage`，并按普通题目或“比赛 + 题目”隔离；登录回到原 URL 后自动恢复。只有后端接受提交 POST 后才清除草稿，登录失败或提交失败不会丢失内容。草稿不会写入持久化 `localStorage`。
+
 ## 论坛与题解 API
 
 Axios 的 `baseURL` 是同源 `/api`，社区请求集中在 `src/api/community.js`：
@@ -175,7 +202,7 @@ Gateway 路由、Secret 和 Kubernetes Deployment 由 [`croj-platform`](https://
 
 ## 功能状态
 
-- 已有：认证、邮箱验证、题目浏览、代码编辑、基础提交、论坛、评论、题解、全局公告、公告发布工作台、个人设置、管理端基础页面、题目包预检/确认导入界面、主题和国际化。
+- 已有：认证、邮箱验证、匿名题目浏览、登录后恢复代码草稿、代码编辑、基础提交、比赛浏览、比赛管理工作台、论坛、评论、题解、全局公告、公告发布工作台、个人设置、管理端基础页面、题目包预检/确认导入界面、主题和国际化。
 - 迭代中：真实判题状态体验、响应式视觉统一、错误/空/加载状态、无障碍与性能优化。
 - 待实现：排行榜、举报审核、通知中心和端到端浏览器测试。
 - 不在 v1 范围：付费、订阅和商业计费。

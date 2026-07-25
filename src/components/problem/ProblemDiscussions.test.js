@@ -58,4 +58,19 @@ describe("ProblemDiscussions", () => {
     );
     expect(screen.getByRole("alert")).toHaveTextContent("发布失败");
   });
+
+  it("keeps public reading available but gates discussion creation for anonymous users", async () => {
+    const onRequireLogin = vi.fn();
+    render(ProblemDiscussions, {
+      props: { problemId: 1001, authenticated: false, onRequireLogin },
+      global: { stubs: { PostCard: { template: "<div />" } } },
+    });
+
+    await screen.findByText("暂无讨论，来提出第一个问题吧");
+    await fireEvent.click(screen.getAllByRole("button", { name: "登录后发起讨论" })[0]);
+
+    expect(onRequireLogin).toHaveBeenCalledOnce();
+    expect(forumApi.listProblemPosts).toHaveBeenCalled();
+    expect(forumApi.createPost).not.toHaveBeenCalled();
+  });
 });

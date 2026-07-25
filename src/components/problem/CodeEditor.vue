@@ -76,6 +76,14 @@ const props = defineProps({
     disabled: {
         type: Boolean,
         default: false
+    },
+    initialCode: {
+        type: String,
+        default: ""
+    },
+    initialLanguage: {
+        type: String,
+        default: "cpp"
     }
 });
 
@@ -85,7 +93,7 @@ const { t } = useI18n();
 const editorContainer = ref(null);
 const editor = ref(null);
 const monaco = ref(null);
-const selectedLanguage = ref('cpp');
+const selectedLanguage = ref(props.initialLanguage || 'cpp');
 const initializing = ref(true);
 const editorInitialized = ref(false);
 const visible = ref(false);
@@ -177,7 +185,7 @@ const initializeEditor = async () => {
         const model = MonacoEditorService.getOrCreateModel(
             toRaw(monaco.value),
             selectedLanguage.value,
-            getLanguageTemplate(selectedLanguage.value)
+            props.initialCode || getLanguageTemplate(selectedLanguage.value)
         );
 
         // Create editor instance

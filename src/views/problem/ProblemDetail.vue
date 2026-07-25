@@ -119,17 +119,31 @@
                 </el-tab-pane>
 
                 <el-tab-pane :label="$t('problems.solution')" name="solution">
-                    <ProblemSolutions v-if="problem.id" :problem-id="problem.id" />
+                    <ProblemSolutions
+                        v-if="problem.id"
+                        :problem-id="problem.id"
+                        :authenticated="isAuthenticated"
+                        @require-login="requireLogin('solution')"
+                    />
                 </el-tab-pane>
 
                 <el-tab-pane label="讨论" name="discussion">
-                    <ProblemDiscussions v-if="problem.id" :problem-id="problem.id" />
+                    <ProblemDiscussions
+                        v-if="problem.id"
+                        :problem-id="problem.id"
+                        :authenticated="isAuthenticated"
+                        @require-login="requireLogin('discussion')"
+                    />
                 </el-tab-pane>
 
                 <el-tab-pane :label="$t('problems.submissions')" name="submissions">
                     <div class="submissions-section" v-loading="loadingSubmissions">
                          <h3>{{ $t('problems.submission_history') }}</h3>
-                         <el-table :data="submissionsList.records" style="width: 100%" empty-text="No submissions yet">
+                         <div v-if="!isAuthenticated" class="login-gate" data-testid="submission-history-login-gate">
+                            <p>登录后查看你的提交记录</p>
+                            <el-button type="primary" @click="requireLogin('submissions')">前往登录</el-button>
+                         </div>
+                         <el-table v-else :data="submissionsList.records" style="width: 100%" empty-text="No submissions yet">
                              <el-table-column prop="id" label="ID" width="100" />
                              <el-table-column prop="status" :label="$t('submissions.status')">
                                  <template #default="{ row }">
@@ -223,6 +237,8 @@
                         <code-editor
                             :problem="problem"
                             :disabled="isSubmitting || isPolling"
+                            :initial-code="restoredDraft.code"
+                            :initial-language="restoredDraft.language"
                             @submit="handleSubmitCode"
                         />
                     </div>
@@ -244,12 +260,13 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted, watch } from 'vue';
+import { computed, ref, onUnmounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { useI18n } from 'vue-i18n';
 import { contestApi, problemApi, submissionApi } from '@/api';
 import { ROUTE_NAMES } from '@/constants/routes';
+import { useAuthStore } from '@/store/modules/auth';
 import CodeEditor from '@/components/problem/CodeEditor.vue';
 import ProblemSolutions from '@/components/problem/ProblemSolutions.vue';
 import ProblemDiscussions from '@/components/problem/ProblemDiscussions.vue';
@@ -260,10 +277,18 @@ import {
 import { buildSubmissionPayload } from './submissionContext';
 import { normalizeContestProblem } from './contestProblem';
 import { sanitizeProblemStatement } from './problemStatement';
+import {
+    clearSubmissionDraft,
+    getSubmissionDraft,
+    saveSubmissionDraft,
+    withSubmissionTab,
+} from '@/services/submissionDraft';
 
 const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
+const authStore = useAuthStore();
+const isAuthenticated = computed(() => authStore.isAuthenticated);
 
 // State for problem detail
 const loading = ref(true);
@@ -273,6 +298,12 @@ const problemLoadErrorMessage = ref('题目服务没有返回有效数据，请�
 const activeTab = ref(route.query.tab || 'description');
 const problemRequestController = ref(null);
 const submissionContext = ref(null);
+const restoredDraft = ref({ code: '', language: 'cpp' });
+
+const requireLogin = (tab = activeTab.value) => router.push({
+    name: ROUTE_NAMES.LOGIN,
+    query: { redirect: withSubmissionTab(route.fullPath, tab) },
+});
 
 // State for the submission initiated from THIS component instance
 const isSubmitting = ref(false); // Loading state for the submit button
@@ -343,6 +374,8 @@ const fetchProblemDetail = async () => {
 
         if (controller.signal.aborted) return;
         submissionsQuery.value.problemId = problem.value?.id; // Set problemId for submissions query
+        restoredDraft.value = getSubmissionDraft(submissionContext.value)
+            || { code: '', language: 'cpp' };
 
         // Parse hints if they're in JSON string format
         if (problem.value && problem.value.hints && typeof problem.value.hints === 'string') {
@@ -377,6 +410,7 @@ const fetchProblemDetail = async () => {
 
 // Fetch submissions list for the table
 const fetchSubmissions = async () => {
+    if (!isAuthenticated.value) return;
     if (!submissionsQuery.value.problemId) {
         console.warn("Problem ID not set, cannot fetch submissions.");
         return;
@@ -386,14 +420,12 @@ const fetchSubmissions = async () => {
     submissionsRequestController.value = controller;
     loadingSubmissions.value = true;
     try {
-        console.log("Fetching submissions with query:", submissionsQuery.value);
         const res = await submissionApi.getSubmissionList(submissionsQuery.value, {
             signal: controller.signal,
         });
         if (controller.signal.aborted) return;
         if (res.success && res.data) {
             submissionsList.value = res.data; // Assuming res.data = { records: [], total: number }
-             console.log("Submissions fetched:", submissionsList.value);
         } else {
              console.error("Failed to fetch submissions list:", res);
              ElMessage.error(t('submissions.fetch_list_error'));
@@ -568,6 +600,12 @@ const handleSubmitCode = async (submissionData) => {
         return;
     }
 
+    if (!isAuthenticated.value) {
+        saveSubmissionDraft(submissionContext.value, submissionData);
+        requireLogin('submit');
+        return;
+    }
+
     const fullSubmissionData = buildSubmissionPayload(
         submissionData,
         submissionContext.value,
@@ -602,6 +640,8 @@ const handleSubmitCode = async (submissionData) => {
             throw new Error(response.message || t('errors.unknown_error'));
         }
         submissionId = response.data;
+        clearSubmissionDraft(submissionContext.value);
+        restoredDraft.value = { code: '', language: 'cpp' };
         ElMessage.success(t('problems.submission_sent'));
         isSubmitting.value = false;
         await pollSubmissionStatus(
@@ -664,6 +704,7 @@ watch(
         cancelSubmissionRequest();
         problem.value = null;
         submissionContext.value = null;
+        restoredDraft.value = { code: '', language: 'cpp' };
         submissionResult.value = null;
         submissionsList.value = { records: [], total: 0 };
         submissionsQuery.value = {

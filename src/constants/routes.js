@@ -32,6 +32,7 @@ export const ROUTE_NAMES = {
   ADMIN_PROBLEMS: "AdminProblems",
   ADMIN_PROBLEM_IMPORTS: "AdminProblemImports",
   ADMIN_TEST_BUNDLES: "AdminTestBundles",
+  ADMIN_CONTESTS: "AdminContests",
   ADMIN_TAGS: "AdminTags",
   ADMIN_ANNOUNCEMENTS: "AdminAnnouncements",
 
@@ -73,6 +74,7 @@ export const ROUTE_PATHS = {
   ADMIN_PROBLEMS: "/admin/problems",
   ADMIN_PROBLEM_IMPORTS: "/admin/problem-imports",
   ADMIN_TEST_BUNDLES: "/admin/test-bundles",
+  ADMIN_CONTESTS: "/admin/contests",
   ADMIN_TAGS: "/admin/tags",
   ADMIN_ANNOUNCEMENTS: "/admin/announcements",
 

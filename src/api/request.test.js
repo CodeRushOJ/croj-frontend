@@ -6,21 +6,26 @@ const mocks = vi.hoisted(() => ({
   message: vi.fn(),
   messageBoxConfirm: vi.fn(),
   logout: vi.fn(),
+  clearSession: vi.fn(),
   routerPush: vi.fn(),
+  serviceRequest: vi.fn(),
 }))
 
 vi.mock('axios', () => ({
   default: {
-    create: vi.fn(() => ({
-      interceptors: {
+    create: vi.fn(() => {
+      const service = vi.fn()
+      service.request = mocks.serviceRequest
+      service.interceptors = {
         request: { use: vi.fn() },
         response: {
           use: vi.fn((_success, error) => {
             mocks.responseError = error
           }),
         },
-      },
-    })),
+      }
+      return service
+    }),
     isCancel: mocks.isCancel,
   },
 }))
@@ -31,7 +36,11 @@ vi.mock('element-plus', () => ({
 }))
 
 vi.mock('@/store/modules/auth', () => ({
-  useAuthStore: () => ({ token: null, logout: mocks.logout }),
+  useAuthStore: () => ({
+    token: null,
+    logout: mocks.logout,
+    clearSession: mocks.clearSession,
+  }),
 }))
 
 vi.mock('@/router', () => ({
@@ -52,6 +61,8 @@ describe('request cancellation handling', () => {
     mocks.message.mockReset()
     mocks.messageBoxConfirm.mockReset()
     mocks.logout.mockReset()
+    mocks.clearSession.mockReset()
+    mocks.serviceRequest.mockReset()
   })
 
   it.each([
@@ -76,5 +87,56 @@ describe('request cancellation handling', () => {
 
     const router = (await import('@/router')).default
     expect(mocks.logout).toHaveBeenCalledWith(router)
+  })
+
+  it('retries an opted-in public read once without an expired bearer token', async () => {
+    mocks.isCancel.mockReturnValue(false)
+    mocks.serviceRequest.mockResolvedValue({ success: true, data: { id: 42 } })
+    const error = {
+      response: { status: 401, data: {} },
+      config: {
+        url: '/problem/42',
+        method: 'get',
+        anonymousFallback: true,
+        headers: { Authorization: 'Bearer expired' },
+      },
+    }
+
+    await expect(mocks.responseError(error)).resolves.toEqual({
+      success: true,
+      data: { id: 42 },
+    })
+
+    expect(mocks.clearSession).toHaveBeenCalledOnce()
+    expect(mocks.serviceRequest).toHaveBeenCalledWith(expect.objectContaining({
+      url: '/problem/42',
+      anonymousFallback: true,
+      skipAuth: true,
+      _anonymousRetry: true,
+      headers: {},
+    }))
+    expect(mocks.messageBoxConfirm).not.toHaveBeenCalled()
+    expect(mocks.logout).not.toHaveBeenCalled()
+  })
+
+  it('rejects an anonymous retry failure without opening the protected-session dialog', async () => {
+    mocks.isCancel.mockReturnValue(false)
+    const error = {
+      response: { status: 401, data: {} },
+      config: {
+        url: '/problem/42',
+        method: 'get',
+        anonymousFallback: true,
+        _anonymousRetry: true,
+        skipAuth: true,
+        headers: {},
+      },
+    }
+
+    await expect(mocks.responseError(error)).rejects.toBe(error)
+
+    expect(mocks.serviceRequest).not.toHaveBeenCalled()
+    expect(mocks.messageBoxConfirm).not.toHaveBeenCalled()
+    expect(mocks.logout).not.toHaveBeenCalled()
   })
 })

@@ -14,21 +14,29 @@ vi.mock('@/api', () => ({
 
 vi.mock('@/components/problem/CodeEditor.vue', () => ({
   default: {
-    props: ['disabled'],
+    props: ['disabled', 'initialCode', 'initialLanguage'],
     emits: ['submit'],
     template: `
       <button
         type="button"
         :disabled="disabled"
+        :data-initial-code="initialCode"
+        :data-initial-language="initialLanguage"
         @click="$emit('submit', { language: 'cpp', code: 'int main() {}' })"
       >submit from editor</button>
     `,
   },
 }))
 
+const authState = vi.hoisted(() => ({ isAuthenticated: true }))
+vi.mock('@/store/modules/auth', () => ({
+  useAuthStore: () => authState,
+}))
+
 const route = reactive({
   params: { contestId: '20', problemId: '3001' },
   query: { tab: 'submit' },
+  fullPath: '/contests/20/problems/3001?tab=submit',
 })
 const routerPush = vi.hoisted(() => vi.fn())
 vi.mock('vue-router', () => ({
@@ -39,6 +47,7 @@ vi.mock('vue-router', () => ({
 import { contestApi, problemApi, submissionApi } from '@/api'
 import { ROUTE_NAMES } from '@/constants/routes'
 import { i18n } from '@/i18n'
+import { getSubmissionDraft, saveSubmissionDraft } from '@/services/submissionDraft'
 import ProblemDetail from './ProblemDetail.vue'
 
 const renderPage = () => render(ProblemDetail, {
@@ -92,6 +101,9 @@ describe('ProblemDetail real submission flow', () => {
     vi.clearAllMocks()
     route.params = { contestId: '20', problemId: '3001' }
     route.query = { tab: 'submit' }
+    route.fullPath = '/contests/20/problems/3001?tab=submit'
+    authState.isAuthenticated = true
+    sessionStorage.clear()
     contestApi.problems.mockResolvedValue({
       data: [{
         problemId: 3001,
@@ -129,6 +141,10 @@ describe('ProblemDetail real submission flow', () => {
 
   it('renders and submits the fixed contest roster version', async () => {
     vi.useFakeTimers()
+    saveSubmissionDraft(
+      { contestId: 20, problemId: 3001 },
+      { language: 'cpp', code: 'int main() {}' },
+    )
     renderPage()
 
     expect(await screen.findByText('固定版本比赛题目')).toBeVisible()
@@ -147,6 +163,7 @@ describe('ProblemDetail real submission flow', () => {
     expect(requestOptions.signal).toBeInstanceOf(AbortSignal)
 
     await waitFor(() => expect(submissionApi.getSubmission).toHaveBeenCalledTimes(1))
+    expect(getSubmissionDraft({ contestId: 20, problemId: 3001 })).toBeNull()
     expect(submissionApi.getSubmission.mock.calls[0][1].signal).toBe(requestOptions.signal)
     await vi.advanceTimersByTimeAsync(500)
     await waitFor(() => expect(submissionApi.getSubmission).toHaveBeenCalledTimes(2))
@@ -185,6 +202,82 @@ describe('ProblemDetail real submission flow', () => {
       signal: expect.any(AbortSignal),
     })
     expect(contestApi.problems).not.toHaveBeenCalled()
+  })
+
+  it('saves anonymous code and redirects to login without calling the submission API', async () => {
+    authState.isAuthenticated = false
+    route.params = { problemNo: 'P1000' }
+    route.query = {}
+    route.fullPath = '/problem/P1000'
+    problemApi.getProblemByNo.mockResolvedValueOnce({
+      data: {
+        id: 1000,
+        problemNo: 'P1000',
+        title: '匿名可读题目',
+        difficulty: 1,
+        tags: [],
+        samples: [],
+      },
+    })
+    renderPage()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'submit from editor' }))
+
+    expect(submissionApi.submitCode).not.toHaveBeenCalled()
+    expect(getSubmissionDraft({ problemId: 1000 })).toEqual({
+      language: 'cpp',
+      code: 'int main() {}',
+    })
+    expect(routerPush).toHaveBeenCalledWith({
+      name: ROUTE_NAMES.LOGIN,
+      query: { redirect: '/problem/P1000?tab=submit' },
+    })
+  })
+
+  it('restores the scoped editor draft after login', async () => {
+    route.params = { problemNo: 'P1000' }
+    route.query = { tab: 'submit' }
+    route.fullPath = '/problem/P1000?tab=submit'
+    saveSubmissionDraft(
+      { problemId: 1000 },
+      { language: 'python', code: 'print("restored")' },
+    )
+    problemApi.getProblemByNo.mockResolvedValueOnce({
+      data: {
+        id: 1000,
+        problemNo: 'P1000',
+        title: '恢复草稿',
+        difficulty: 1,
+        tags: [],
+        samples: [],
+      },
+    })
+    renderPage()
+
+    const editorButton = await screen.findByRole('button', { name: 'submit from editor' })
+    expect(editorButton).toHaveAttribute('data-initial-code', 'print("restored")')
+    expect(editorButton).toHaveAttribute('data-initial-language', 'python')
+  })
+
+  it('does not request private submission history for an anonymous reader', async () => {
+    authState.isAuthenticated = false
+    route.params = { problemNo: 'P1000' }
+    route.query = { tab: 'submissions' }
+    route.fullPath = '/problem/P1000?tab=submissions'
+    problemApi.getProblemByNo.mockResolvedValueOnce({
+      data: {
+        id: 1000,
+        problemNo: 'P1000',
+        title: '公开题目',
+        difficulty: 1,
+        tags: [],
+        samples: [],
+      },
+    })
+    renderPage()
+
+    expect(await screen.findByText('登录后查看你的提交记录')).toBeVisible()
+    expect(submissionApi.getSubmissionList).not.toHaveBeenCalled()
   })
 
   it('returns a failed problem load through the registered problem-list route', async () => {

@@ -16,7 +16,9 @@
         <label for="comment-content">评论内容</label>
         <textarea id="comment-content" v-model.trim="commentContent" rows="4" maxlength="1000" placeholder="补充观点，或友善地提出疑问" />
         <p v-if="commentError" class="form-error" role="alert">{{ commentError }}</p>
-        <el-button native-type="submit" type="primary" :loading="commenting">发表评论</el-button>
+        <el-button native-type="submit" type="primary" :loading="commenting">
+          {{ authStore.isAuthenticated ? "发表评论" : "登录后发表评论" }}
+        </el-button>
       </form>
       <AsyncState :loading="commentsLoading" :error="commentsError" :empty="!comments.length" empty-title="还没有评论" empty-description="成为第一个参与讨论的人。" @retry="loadComments">
         <div class="comment-list">
@@ -32,13 +34,17 @@
 
 <script setup>
 import { computed, onMounted, ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { forumApi } from "@/api/community";
+import { ROUTE_NAMES } from "@/constants/routes";
+import { useAuthStore } from "@/store/modules/auth";
 import { normalizeCommunityPage, normalizeForumComment, normalizeForumPost } from "@/types/community";
 import AsyncState from "@/components/community/AsyncState.vue";
 
 const route = useRoute();
+const router = useRouter();
+const authStore = useAuthStore();
 const post = ref(null);
 const categories = ref([]);
 const comments = ref([]);
@@ -80,6 +86,13 @@ const loadComments = async () => {
   finally { commentsLoading.value = false; }
 };
 const publishComment = async () => {
+  if (!authStore.isAuthenticated) {
+    await router.push({
+      name: ROUTE_NAMES.LOGIN,
+      query: { redirect: route.fullPath },
+    });
+    return;
+  }
   commentError.value = commentContent.value.length < 2 ? "评论至少需要 2 个字符。" : "";
   if (commentError.value) return;
   commenting.value = true;
