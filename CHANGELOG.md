@@ -20,6 +20,10 @@ All notable frontend changes are recorded here.
 - Real problem and contest submission flow with ID-based contest routes, immutable roster statement/limit snapshots, bounded exponential-backoff polling, terminal result metrics, strict workflow deadlines, and navigation cancellation.
 - Component/API contract tests for real problem data, administrator navigation, and submission detail polling.
 - Administrator TestBundle workspace with problem-scoped version discovery, DRAFT selection, strong-ETag upload/publish concurrency, explicit stale refresh, long-upload cancellation, and contract-specific error states.
+- Digest-pinned Node 22 and nginx-unprivileged multi-stage production image with strict lockfile installation, OCI metadata, UID/GID 101, port 8080, and dependency-free `/healthz`.
+- Nginx SPA history fallback, immutable hashed-asset caching, no-cache HTML, security headers, and fail-closed `/api`, WebSocket, and `/uploads` handling for Gateway-owned paths.
+- Container contracts that build and inspect the image, then use one non-root read-only container to verify health, homepage, deep links, caching, headers, and API routing boundaries.
+- CI production-image builds and linux/amd64 plus linux/arm64 OCI validation.
 
 ### Changed
 

@@ -138,14 +138,40 @@ Axios 的 `baseURL` 是同源 `/api`，社区请求集中在 `src/api/community.
 
 ## 部署
 
-生产构建输出位于 `dist/`：
+### 生产镜像
+
+仓库根目录的多阶段 `Dockerfile` 使用 digest 锁定的 Node 22 构建镜像和 nginx-unprivileged 运行镜像。构建阶段严格执行 `pnpm install --frozen-lockfile` 和 `pnpm build`；运行层只包含 `dist/` 与 Nginx 配置，不接受或保存数据库密码、JWT Secret、SMTP 凭据等服务端 Secret。
+
+```bash
+docker buildx build --load \
+  --build-arg "BUILD_DATE=$(git show -s --format=%cI HEAD)" \
+  --build-arg "OCI_SOURCE=https://github.com/CodeRushOJ/croj-frontend.git" \
+  --build-arg "VCS_REF=$(git rev-parse HEAD)" \
+  --build-arg "VERSION=0.1.0" \
+  --tag coderushoj/croj-frontend:dev .
+
+# 实际构建并用一个短生命周期容器验证镜像合同。
+CROJ_IMAGE_REVISION="$(git rev-parse HEAD)" \
+  CROJ_IMAGE_VERSION=0.1.0 \
+  ./tests/container-contract.sh coderushoj/croj-frontend:dev
+```
+
+`croj-platform` 的 source lock 使用根 `Dockerfile`，并传入 `VCS_REF`、覆盖 OCI source/revision 标签。镜像默认以 UID/GID `101:101` 监听 `8080`，提供不依赖后端的 `GET /healthz`，可在只读根文件系统中运行；平台只需为 `/tmp`、`/var/cache/nginx` 和 `/var/run` 挂载临时写卷。
+
+Nginx 对 Vue Router history 深链回退到 `index.html`；带 hash 的 `/assets/` 文件使用一年 immutable cache，HTML 不缓存，并统一返回 CSP、`nosniff`、frame、referrer 与 permissions policy 安全头。平台 Gateway 按同源 `/api`（包括该前缀下的 WebSocket Upgrade）转发到 backend；如果 `/api` 或本地开发专用的 `/uploads` 被误发到 frontend Service，Nginx 返回 404，而不是 SPA 页面。
+
+CI 在前端质量检查后实际构建镜像，并通过一次性、non-root、只读根容器验证 health、首页、history fallback、缓存和安全头。随后构建 `linux/amd64` 与 `linux/arm64` OCI 镜像，确保两个平台共享同一份静态产物与运行配置。
+
+### 仅构建静态文件
+
+生产静态构建输出位于 `dist/`：
 
 ```bash
 pnpm build
 pnpm preview --host 0.0.0.0
 ```
 
-正式 Docker 镜像、Nginx 静态资源配置、Gateway 路由、Secret/ConfigMap 和 Kubernetes 部署由 [`croj-platform`](https://github.com/CodeRushOJ/croj-platform) 统一管理。完整系统安装请从平台仓库的快速开始进入。
+Gateway 路由、Secret 和 Kubernetes Deployment 由 [`croj-platform`](https://github.com/CodeRushOJ/croj-platform) 统一管理。完整系统安装请从平台仓库的快速开始进入。
 
 ## 功能状态
 
