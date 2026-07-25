@@ -64,4 +64,23 @@ describe('CodeEditor submission boundary', () => {
       'print("restored")',
     ))
   })
+
+  it('uses the Sandbox Java entrypoint contract in the default template', async () => {
+    render(CodeEditor, {
+      props: {
+        problem: { id: 3001, problemNo: 'CR3001', title: 'A + B' },
+        initialLanguage: 'java',
+      },
+      global: { plugins: [i18n] },
+    })
+
+    await waitFor(() => expect(MonacoEditorService.getOrCreateModel).toHaveBeenCalledWith(
+      expect.anything(),
+      'java',
+      expect.stringContaining('public class Main'),
+    ))
+    const javaTemplate = MonacoEditorService.getOrCreateModel.mock.calls
+      .find(([, language]) => language === 'java')[2]
+    expect(javaTemplate).not.toContain('public class Solution')
+  })
 })

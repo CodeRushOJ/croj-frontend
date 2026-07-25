@@ -117,7 +117,7 @@ int main() {
 }`,
         java: `import java.util.*;
 
-public class Solution {
+public class Main {
   // Problem: ${props.problem?.problemNo} - ${props.problem?.title}
   
   public static void main(String[] args) {
