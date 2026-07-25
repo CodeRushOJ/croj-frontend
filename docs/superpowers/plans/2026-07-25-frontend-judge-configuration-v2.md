@@ -83,10 +83,10 @@
   manifest v2 semantics, session draft boundary, and checker-source privacy.
 - [x] Record the release change without claiming backend behavior the frontend
   cannot enforce.
-- [ ] Run `pnpm test:run`, `pnpm lint`, `pnpm build`,
+- [x] Run `pnpm test:run`, `pnpm lint`, `pnpm build`,
   `pnpm audit --audit-level high`, `./tests/container-contract.sh`, and
   `git diff --check`.
-- [ ] Request independent code review, fix every Critical/Important issue, and
+- [x] Request independent code review, fix every Critical/Important issue, and
   re-run affected gates.
-- [ ] Verify `HeZephyr <unique.hzf@gmail.com>`, commit intentionally, push the
+- [x] Verify `HeZephyr <unique.hzf@gmail.com>`, commit intentionally, push the
   feature branch, open a draft PR, and verify the commit identity.
