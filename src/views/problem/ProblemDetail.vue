@@ -6,6 +6,16 @@
             <el-skeleton :rows="10" animated />
         </div>
 
+        <section v-else-if="problemLoadError" class="problem-load-error" role="alert">
+            <span aria-hidden="true">!</span>
+            <h1>暂时无法加载题目</h1>
+            <p>题目服务没有返回有效数据，这不是“题目不存在”。请确认服务状态后重试。</p>
+            <div>
+                <el-button type="primary" @click="fetchProblemDetail">重新加载</el-button>
+                <el-button @click="router.push({ name: 'ProblemList' })">返回题库</el-button>
+            </div>
+        </section>
+
         <!-- Problem not found -->
         <el-empty v-else-if="!problem" :description="$t('problems.problem_not_found')" />
 
@@ -40,7 +50,7 @@
                     </div>
                     <div class="stat-item">
                         <div class="stat-label">{{ $t('problems.acceptance_rate') }}</div>
-                        <div class="stat-value">{{ (problem.acceptRate * 100).toFixed(1) }}%</div>
+                        <div class="stat-value">{{ Number(problem.acceptRate || 0).toFixed(1) }}%</div>
                     </div>
                 </div>
             </div>
@@ -236,6 +246,7 @@ const router = useRouter();
 // State for problem detail
 const loading = ref(true);
 const problem = ref(null);
+const problemLoadError = ref(false);
 const activeTab = ref(route.query.tab || 'description');
 
 // State for the submission initiated from THIS component instance
@@ -261,6 +272,7 @@ const currentLanguage = ref(''); // Store language for potential syntax highligh
 // Fetch problem detail
 const fetchProblemDetail = async () => {
     loading.value = true;
+    problemLoadError.value = false;
     try {
         const problemNo = route.params.problemNo;
         if (!problemNo) {
@@ -289,7 +301,8 @@ const fetchProblemDetail = async () => {
         }
 
     } catch (error) {
-        ElMessage.error(t('problems.fetch_error'));
+        problem.value = null;
+        problemLoadError.value = true;
         console.error('Failed to fetch problem detail:', error);
     } finally {
         loading.value = false;
@@ -380,45 +393,30 @@ const pollSubmissionStatus = (submissionId) => {
 
     pollingInterval.value = setInterval(async () => {
         try {
-            // Use a specific query for the single submission status poll
-            const pollQuery = { id: submissionId, current: 1, size: 1 };
-            console.log(`Polling status with query:`, pollQuery);
-            const res = await submissionApi.getSubmissionList(pollQuery); // Still uses list endpoint
+            const res = await submissionApi.getSubmission(submissionId);
             console.log('Polling response:', res);
 
-            if (res.success && res.data && res.data.records && res.data.records.length > 0) {
-                const currentSubmission = res.data.records.find(s => s.id === submissionId);
+            if (res.success && res.data) {
+                const currentSubmission = res.data;
+                submissionResult.value = currentSubmission;
 
-                if (currentSubmission) {
-                    submissionResult.value = currentSubmission; // Update result for Submit Tab
-                    console.log('Current submission status:', currentSubmission.status);
+                const finalStatuses = ['ACCEPTED', 'WRONG_ANSWER', 'COMPILE_ERROR', 'TIME_LIMIT_EXCEEDED', 'MEMORY_LIMIT_EXCEEDED', 'RUNTIME_ERROR', 'SYSTEM_ERROR'];
+                if (finalStatuses.includes(currentSubmission.status)) {
+                    clearInterval(pollingInterval.value);
+                    pollingInterval.value = null;
 
-                    const finalStatuses = ['ACCEPTED', 'WRONG_ANSWER', 'COMPILE_ERROR', 'TIME_LIMIT_EXCEEDED', 'MEMORY_LIMIT_EXCEEDED', 'RUNTIME_ERROR', 'SYSTEM_ERROR', 'CANCELLED'];
-
-                    if (finalStatuses.includes(currentSubmission.status)) {
-                        clearInterval(pollingInterval.value);
-                        pollingInterval.value = null;
-                        console.log(`Polling stopped for submission ${submissionId}. Final status: ${currentSubmission.status}`);
-
-                         // Refresh the submissions list if the user is currently viewing it
-                         if (activeTab.value === 'submissions') {
-                             fetchSubmissions();
-                         }
-
-                        // Optional: Show a final status message for the submit action
-                        if (currentSubmission.status === 'ACCEPTED') {
-                             ElMessage.success(t('submissions.accepted'));
-                        } else {
-                             ElMessage.warning(`${t('submissions.finished_with_status')}: ${currentSubmission.status}`);
-                        }
+                    if (activeTab.value === 'submissions') {
+                        fetchSubmissions();
                     }
-                } else {
-                     console.warn(`Polling: Submission ID ${submissionId} not found in response.`);
-                     // Consider stopping polling after some attempts if not found
+
+                    if (currentSubmission.status === 'ACCEPTED') {
+                        ElMessage.success(t('submissions.accepted'));
+                    } else {
+                        ElMessage.warning(`${t('submissions.finished_with_status')}: ${currentSubmission.status}`);
+                    }
                 }
             } else {
-                 console.warn(`Polling: Received no records or unsuccessful response for ID ${submissionId}.`);
-                 // Consider stopping polling
+                console.warn(`Polling: Submission ${submissionId} returned no data.`);
             }
         } catch (error) {
             console.error(`Error polling submission status for ID ${submissionId}:`, error);
@@ -519,6 +517,31 @@ onMounted(() => {
 .loading-container {
     padding: 20px;
 }
+
+.problem-load-error {
+    max-width: 520px;
+    margin: 56px auto;
+    padding: 32px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--card-bg);
+}
+
+.problem-load-error > span {
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid #c47a55;
+    border-radius: 50%;
+    color: #9a4f31;
+    font-weight: 750;
+}
+
+.problem-load-error h1 { margin: 14px 0 6px; font-size: 21px; }
+.problem-load-error p { color: var(--text-color-secondary); line-height: 1.7; }
+.problem-load-error div { margin-top: 20px; }
 
 .problem-content {
     background-color: var(--bg-color-secondary);

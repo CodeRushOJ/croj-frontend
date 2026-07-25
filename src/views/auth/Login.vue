@@ -6,19 +6,6 @@
 
         <h2 class="form-title">{{ $t('auth.welcome_back') }}</h2>
 
-        <el-alert
-            v-if="previewAuthEnabled"
-            title="本机预览模式"
-            type="warning"
-            :closable="false"
-            show-icon
-            class="preview-alert">
-            <template #default>
-                <p>无需连接后端或使用默认密码；身份仅保存在当前浏览器。</p>
-                <el-button type="warning" plain @click="handlePreviewLogin">以预览管理员身份进入</el-button>
-            </template>
-        </el-alert>
-
         <!-- Login Form -->
         <el-form ref="loginFormRef" :model="loginForm" :rules="rules" label-position="top"
             @submit.prevent="handleLogin">
@@ -72,7 +59,6 @@ import { ElMessage } from 'element-plus'
 import { ROUTE_NAMES } from '@/constants/routes'
 import { User, Lock } from '@element-plus/icons-vue'
 import Captcha from '@/components/common/Captcha.vue'
-import { previewAuthEnabled } from '@/auth/previewAuth'
 
 // Get route, router and auth store
 const route = useRoute()
@@ -153,12 +139,6 @@ const handleLogin = async () => {
     }
 }
 
-const handlePreviewLogin = () => {
-    if (!authStore.loginAsPreviewAdmin()) return
-    ElMessage.success('已进入本机预览管理员模式')
-    router.push(redirectPath.value)
-}
-
 // Check if user is already logged in
 onMounted(() => {
     if (authStore.isAuthenticated) {
@@ -199,11 +179,4 @@ onMounted(() => {
     margin-bottom: 16px;
 }
 
-.preview-alert {
-    margin-bottom: 20px;
-}
-
-.preview-alert p {
-    margin: 0 0 12px;
-}
 </style>

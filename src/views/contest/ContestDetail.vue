@@ -60,8 +60,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { contestApi } from '@/api/contest'
-import { previewAuthEnabled } from '@/auth/previewAuth'
-import { previewContests, previewProblems } from '@/auth/previewData'
 
 const route = useRoute()
 const contest = ref(null)
@@ -81,19 +79,12 @@ const formatDate = value => new Intl.DateTimeFormat('zh-CN', { month: 'long', da
 const duration = value => `${Math.round((new Date(value.endsAt) - new Date(value.startsAt)) / 36e5)} 小时`
 const difficultyLabel = value => ({ 1: '入门', 2: '进阶', 3: '挑战' }[value])
 const toggleRegistration = async () => {
-  if (previewAuthEnabled) { registered.value = !registered.value; return }
   registered.value ? await contestApi.cancelRegistration(contest.value.id) : await contestApi.register(contest.value.id)
   registered.value = !registered.value
 }
 
 onMounted(async () => {
   const id = Number(route.params.contestId)
-  if (previewAuthEnabled) {
-    contest.value = previewContests.find(item => item.id === id) || previewContests[0]
-    contestProblems.value = previewProblems.slice(0, 5)
-    scoreboard.value = [{ rank: 1, username: 'north_star', solved: 5, penalty: 312 }, { rank: 2, username: 'lambda', solved: 4, penalty: 247 }, { rank: 3, username: 'preview-admin', solved: 3, penalty: 198 }]
-    return
-  }
   const [detail, problems, board] = await Promise.all([contestApi.detail(id), contestApi.problems(id), contestApi.scoreboard(id)])
   contest.value = detail.data.contest ? { ...detail.data.contest, phase: detail.data.phase } : detail.data
   contestProblems.value = problems.data || []
