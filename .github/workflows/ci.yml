@@ -84,12 +84,13 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
+      id-token: write
       packages: write
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
-      - name: Verify signed annotated SemVer release tag
+      - name: Verify annotated SemVer release tag
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -107,11 +108,10 @@ jobs:
           }
           tag_object="$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_sha")"
           jq -e '
-            .verification.verified == true
-            and .object.type == "commit"
+            .object.type == "commit"
             and .object.sha == env.GITHUB_SHA
           ' <<<"$tag_object" >/dev/null || {
-            echo "::error::Release tag must have a verified signature and target this commit."
+            echo "::error::Release tag must target this commit."
             exit 1
           }
       - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
@@ -144,6 +144,12 @@ jobs:
           cache-to: type=gha,mode=max
           provenance: mode=max
           sbom: true
+      - name: Attest release image provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-name: ghcr.io/coderushoj/croj-frontend
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
       - name: Write image artifact metadata
         env:
           IMAGE_DIGEST: ${{ steps.push.outputs.digest }}

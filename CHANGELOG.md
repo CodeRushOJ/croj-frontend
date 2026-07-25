@@ -33,8 +33,8 @@ All notable frontend changes are recorded here.
 - Anonymous published-problem list and detail routes, including one-shot expired-token fallback for public problem/community reads while contest problem routes remain protected.
 - Session-scoped editor draft handoff through login, isolated by ordinary or contest problem context and cleared only after the backend accepts a submission.
 - Authentication-only submission history, code submission, solution publication, and problem-discussion creation controls while public reading remains available.
-- Signed annotated `vX.Y.Z` release-tag publishing to GHCR for `linux/amd64` and `linux/arm64`, with commit-addressed tags, maximum provenance, SBOM attestations, and secret-free digest metadata artifacts.
-- Release workflow contract tests covering event isolation, tag verification, package permissions, image names, platforms, attestations, and artifact fields.
+- Annotated `vX.Y.Z` release-tag publishing to GHCR for `linux/amd64` and `linux/arm64`, with strict target validation, commit-addressed tags, maximum BuildKit provenance, SBOM, GitHub OIDC build provenance pushed to the registry, and secret-free digest metadata artifacts.
+- Release workflow contract tests covering event isolation, annotated tag shape and target, OIDC/package permissions, image names, platforms, attestations, and artifact fields.
 - End-to-end `OUTPUT_LIMIT_EXCEEDED` support for backend status code 8, including OLE labels, resource-limit warning styling, and terminal submission polling.
 
 ### Changed

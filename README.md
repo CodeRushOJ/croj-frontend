@@ -231,19 +231,21 @@ CI 在前端质量检查后实际构建镜像，并通过一次性、non-root、
 
 ### 发布 GHCR 镜像
 
-Pull request 与 `main` push 继续执行质量检查和容器合同。正式发布由指向待发布提交的 signed annotated SemVer tag 触发；tag 必须严格匹配 `vX.Y.Z`，且签名必须在 GitHub 上显示为 verified：
+Pull request 与 `main` push 继续执行质量检查和容器合同。正式发布由指向待发布提交的 annotated SemVer tag 触发；tag 必须严格匹配 `vX.Y.Z`，并直接指向本次 workflow 的提交：
 
 ```bash
-git tag -s v1.2.3 -m "Release v1.2.3" <commit>
+git tag -a v1.2.3 -m "Release v1.2.3" <commit>
 git push origin v1.2.3
 ```
 
-验证通过后，CI 使用 Buildx 推送 `linux/amd64` 与 `linux/arm64` manifest，并生成最大模式 provenance 与 SBOM：
+校验通过后，CI 使用 Buildx 推送 `linux/amd64` 与 `linux/arm64` manifest，并生成最大模式 provenance 与 SBOM：
 
 ```text
 ghcr.io/coderushoj/croj-frontend:v1.2.3
 ghcr.io/coderushoj/croj-frontend:sha-<full-commit-sha>
 ```
+
+镜像 push 成功后，GitHub Actions 使用 OIDC 为 `steps.push.outputs.digest` 生成 build provenance，并把 attestation 推送到同一 GHCR repository；发布者不需要在 runner 或本机配置签名 key。
 
 同一次 workflow run 会上传 `image-artifact-v1.2.3` artifact，其中 `image-artifact.json` 只包含 `repository`、`tag`、`revision`、`digest` 和 `platforms`，可供平台部署或发布审计按 digest 消费；文件不包含 registry token 或其他 secret。
 

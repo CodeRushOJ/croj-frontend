@@ -39,18 +39,20 @@ describe('release image workflow contract', () => {
     expect(workflow).toContain('    needs: quality')
   })
 
-  it('publishes only verified signed annotated SemVer tags with package write access', () => {
+  it('publishes only exact annotated SemVer tags that target the workflow commit', () => {
     expect(publish).toContain("if: startsWith(github.ref, 'refs/tags/')")
     expect(publish).toContain('packages: write')
+    expect(publish).toContain('id-token: write')
     expect(publish).toContain('contents: read')
-    expect(publish).toContain('Verify signed annotated SemVer release tag')
+    expect(publish).toContain('Verify annotated SemVer release tag')
     expect(publish).toContain(
       '[[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\\.[0-9]+\\.[0-9]+$ ]]',
     )
     expect(publish).toContain("object.type == \"tag\"")
-    expect(publish).toContain("verification.verified == true")
     expect(publish).toContain("object.type == \"commit\"")
     expect(publish).toContain("object.sha == env.GITHUB_SHA")
+    expect(publish).not.toContain('verification.verified')
+    expect(publish).not.toContain('signed')
   })
 
   it('pushes the required multi-architecture GHCR tags with attestations', () => {
@@ -69,6 +71,23 @@ describe('release image workflow contract', () => {
     )
     expect(publish).toContain('provenance: mode=max')
     expect(publish).toContain('sbom: true')
+  })
+
+  it('attests the pushed digest to GHCR with GitHub OIDC provenance', () => {
+    const pushStep = publish.indexOf('id: push')
+    const attestStep = publish.indexOf(
+      'actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4',
+    )
+
+    expect(pushStep).toBeGreaterThan(-1)
+    expect(attestStep).toBeGreaterThan(pushStep)
+    expect(publish).toContain(
+      'subject-name: ghcr.io/coderushoj/croj-frontend',
+    )
+    expect(publish).toContain(
+      'subject-digest: ${{ steps.push.outputs.digest }}',
+    )
+    expect(publish).toContain('push-to-registry: true')
   })
 
   it('uploads secret-free digest metadata for release automation', () => {
