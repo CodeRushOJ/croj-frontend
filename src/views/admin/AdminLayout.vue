@@ -41,6 +41,12 @@
                         </el-icon>
                         <span>{{ $t('admin.contests') }}</span>
                     </el-menu-item>
+                    <el-menu-item index="/admin/announcements">
+                        <el-icon>
+                            <Bell />
+                        </el-icon>
+                        <span>公告管理</span>
+                    </el-menu-item>
                 </el-menu>
                 <!-- Add a filler div to ensure background covers the entire sidebar -->
                 <div class="sidebar-filler"></div>
@@ -58,7 +64,7 @@
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { Monitor, User, Document, CollectionTag, Trophy } from '@element-plus/icons-vue';
+import { Monitor, User, Document, CollectionTag, Trophy, Bell } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const { t } = useI18n();

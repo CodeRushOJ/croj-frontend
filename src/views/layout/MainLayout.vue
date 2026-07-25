@@ -14,6 +14,7 @@
           <router-link to="/problems">题库</router-link>
           <router-link to="/contests">竞赛</router-link>
           <router-link to="/forum">讨论</router-link>
+          <router-link to="/announcements">公告</router-link>
         </nav>
 
         <div class="topbar__actions">
@@ -48,6 +49,8 @@
       </div>
     </header>
 
+    <CurrentAnnouncement />
+
     <main class="page-scroll">
       <div class="page-frame">
         <router-view />
@@ -66,6 +69,7 @@ import { useAuthStore } from '@/store/modules/auth'
 import { useAppStore } from '@/store/modules/app'
 import { ROUTE_NAMES } from '@/constants/routes'
 import ThemeToggler from '@/components/common/ThemeToggler.vue'
+import CurrentAnnouncement from '@/components/announcement/CurrentAnnouncement.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -96,11 +100,14 @@ const handleCommand = (command) => {
 
 <style scoped>
 .app-shell {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-color);
 }
 
 .topbar {
+  flex: 0 0 auto;
   height: 62px;
   border-bottom: 1px solid var(--border-color-light);
   background: var(--header-bg);
@@ -166,7 +173,7 @@ const handleCommand = (command) => {
 .user-action__name { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
 .login-action { color: #fffaf5; background: #3b3733; padding: 8px 13px; font-weight: 650; }
 
-.page-scroll { height: calc(100vh - 62px); overflow-y: auto; }
+.page-scroll { min-height: 0; flex: 1; overflow-y: auto; }
 .page-frame { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 32px 0 64px; }
 footer { text-align: center; color: var(--text-color-secondary); padding: 22px 16px 32px; font-size: 12px; }
 
@@ -175,7 +182,6 @@ footer { text-align: center; color: var(--text-color-secondary); padding: 22px 1
   .brand__copy, .user-action__name { display: none; }
   .primary-nav { order: 3; grid-column: 1 / -1; justify-content: flex-start; overflow-x: auto; }
   .topbar { height: 112px; }
-  .page-scroll { height: calc(100vh - 112px); }
   .page-frame { width: min(100% - 24px, 1240px); padding-top: 26px; }
 }
 </style>
