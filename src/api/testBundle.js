@@ -1,4 +1,5 @@
 import request from "./request";
+import { normalizeManifestPreview } from "@/domain/judgeConfiguration";
 
 export const TEST_BUNDLE_UPLOAD_TIMEOUT_MS = 5 * 60 * 1000;
 
@@ -6,8 +7,28 @@ const pathFor = (problemId, versionId) => (
   `/v1/admin/problems/${encodeURIComponent(problemId)}/versions/${encodeURIComponent(versionId)}/test-bundle`
 );
 
+const normalizeTestBundleData = (data) => {
+  if (!data || typeof data !== "object") return data;
+  const {
+    manifest,
+    manifestPreview: suppliedPreview,
+    ...metadata
+  } = data;
+  const previewSource = suppliedPreview ?? manifest;
+  if (previewSource === undefined || previewSource === null || previewSource === "") {
+    if (data.attached) {
+      throw new TypeError("attached TestBundle is missing its validated manifest preview");
+    }
+    return metadata;
+  }
+  return {
+    ...metadata,
+    manifestPreview: normalizeManifestPreview(previewSource),
+  };
+};
+
 const withEtag = (response) => ({
-  data: response?.data,
+  data: normalizeTestBundleData(response?.data),
   etag: response?.headers?.etag || response?.headers?.ETag || "",
 });
 

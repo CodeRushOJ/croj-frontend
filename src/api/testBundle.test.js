@@ -5,6 +5,18 @@ vi.mock("./request", () => ({ default: request }));
 
 import { adminTestBundleApi, TEST_BUNDLE_UPLOAD_TIMEOUT_MS } from "./testBundle";
 
+const manifestV2 = {
+  schemaVersion: 2,
+  judgeMode: "OI",
+  checker: "exact",
+  limits: { timeLimitMillis: 1000, memoryLimitMiB: 64 },
+  totalScore: 100,
+  cases: [
+    { id: "a", input: "cases/a.in", output: "cases/a.out", weight: 30 },
+    { id: "b", input: "cases/b.in", output: "cases/b.out", weight: 70 },
+  ],
+};
+
 describe("adminTestBundleApi", () => {
   beforeEach(() => request.mockReset());
 
@@ -49,14 +61,26 @@ describe("adminTestBundleApi", () => {
     const file = new File(["zip"], "bundle.zip", { type: "application/zip" });
     const controller = new AbortController();
     request.mockResolvedValue({
-      data: { attached: true, sha256: "abc" },
+      data: { attached: true, sha256: "abc", manifest: JSON.stringify(manifestV2) },
       headers: { etag: '"tb-v1-9-DRAFT-abc"' },
     });
 
     await expect(adminTestBundleApi.upload(4, 9, file, '"old"', {
       signal: controller.signal,
     })).resolves.toEqual({
-      data: { attached: true, sha256: "abc" },
+      data: {
+        attached: true,
+        sha256: "abc",
+        manifestPreview: {
+          schemaVersion: 2,
+          judgeMode: "OI",
+          checker: "exact",
+          limits: { timeLimitMillis: 1000, memoryLimitMiB: 64 },
+          totalScore: 100,
+          specialJudge: null,
+          cases: [{ id: "a", weight: 30 }, { id: "b", weight: 70 }],
+        },
+      },
       etag: '"tb-v1-9-DRAFT-abc"',
     });
 
@@ -78,7 +102,7 @@ describe("adminTestBundleApi", () => {
 
   it("publishes with the ETag returned after upload", async () => {
     request.mockResolvedValue({
-      data: { state: "PUBLISHED", attached: true },
+      data: { state: "PUBLISHED", attached: true, manifestPreview: manifestV2 },
       headers: { etag: '"tb-v1-9-PUBLISHED-abc"' },
     });
 
@@ -90,5 +114,54 @@ describe("adminTestBundleApi", () => {
       headers: { "If-Match": '"tb-v1-9-DRAFT-abc"' },
       includeResponseHeaders: true,
     });
+  });
+
+  it("normalizes an administrator-only special checker preview without source text", async () => {
+    request.mockResolvedValue({
+      data: {
+        state: "DRAFT",
+        attached: true,
+        manifest: {
+          schemaVersion: 2,
+          judgeMode: "ACM",
+          checker: "special",
+          limits: { timeLimitMillis: 1000, memoryLimitMiB: 64 },
+          specialJudge: {
+            language: "go",
+            source: "checker/main.go",
+            sourceSha256: "b".repeat(64),
+            timeLimitMillis: 1500,
+            memoryLimitMiB: 128,
+            sourceCode: "private source",
+          },
+          cases: [{ id: "1", input: "cases/1.in", output: "cases/1.out", weight: 1 }],
+        },
+      },
+      headers: { etag: '"draft"' },
+    });
+
+    const response = await adminTestBundleApi.describe(4, 9);
+
+    expect(response.data.manifest).toBeUndefined();
+    expect(response.data.manifestPreview.specialJudge).toMatchObject({
+      language: "go",
+      source: "checker/main.go",
+      timeLimitMillis: 1500,
+      memoryLimitMiB: 128,
+    });
+    expect(JSON.stringify(response)).not.toContain("private source");
+  });
+
+  it("rejects an attached bundle when the server preview violates the contract", async () => {
+    request.mockResolvedValue({
+      data: {
+        state: "DRAFT",
+        attached: true,
+        manifest: { ...manifestV2, totalScore: 99 },
+      },
+      headers: { etag: '"draft"' },
+    });
+
+    await expect(adminTestBundleApi.describe(4, 9)).rejects.toThrow("sum");
   });
 });

@@ -212,28 +212,10 @@
                     <el-input v-model="problemForm.source" />
                 </el-form-item>
 
-                <el-form-item :label="$t('admin.judge_mode')" prop="judgeMode">
-                    <el-radio-group v-model="problemForm.judgeMode">
-                        <el-radio :label="0">{{ $t('admin.judge_mode_normal') }}</el-radio>
-                        <el-radio :label="1">{{ $t('admin.judge_mode_special') }}</el-radio>
-                    </el-radio-group>
-                </el-form-item>
-
-                <!-- Special judge code, only shown when judgeMode is 1 -->
-                <template v-if="problemForm.judgeMode === 1">
-                    <el-form-item :label="$t('admin.special_judge_lang')" prop="specialJudgeLanguage">
-                        <el-select v-model="problemForm.specialJudgeLanguage" class="w-100">
-                            <el-option label="C" value="c" />
-                            <el-option label="C++" value="cpp" />
-                            <el-option label="Java" value="java" />
-                            <el-option label="Python" value="python" />
-                        </el-select>
-                    </el-form-item>
-
-                    <el-form-item :label="$t('admin.special_judge_code')" prop="specialJudgeCode">
-                        <el-input v-model="problemForm.specialJudgeCode" type="textarea" rows="10" />
-                    </el-form-item>
-                </template>
+                <JudgeConfigurationFields
+                    v-model="judgeConfiguration"
+                    :errors="judgeErrors"
+                />
             </el-form>
 
             <template #footer>
@@ -268,7 +250,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue';
+import { computed, ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -276,6 +258,16 @@ import { Search, Plus, Delete, Warning } from '@element-plus/icons-vue';
 import { problemApi } from '@/api/problem';
 import { tagApi } from '@/api/tag';
 import { adminTestBundlesLocation } from '@/constants/routes';
+import JudgeConfigurationFields from '@/components/admin/JudgeConfigurationFields.vue';
+import {
+    JudgeConfigurationContractError,
+    validateJudgeConfiguration,
+} from '@/domain/judgeConfiguration';
+import {
+    configurationForProblemEditor,
+    persistProblemJudgeDraft,
+    submitProblemJudgeDraft,
+} from './problemJudgeWorkflow';
 
 const { t } = useI18n();
 const router = useRouter();
@@ -297,6 +289,7 @@ const isEdit = ref(false);
 const selectedProblem = ref(null);
 const submitLoading = ref(false);
 const deleteLoading = ref(false);
+const judgeErrors = ref([]);
 
 // Problem form
 const problemFormRef = ref(null);
@@ -312,10 +305,11 @@ const problemForm = reactive({
     memoryLimit: 256,
     difficulty: 1,
     isSpecialJudge: false,
+    checker: 'exact',
     specialJudgeCode: '',
     specialJudgeLanguage: 'cpp',
     judgeMode: 0,
-    totalScore: 100,
+    totalScore: null,
     source: '',
     status: 0,
     tagIds: []
@@ -349,16 +343,24 @@ const rules = reactive({
     ],
     status: [
         { required: true, message: t('admin.status_required'), trigger: 'change' }
-    ],
-    judgeMode: [
-        { required: true, message: t('admin.judge_mode_required'), trigger: 'change' }
-    ],
-    specialJudgeLanguage: [
-        { required: true, message: t('admin.special_judge_lang_required'), trigger: 'change' }
-    ],
-    specialJudgeCode: [
-        { required: true, message: t('admin.special_judge_code_required'), trigger: 'blur' }
     ]
+});
+
+const judgeConfiguration = computed({
+    get: () => ({
+        judgeMode: problemForm.judgeMode,
+        checker: problemForm.checker,
+        totalScore: problemForm.totalScore,
+        specialJudgeLanguage: problemForm.specialJudgeLanguage,
+        specialJudgeCode: problemForm.specialJudgeCode,
+    }),
+    set: (configuration) => {
+        Object.assign(problemForm, configuration);
+        judgeErrors.value = validateJudgeConfiguration(configuration);
+        if (!judgeErrors.value.length) {
+            persistProblemJudgeDraft(problemForm.id, configuration);
+        }
+    },
 });
 
 // Get difficulty type
@@ -440,6 +442,7 @@ const removeHint = (index) => {
 const handleAdd = () => {
     isEdit.value = false;
     resetForm();
+    Object.assign(problemForm, configurationForProblemEditor(null, problemForm));
     dialogVisible.value = true;
 };
 
@@ -506,14 +509,16 @@ const resetForm = () => {
         memoryLimit: 256,
         difficulty: 1,
         isSpecialJudge: false,
+        checker: 'exact',
         specialJudgeCode: '',
         specialJudgeLanguage: 'cpp',
         judgeMode: 0,
-        totalScore: 100,
+        totalScore: null,
         source: '',
         status: 0,
         tagIds: []
     });
+    judgeErrors.value = [];
 };
 
 // Handle dialog close
@@ -551,23 +556,38 @@ const submitForm = async () => {
             problemForm.hints = Object.values(problemForm.hints);
         }
 
-        // Set special judge flag based on judgeMode
-        problemForm.isSpecialJudge = problemForm.judgeMode === 1;
+        judgeErrors.value = validateJudgeConfiguration(problemForm);
+        if (judgeErrors.value.length) {
+            throw new JudgeConfigurationContractError(
+                judgeErrors.value[0].message,
+                judgeErrors.value,
+            );
+        }
 
         if (isEdit.value) {
-            // Update problem
-            await problemApi.updateProblem(problemForm);
+            await submitProblemJudgeDraft({
+                problemId: problemForm.id,
+                problem: { ...problemForm },
+                write: problemApi.updateProblem,
+            });
             ElMessage.success(t('admin.problem_updated'));
         } else {
-            // Create new problem
-            await problemApi.createProblem(problemForm);
+            await submitProblemJudgeDraft({
+                problemId: null,
+                problem: { ...problemForm },
+                write: problemApi.createProblem,
+            });
             ElMessage.success(t('admin.problem_created'));
         }
 
         dialogVisible.value = false;
         fetchProblems();
     } catch (error) {
-        ElMessage.error(isEdit.value ? t('admin.update_problem_error') : t('admin.create_problem_error'));
+        ElMessage.error(error instanceof JudgeConfigurationContractError
+            ? error.message
+            : isEdit.value
+                ? t('admin.update_problem_error')
+                : t('admin.create_problem_error'));
         console.error('Form validation or submission error:', error);
     } finally {
         submitLoading.value = false;
@@ -592,10 +612,11 @@ const fetchProblemDetails = async (id) => {
             memoryLimit: problem.memoryLimit,
             difficulty: problem.difficulty,
             isSpecialJudge: problem.isSpecialJudge,
-            specialJudgeCode: problem.specialJudgeCode || '',
+            checker: problem.checker,
+            specialJudgeCode: '',
             specialJudgeLanguage: problem.specialJudgeLanguage || 'cpp',
-            judgeMode: problem.judgeMode || 0,
-            totalScore: problem.totalScore || 100,
+            judgeMode: problem.judgeMode ?? 0,
+            totalScore: problem.totalScore ?? null,
             source: problem.source || '',
             status: problem.status,
             tagIds: problem.tags ? problem.tags.map(tag => tag.id) : []
@@ -634,6 +655,8 @@ const fetchProblemDetails = async (id) => {
             problemForm.hints = [];
         }
 
+        Object.assign(problemForm, configurationForProblemEditor(id, problemForm));
+        judgeErrors.value = validateJudgeConfiguration(problemForm);
         dialogVisible.value = true;
     } catch (error) {
         ElMessage.error(t('admin.fetch_problem_error'));

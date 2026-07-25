@@ -98,7 +98,22 @@ errors[], warnings[], problems[]
 
 `problems[]` 展示 `sourceId`、标题、测试用例数、状态以及逐题错误/警告。确认响应返回实际 `importedCount`。
 
-## 管理端测试包发布
+## 管理端判题配置与测试包发布
+
+题目新增/编辑表单把“计分模式”和“输出校验”作为两个独立维度：
+
+- `judgeMode=0` 是 ACM，`judgeMode=1` 是 OI。
+- `checker` 只接受 `exact`、`token`、`special`。
+- OI 必须填写正整数 `totalScore`；上传后的 TestBundle v2 中全部 case
+  `weight` 之和必须与它完全一致。
+- `special` 必须填写 Sandbox 支持的语言和 checker 源码，并发送
+  `isSpecialJudge=true`。exact/token 会在 API 边界清空旧的语言和源码，
+  不会把切换前的 secret 带入新版本。
+
+保存题目配置只会请求真实 create/update API，由后端生成新的 DRAFT
+版本；前端不会修改已选择的不可变版本。未成功提交的判题配置保存在当前
+标签页的 `sessionStorage`，按“新题/题目 ID”隔离，成功写入后立即清除，
+不会进入持久化 `localStorage`。
 
 管理员可在“题目管理”的每一题操作区进入“测试包”，或直接打开 `/admin/test-bundles?problemId={id}`。页面通过真实 API 列出该题版本，只把 `DRAFT` 版本作为可选发布目标：
 
@@ -107,7 +122,18 @@ errors[], warnings[], problems[]
 - `PUT /api/v1/admin/problems/{problemId}/versions/{versionId}/test-bundle`
 - `POST /api/v1/admin/problems/{problemId}/versions/{versionId}/test-bundle/publish`
 
-元数据响应的强 ETag 会随上传结果更新，并作为下一次上传或发布的 `If-Match`。HTTP 412 会保留已选 ZIP，必须由管理员显式刷新；400、403、404、409、413、422 与 428 都有独立状态。上传使用 5 分钟期限并支持取消。浏览器不解析或伪造测试包，格式、大小、归档安全和不可变发布均由服务端强制执行。
+元数据响应的强 ETag 会随上传结果更新，并作为下一次上传或发布的
+`If-Match`。上传支持 v1 ACM exact/token 以及 v2 ACM/OI
+exact/token/special。浏览器不解析 ZIP，而是严格规范化服务端已经验证的
+manifest 预览，展示 schema、模式、checker、选手限制、OI 总分与逐 case
+权重，以及 SPJ 的语言、ZIP 路径、SHA-256 和独立时/内存限制。SPJ 源码
+正文不进入预览 DOM；普通题目页面也不调用管理员 source API。
+
+已附加测试包却缺少有效 manifest 预览时，页面会 fail closed 并禁用发布，
+不会伪造成功。HTTP 412 会保留已选 ZIP，必须由管理员显式刷新；400、
+403、404、409、413、422 与 428 都有独立状态。上传使用 5 分钟期限并
+支持取消。格式、大小、归档安全、题目版本交叉校验和不可变发布均由
+服务端强制执行。
 
 ## 管理端比赛工作台
 
@@ -123,6 +149,11 @@ errors[], warnings[], problems[]
 浏览器本地 `datetime-local` 值在 API 边界转换为 ISO-8601 UTC Instant，打开服务器记录再保存不会产生时区漂移，并保留秒精度。前端在写入前检查时间顺序、重复题目/标签、分值范围和最多 100 题；设置或编排存在未保存修改时禁止发布，确保页面所见与服务器将发布的版本一致。HTTP 409 会保留未保存输入，由管理员决定是否重新加载服务器版本。
 
 当前后端还没有管理员比赛列表、独立题目顺序字段、比赛写入 ETag/前置条件以及开放、关闭、归档端点。因此页面明确采用“创建或按 ID 打开”的服务器工作区，题目显示顺序遵循后端标签排序，也不会展示无法真正写入的生命周期操作。后端补齐这些契约时只需扩展 `src/api/contest.js` 的适配层。
+
+比赛详情按 scoreboard 响应的 `ruleType` 渲染排名。旧 ACM 响应即使没有
+`ruleType` 仍显示通过数与罚时；OI 响应显示 `totalScore /
+maximumScore`，并按后端每行 `problems[]` 展示分题 `score /
+maximumScore`，不把 OI 数据误标为 ACM 罚时。
 
 ## 匿名题目浏览与登录门禁
 

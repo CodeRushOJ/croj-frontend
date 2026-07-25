@@ -29,8 +29,19 @@ const draft = {
     state: "DRAFT",
     attached: false,
     sha256: null,
+    manifestPreview: null,
   },
   etag: '"tb-v1-101-DRAFT-none"',
+};
+
+const oiManifestPreview = {
+  schemaVersion: 2,
+  judgeMode: "OI",
+  checker: "exact",
+  limits: { timeLimitMillis: 1000, memoryLimitMiB: 64 },
+  totalScore: 100,
+  specialJudge: null,
+  cases: [{ id: "a", weight: 30 }, { id: "b", weight: 70 }],
 };
 
 const deferred = () => {
@@ -77,11 +88,17 @@ describe("TestBundleManagement", () => {
     });
     adminTestBundleApi.describe.mockResolvedValue(draft);
     adminTestBundleApi.upload.mockResolvedValue({
-      data: { ...draft.data, attached: true, sha256: "abc" },
+      data: { ...draft.data, attached: true, sha256: "abc", manifestPreview: oiManifestPreview },
       etag: '"tb-v1-101-DRAFT-abc"',
     });
     adminTestBundleApi.publish.mockResolvedValue({
-      data: { ...draft.data, attached: true, state: "PUBLISHED", sha256: "abc" },
+      data: {
+        ...draft.data,
+        attached: true,
+        state: "PUBLISHED",
+        sha256: "abc",
+        manifestPreview: oiManifestPreview,
+      },
       etag: '"tb-v1-101-PUBLISHED-abc"',
     });
   });
@@ -108,7 +125,7 @@ describe("TestBundleManagement", () => {
   it("locks the problem target until a publish request settles", async () => {
     const publication = deferred();
     adminTestBundleApi.describe.mockResolvedValue({
-      data: { ...draft.data, attached: true, sha256: "abc" },
+      data: { ...draft.data, attached: true, sha256: "abc", manifestPreview: oiManifestPreview },
       etag: '"tb-v1-101-DRAFT-abc"',
     });
     adminTestBundleApi.publish.mockReturnValue(publication.promise);
@@ -125,7 +142,13 @@ describe("TestBundleManagement", () => {
     expect(screen.getByRole("button", { name: "加载版本" })).toBeDisabled();
 
     publication.resolve({
-      data: { ...draft.data, attached: true, state: "PUBLISHED", sha256: "abc" },
+      data: {
+        ...draft.data,
+        attached: true,
+        state: "PUBLISHED",
+        sha256: "abc",
+        manifestPreview: oiManifestPreview,
+      },
       etag: '"tb-v1-101-PUBLISHED-abc"',
     });
 
@@ -137,7 +160,7 @@ describe("TestBundleManagement", () => {
   it("blocks route departure with an accessible notice until publishing settles", async () => {
     const publication = deferred();
     adminTestBundleApi.describe.mockResolvedValue({
-      data: { ...draft.data, attached: true, sha256: "abc" },
+      data: { ...draft.data, attached: true, sha256: "abc", manifestPreview: oiManifestPreview },
       etag: '"tb-v1-101-DRAFT-abc"',
     });
     adminTestBundleApi.publish.mockReturnValue(publication.promise);
@@ -151,7 +174,13 @@ describe("TestBundleManagement", () => {
     expect(await screen.findByText("发布请求仍在处理中，请等待结果后再离开。")).toBeVisible();
 
     publication.resolve({
-      data: { ...draft.data, attached: true, state: "PUBLISHED", sha256: "abc" },
+      data: {
+        ...draft.data,
+        attached: true,
+        state: "PUBLISHED",
+        sha256: "abc",
+        manifestPreview: oiManifestPreview,
+      },
       etag: '"tb-v1-101-PUBLISHED-abc"',
     });
     await screen.findByText("题目版本及其不可变测试包已发布。");
@@ -171,6 +200,52 @@ describe("TestBundleManagement", () => {
     expect(screen.getByLabelText("草稿版本")).toHaveValue("101");
     expect(screen.getByLabelText("测试包服务器状态")).toBeVisible();
     expect(screen.getByRole("button", { name: "上传并校验测试包" })).toBeVisible();
+  });
+
+  it("renders the immutable OI/SPJ preview without rendering checker source text", async () => {
+    adminTestBundleApi.describe.mockResolvedValue({
+      data: {
+        ...draft.data,
+        attached: true,
+        sha256: "spj-sha",
+        manifestPreview: {
+          ...oiManifestPreview,
+          checker: "special",
+          specialJudge: {
+            language: "cpp",
+            source: "checker/main.cpp",
+            sourceSha256: "a".repeat(64),
+            timeLimitMillis: 2000,
+            memoryLimitMiB: 128,
+            sourceCode: "private checker source",
+          },
+        },
+      },
+      etag: '"spj"',
+    });
+    render(TestBundleManagement);
+    await loadDraft();
+
+    expect(screen.getByRole("region", { name: "不可变判题配置" })).toHaveTextContent("OI");
+    expect(screen.getByRole("region", { name: "不可变判题配置" })).toHaveTextContent("special");
+    expect(screen.getByRole("region", { name: "不可变判题配置" })).toHaveTextContent("100");
+    expect(screen.getByRole("cell", { name: "30" })).toBeVisible();
+    expect(screen.getByRole("cell", { name: "70" })).toBeVisible();
+    expect(screen.getByText("checker/main.cpp")).toBeVisible();
+    expect(screen.getByText("2000 ms / 128 MiB")).toBeVisible();
+    expect(screen.queryByText("private checker source")).not.toBeInTheDocument();
+  });
+
+  it("fails closed when attached metadata has no validated manifest preview", async () => {
+    adminTestBundleApi.describe.mockResolvedValue({
+      data: { ...draft.data, attached: true, sha256: "abc", manifestPreview: null },
+      etag: '"unsafe"',
+    });
+    render(TestBundleManagement);
+    await loadDraft();
+
+    expect(screen.getByRole("alert")).toHaveTextContent("manifest 预览不可用");
+    expect(screen.getByRole("button", { name: "发布题目版本" })).toBeDisabled();
   });
 
   it("does not write an old empty-state notice after refreshed metadata becomes stale", async () => {

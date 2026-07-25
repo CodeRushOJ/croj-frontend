@@ -4,7 +4,7 @@
       <div>
         <p class="eyebrow">IMMUTABLE JUDGE DATA</p>
         <h2>测试包管理</h2>
-        <p>为一个草稿题目版本上传并发布经过服务端校验的 TestBundle v1 ZIP。</p>
+        <p>上传 TestBundle v1/v2 ZIP，核对服务端验证结果后发布不可变题目版本。</p>
       </div>
     </header>
 
@@ -55,6 +55,57 @@
       <div><span>强 ETag</span><code>{{ etag || "—" }}</code></div>
     </section>
 
+    <section
+      v-if="manifestPreview"
+      class="manifest-panel"
+      aria-label="不可变判题配置"
+    >
+      <header>
+        <div>
+          <p class="eyebrow">SERVER-VALIDATED MANIFEST</p>
+          <h3>不可变判题配置</h3>
+        </div>
+        <span class="manifest-version">schema v{{ manifestPreview.schemaVersion }}</span>
+      </header>
+
+      <dl class="manifest-summary">
+        <div><dt>计分模式</dt><dd>{{ manifestPreview.judgeMode }}</dd></div>
+        <div><dt>输出校验</dt><dd>{{ manifestPreview.checker }}</dd></div>
+        <div>
+          <dt>选手限制</dt>
+          <dd>{{ manifestPreview.limits.timeLimitMillis }} ms / {{ manifestPreview.limits.memoryLimitMiB }} MiB</dd>
+        </div>
+        <div v-if="manifestPreview.judgeMode === 'OI'">
+          <dt>总分</dt><dd>{{ manifestPreview.totalScore }}</dd>
+        </div>
+      </dl>
+
+      <div v-if="manifestPreview.specialJudge" class="special-preview">
+        <div><span>SPJ 语言</span><strong>{{ manifestPreview.specialJudge.language }}</strong></div>
+        <div><span>SPJ 文件</span><code>{{ manifestPreview.specialJudge.source }}</code></div>
+        <div>
+          <span>SPJ 限制</span>
+          <strong>
+            {{ manifestPreview.specialJudge.timeLimitMillis }} ms /
+            {{ manifestPreview.specialJudge.memoryLimitMiB }} MiB
+          </strong>
+        </div>
+        <div><span>SPJ SHA-256</span><code>{{ manifestPreview.specialJudge.sourceSha256 }}</code></div>
+      </div>
+
+      <div class="case-table-wrap">
+        <table>
+          <thead><tr><th scope="col">用例</th><th scope="col">权重</th></tr></thead>
+          <tbody>
+            <tr v-for="testCase in manifestPreview.cases" :key="testCase.id">
+              <td><code>{{ testCase.id }}</code></td>
+              <td>{{ testCase.weight }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <section v-if="metadata" class="action-panel">
       <label class="file-field">
         <span>TestBundle ZIP</span>
@@ -85,7 +136,7 @@
         <button
           type="button"
           class="publish-button"
-          :disabled="busy || !metadata.attached || metadata.state !== 'DRAFT' || !etag"
+          :disabled="busy || !canPublish"
           @click="publishBundle"
         >发布题目版本</button>
       </div>
@@ -130,6 +181,13 @@ const route = useRoute();
 
 const busy = computed(() => loading.value || uploading.value || publishing.value);
 const draftVersions = computed(() => versions.value.filter((version) => version.state === "DRAFT"));
+const manifestPreview = computed(() => metadata.value?.manifestPreview || null);
+const canPublish = computed(() => Boolean(
+  metadata.value?.attached
+  && manifestPreview.value
+  && metadata.value.state === "DRAFT"
+  && etag.value,
+));
 const positiveId = (value) => {
   const parsed = Number(value);
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null;
@@ -203,6 +261,11 @@ const applyResponse = (response, snapshot) => {
   if (!currentTarget(snapshot)) return false;
   metadata.value = response.data;
   etag.value = response.etag;
+  if (response.data?.attached && !response.data?.manifestPreview) {
+    errorTitle.value = "服务器判题合同不完整";
+    errorMessage.value = "已附加测试包的 manifest 预览不可用；为避免发布未知配置，操作已被阻止。";
+    stale.value = false;
+  }
   return true;
 };
 
@@ -363,7 +426,7 @@ const cancelUpload = () => uploadController?.abort();
 
 const publishBundle = async () => {
   const value = requireIds();
-  if (!value || !etag.value || publishing.value) return;
+  if (!value || !canPublish.value || publishing.value) return;
   const snapshot = targetSnapshot();
   const currentEtag = etag.value;
   publishing.value = true;
@@ -433,12 +496,33 @@ button:disabled { cursor: not-allowed; opacity: .5; }
 .metadata-panel span { color: var(--text-color-secondary); font-size: 12px; }
 .metadata-panel code { overflow-wrap: anywhere; }
 .action-panel { padding: 20px; border: 1px solid var(--border-color-light); border-radius: 14px; background: var(--card-bg); }
+.manifest-panel { display: grid; gap: 18px; padding: 20px; border: 1px solid var(--border-color-light); border-radius: 14px; background: var(--card-bg); }
+.manifest-panel header { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.manifest-panel h3 { margin: 0; font: 600 22px/1.2 ui-serif, Georgia, serif; }
+.manifest-version { padding: 5px 8px; border: 1px solid var(--border-color-light); border-radius: 999px; color: var(--text-color-secondary); font-size: 12px; }
+.manifest-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border: 1px solid var(--border-color-light); border-radius: 10px; overflow: hidden; }
+.manifest-summary div { min-width: 0; padding: 13px 14px; border-right: 1px solid var(--border-color-light); }
+.manifest-summary div:last-child { border-right: 0; }
+.manifest-summary dt, .special-preview span { color: var(--text-color-secondary); font-size: 12px; }
+.manifest-summary dd { margin: 5px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.special-preview { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--border-color-light); border-radius: 10px; background: var(--border-color-light); }
+.special-preview div { display: grid; gap: 6px; min-width: 0; padding: 13px 14px; background: var(--card-bg); }
+.special-preview code { overflow-wrap: anywhere; }
+.case-table-wrap { max-height: 320px; overflow: auto; border: 1px solid var(--border-color-light); border-radius: 10px; }
+.case-table-wrap table { width: 100%; border-collapse: collapse; }
+.case-table-wrap th, .case-table-wrap td { padding: 10px 13px; border-bottom: 1px solid var(--border-color-light); text-align: left; }
+.case-table-wrap th { position: sticky; top: 0; color: var(--text-color-secondary); background: var(--card-bg); font-size: 12px; }
+.case-table-wrap th:last-child, .case-table-wrap td:last-child { width: 120px; text-align: right; }
+.case-table-wrap tbody tr:last-child td { border-bottom: 0; }
 .file-field { max-width: 520px; }
 .selected-file { color: var(--text-color-secondary); font-size: 13px; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
 @media (max-width: 720px) {
   .lookup-panel { grid-template-columns: 1fr; }
   .metadata-panel { grid-template-columns: 1fr; }
+  .manifest-summary, .special-preview { grid-template-columns: 1fr; }
+  .manifest-summary div { border-right: 0; border-bottom: 1px solid var(--border-color-light); }
+  .manifest-summary div:last-child { border-bottom: 0; }
   .metadata-panel div:nth-child(odd) { border-right: 0; }
   .state-panel { flex-direction: column; }
 }

@@ -6,6 +6,10 @@ All notable frontend changes are recorded here.
 
 ### Added
 
+- Administrator judge-configuration fields that model ACM/OI scoring independently from exact/token/special output checking and submit the real backend draft DTO.
+- Session-scoped judge configuration recovery, strict runtime DTO contracts, OI total-score validation, and automatic stale SPJ secret clearing.
+- Server-validated TestBundle v2 previews for ordered OI case weights and sandboxed SPJ language, source path, digest, time, and memory limits, without rendering checker source text.
+- Rule-aware contest scoreboards that preserve legacy ACM solved/penalty rows and render OI total plus per-problem scores.
 - Public announcement navigation, current-announcement strip, visible announcement list, and safe announcement detail view backed by the real `/api/v1/announcements` contract.
 - Administrator announcement publication desk for drafts, editing, pin ordering, scheduling, immediate publication, withdrawal, archival, and lifecycle filtering.
 - Optimistic concurrency UX that sends quoted `If-Match` versions, preserves edits on HTTP 409, and requires explicit server-version refresh.
@@ -31,6 +35,8 @@ All notable frontend changes are recorded here.
 
 ### Changed
 
+- TestBundle publication now fails closed when an attached archive has no valid immutable manifest preview.
+- Contest rule copy and scoreboard columns now follow the backend `ruleType` instead of always describing ACM.
 - Replaced the legacy fixed sidebar with a responsive top navigation and wider task-focused workspace.
 - Reworked the visual foundation to a restrained warm neutral palette with simpler surfaces and hierarchy.
 - Moved the administrator workspace entry from primary navigation into the authenticated user menu.
