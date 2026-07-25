@@ -40,6 +40,33 @@ describe("adminTestBundleApi", () => {
     });
   });
 
+  it("loads special-judge source only through the administrator version endpoint", async () => {
+    request.mockResolvedValue({
+      data: {
+        problemId: 4,
+        versionId: 9,
+        versionNo: 2,
+        state: "DRAFT",
+        specialJudge: true,
+        checkerSource: "int main() {}",
+        checkerLanguage: "cpp",
+        judgeMode: 0,
+      },
+    });
+
+    await expect(adminTestBundleApi.loadVersionSource(4, 9)).resolves.toMatchObject({
+      data: {
+        problemId: 4,
+        versionId: 9,
+        checkerSource: "int main() {}",
+      },
+    });
+    expect(request).toHaveBeenCalledWith({
+      url: "/v1/admin/problems/4/versions/9/source",
+      method: "get",
+    });
+  });
+
   it("loads metadata and exposes the strong response ETag", async () => {
     request.mockResolvedValue({
       data: { state: "DRAFT", attached: false },

@@ -8,6 +8,7 @@ All notable frontend changes are recorded here.
 
 - Administrator judge-configuration fields that model ACM/OI scoring independently from exact/token/special output checking and submit the real backend draft DTO.
 - Session-scoped judge configuration recovery, strict runtime DTO contracts, OI total-score validation, and automatic stale SPJ secret clearing.
+- Administrator-only immutable-version SPJ source loading for lossless edits, with strict problem/version response matching and no public ProblemVO source dependency.
 - Server-validated TestBundle v2 previews for ordered OI case weights and sandboxed SPJ language, source path, digest, time, and memory limits, without rendering checker source text.
 - Rule-aware contest scoreboards that preserve legacy ACM solved/penalty rows and render OI total plus per-problem scores.
 - Public announcement navigation, current-announcement strip, visible announcement list, and safe announcement detail view backed by the real `/api/v1/announcements` contract.
@@ -35,6 +36,7 @@ All notable frontend changes are recorded here.
 
 ### Changed
 
+- Accepted all server-valid safe relative TestBundle paths instead of imposing frontend-only `cases/` and `checker/` directory prefixes, while rejecting duplicate archive references.
 - TestBundle publication now fails closed when an attached archive has no valid immutable manifest preview.
 - Contest rule copy and scoreboard columns now follow the backend `ruleType` instead of always describing ACM.
 - Replaced the legacy fixed sidebar with a responsive top navigation and wider task-focused workspace.

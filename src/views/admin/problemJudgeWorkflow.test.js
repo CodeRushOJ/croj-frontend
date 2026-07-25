@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   configurationForProblemEditor,
+  loadProblemJudgeConfiguration,
   persistProblemJudgeDraft,
   submitProblemJudgeDraft,
 } from "./problemJudgeWorkflow";
@@ -24,6 +25,75 @@ describe("problem judge draft workflow", () => {
       checker: "exact",
       specialJudgeCode: "must not come from public API",
     })).toEqual(special);
+  });
+
+  it("loads an existing checker source from the newest draft through the admin boundary", async () => {
+    const listVersions = vi.fn().mockResolvedValue({
+      data: [
+        { versionId: 9, versionNo: 3, state: "DRAFT" },
+        { versionId: 8, versionNo: 2, state: "PUBLISHED" },
+      ],
+    });
+    const loadVersionSource = vi.fn().mockResolvedValue({
+      data: {
+        problemId: 42,
+        versionId: 9,
+        specialJudge: true,
+        checkerSource: "package main",
+        checkerLanguage: "go",
+        judgeMode: 1,
+      },
+    });
+
+    await expect(loadProblemJudgeConfiguration({
+      problemId: 42,
+      problem: {
+        judgeMode: 1,
+        checker: "special",
+        totalScore: 100,
+        specialJudgeLanguage: "go",
+        specialJudgeCode: "must not come from public API",
+      },
+      listVersions,
+      loadVersionSource,
+    })).resolves.toEqual(special);
+    expect(listVersions).toHaveBeenCalledWith(42);
+    expect(loadVersionSource).toHaveBeenCalledWith(42, 9);
+  });
+
+  it("prefers a complete session draft without requesting admin source", async () => {
+    persistProblemJudgeDraft(42, special);
+    const listVersions = vi.fn();
+    const loadVersionSource = vi.fn();
+
+    await expect(loadProblemJudgeConfiguration({
+      problemId: 42,
+      problem: { checker: "special", isSpecialJudge: true },
+      listVersions,
+      loadVersionSource,
+    })).resolves.toEqual(special);
+    expect(listVersions).not.toHaveBeenCalled();
+    expect(loadVersionSource).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when an admin source response belongs to another version", async () => {
+    await expect(loadProblemJudgeConfiguration({
+      problemId: 42,
+      problem: { checker: "special", isSpecialJudge: true },
+      listVersions: vi.fn().mockResolvedValue({
+        data: [{ versionId: 9, state: "PUBLISHED" }],
+      }),
+      loadVersionSource: vi.fn().mockResolvedValue({
+        data: {
+          problemId: 42,
+          versionId: 8,
+          specialJudge: true,
+          checkerSource: "source",
+          checkerLanguage: "cpp",
+          judgeMode: 0,
+        },
+      }),
+    })).rejects.toThrow("version");
   });
 
   it("sends the strict backend DTO and clears the draft only on success", async () => {

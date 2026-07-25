@@ -113,7 +113,10 @@ errors[], warnings[], problems[]
 保存题目配置只会请求真实 create/update API，由后端生成新的 DRAFT
 版本；前端不会修改已选择的不可变版本。未成功提交的判题配置保存在当前
 标签页的 `sessionStorage`，按“新题/题目 ID”隔离，成功写入后立即清除，
-不会进入持久化 `localStorage`。
+不会进入持久化 `localStorage`。编辑已有 SPJ 时，管理端先查询题目版本，
+优先选择最新 DRAFT、否则选择最新 PUBLISHED，再通过仅限管理员的
+`GET /api/v1/admin/problems/{problemId}/versions/{versionId}/source`
+取回 checker 源码；公共 ProblemVO 不返回、公共题目页也不请求该字段。
 
 管理员可在“题目管理”的每一题操作区进入“测试包”，或直接打开 `/admin/test-bundles?problemId={id}`。页面通过真实 API 列出该题版本，只把 `DRAFT` 版本作为可选发布目标：
 
@@ -127,7 +130,9 @@ errors[], warnings[], problems[]
 exact/token/special。浏览器不解析 ZIP，而是严格规范化服务端已经验证的
 manifest 预览，展示 schema、模式、checker、选手限制、OI 总分与逐 case
 权重，以及 SPJ 的语言、ZIP 路径、SHA-256 和独立时/内存限制。SPJ 源码
-正文不进入预览 DOM；普通题目页面也不调用管理员 source API。
+正文不进入预览 DOM。归档文件可以位于任意安全相对路径，不强制
+`cases/` 或 `checker/` 前缀；路径清理、全局唯一性和
+`manifest.json` 保留名在适配层与服务端均 fail closed。
 
 已附加测试包却缺少有效 manifest 预览时，页面会 fail closed 并禁用发布，
 不会伪造成功。HTTP 412 会保留已选 ZIP，必须由管理员显式刷新；400、

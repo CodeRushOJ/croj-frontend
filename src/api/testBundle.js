@@ -40,6 +40,13 @@ export const adminTestBundleApi = {
     });
   },
 
+  loadVersionSource(problemId, versionId) {
+    return request({
+      url: `/v1/admin/problems/${encodeURIComponent(problemId)}/versions/${encodeURIComponent(versionId)}/source`,
+      method: "get",
+    });
+  },
+
   describe(problemId, versionId) {
     return request({
       url: pathFor(problemId, versionId),

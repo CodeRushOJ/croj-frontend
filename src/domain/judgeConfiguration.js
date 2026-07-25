@@ -138,14 +138,30 @@ const assert = (condition, message) => {
   if (!condition) throw new JudgeConfigurationContractError(message);
 };
 
-const safeArchivePath = (value, prefix) => (
-  typeof value === "string"
-  && value.startsWith(prefix)
-  && !value.startsWith("/")
-  && !value.includes("\\")
-  && !value.split("/").includes("..")
-  && !value.includes("\0")
-);
+const safeArchivePath = (value) => {
+  if (
+    typeof value !== "string"
+    || !value
+    || value.length > 512
+    || new TextEncoder().encode(value).length > 512
+    || value.startsWith("/")
+    || value.includes("\\")
+    || value.includes("\0")
+    || /[\uD800-\uDFFF]/u.test(value)
+    || value === "manifest.json"
+  ) {
+    return false;
+  }
+
+  const segments = value.split("/");
+  return segments.every((segment) => segment && segment !== "." && segment !== "..");
+};
+
+const claimArchivePath = (paths, value, label) => {
+  assert(safeArchivePath(value), `${label} 路径无效。`);
+  assert(!paths.has(value), "manifest 中的归档文件路径必须全局唯一。");
+  paths.add(value);
+};
 
 const normalizeLimits = (limits, label = "limits") => {
   assert(limits && typeof limits === "object" && !Array.isArray(limits), `${label} 缺失。`);
@@ -157,10 +173,10 @@ const normalizeLimits = (limits, label = "limits") => {
   };
 };
 
-const normalizeSpecialJudge = (value) => {
+const normalizeSpecialJudge = (value, paths) => {
   assert(value && typeof value === "object" && !Array.isArray(value), "specialJudge 缺失。");
   assert(CHECKER_LANGUAGES.includes(value.language), "specialJudge.language 不受支持。");
-  assert(safeArchivePath(value.source, "checker/"), "specialJudge.source 必须是 checker/ 下的安全路径。");
+  claimArchivePath(paths, value.source, "specialJudge.source");
   assert(SHA256.test(value.sourceSha256), "specialJudge.sourceSha256 必须是小写 SHA-256。");
   const limits = normalizeLimits(value, "specialJudge");
   return {
@@ -185,14 +201,15 @@ export const normalizeManifestPreview = (input) => {
   assert(manifest.cases.length <= MAX_CASES, "manifest cases 超过平台上限。");
 
   const ids = new Set();
+  const paths = new Set();
   let weightSum = 0;
   const cases = manifest.cases.map((testCase) => {
     assert(testCase && typeof testCase === "object", "manifest case 必须是对象。");
     assert(CASE_ID.test(testCase.id), "manifest case id 无效。");
     assert(!ids.has(testCase.id), "manifest case id 必须唯一。");
     ids.add(testCase.id);
-    assert(safeArchivePath(testCase.input, "cases/"), "manifest case input 路径无效。");
-    assert(safeArchivePath(testCase.output, "cases/"), "manifest case output 路径无效。");
+    claimArchivePath(paths, testCase.input, "manifest case input");
+    claimArchivePath(paths, testCase.output, "manifest case output");
     assert(positiveInteger(testCase.weight, MAX_SCORE), "manifest case weight 必须是正整数。");
     if (manifest.judgeMode === "ACM") {
       assert(testCase.weight === 1, "ACM case weight 必须为 1。");
@@ -214,7 +231,7 @@ export const normalizeManifestPreview = (input) => {
   let specialJudge = null;
   if (manifest.checker === CHECKERS.SPECIAL) {
     assert(manifest.schemaVersion === 2, "special checker 需要 manifest v2。");
-    specialJudge = normalizeSpecialJudge(manifest.specialJudge);
+    specialJudge = normalizeSpecialJudge(manifest.specialJudge, paths);
   } else {
     assert(manifest.specialJudge === undefined || manifest.specialJudge === null, "非 special checker 不允许 specialJudge。");
   }

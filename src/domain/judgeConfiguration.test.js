@@ -157,11 +157,40 @@ describe("immutable TestBundle manifest preview", () => {
     expect(JSON.stringify(preview)).not.toContain("must never cross");
   });
 
+  it("accepts arbitrary safe relative archive paths and rejects duplicate file references", () => {
+    const manifest = {
+      schemaVersion: 2,
+      judgeMode: "ACM",
+      checker: "special",
+      limits: { timeLimitMillis: 1000, memoryLimitMiB: 64 },
+      specialJudge: {
+        language: "cpp",
+        source: "validators/check.cpp",
+        sourceSha256: "a".repeat(64),
+        timeLimitMillis: 1000,
+        memoryLimitMiB: 64,
+      },
+      cases: [
+        { id: "01", input: "input/01.txt", output: "expected/01.txt", weight: 1 },
+      ],
+    };
+
+    expect(normalizeManifestPreview(manifest).specialJudge.source).toBe("validators/check.cpp");
+    expect(() => normalizeManifestPreview({
+      ...manifest,
+      cases: [
+        { id: "01", input: "input/01.txt", output: "input/01.txt", weight: 1 },
+      ],
+    })).toThrow("唯一");
+  });
+
   it.each([
     [{ schemaVersion: 2, judgeMode: "OI", checker: "exact", limits: { timeLimitMillis: 1, memoryLimitMiB: 1 }, totalScore: 100, cases: [{ id: "a", input: "cases/a.in", output: "cases/a.out", weight: 90 }] }, "sum"],
     [{ schemaVersion: 2, judgeMode: "ACM", checker: "exact", limits: { timeLimitMillis: 1, memoryLimitMiB: 1 }, cases: [{ id: "a", input: "cases/a.in", output: "cases/a.out", weight: 2 }] }, "weight"],
     [{ schemaVersion: 2, judgeMode: "ACM", checker: "special", limits: { timeLimitMillis: 1, memoryLimitMiB: 1 }, cases: [{ id: "a", input: "cases/a.in", output: "cases/a.out", weight: 1 }] }, "specialJudge"],
     [{ schemaVersion: 2, judgeMode: "ACM", checker: "special", limits: { timeLimitMillis: 1, memoryLimitMiB: 1 }, specialJudge: { language: "cpp", source: "../checker.cpp", sourceSha256: "a".repeat(64), timeLimitMillis: 1, memoryLimitMiB: 1 }, cases: [{ id: "a", input: "cases/a.in", output: "cases/a.out", weight: 1 }] }, "source"],
+    [{ schemaVersion: 2, judgeMode: "ACM", checker: "exact", limits: { timeLimitMillis: 1, memoryLimitMiB: 1 }, cases: [{ id: "a", input: "inputs//a.in", output: "outputs/a.out", weight: 1 }] }, "input"],
+    [{ schemaVersion: 2, judgeMode: "ACM", checker: "exact", limits: { timeLimitMillis: 1, memoryLimitMiB: 1 }, cases: [{ id: "a", input: "manifest.json", output: "outputs/a.out", weight: 1 }] }, "input"],
     ["not-json", "JSON"],
   ])("fails closed for an invalid server preview", (manifest, message) => {
     expect(() => normalizeManifestPreview(manifest)).toThrow(message);

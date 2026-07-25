@@ -257,6 +257,7 @@ import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search, Plus, Delete, Warning } from '@element-plus/icons-vue';
 import { problemApi } from '@/api/problem';
 import { tagApi } from '@/api/tag';
+import { adminTestBundleApi } from '@/api/testBundle';
 import { adminTestBundlesLocation } from '@/constants/routes';
 import JudgeConfigurationFields from '@/components/admin/JudgeConfigurationFields.vue';
 import {
@@ -265,6 +266,7 @@ import {
 } from '@/domain/judgeConfiguration';
 import {
     configurationForProblemEditor,
+    loadProblemJudgeConfiguration,
     persistProblemJudgeDraft,
     submitProblemJudgeDraft,
 } from './problemJudgeWorkflow';
@@ -655,7 +657,12 @@ const fetchProblemDetails = async (id) => {
             problemForm.hints = [];
         }
 
-        Object.assign(problemForm, configurationForProblemEditor(id, problemForm));
+        Object.assign(problemForm, await loadProblemJudgeConfiguration({
+            problemId: id,
+            problem: problemForm,
+            listVersions: adminTestBundleApi.listVersions,
+            loadVersionSource: adminTestBundleApi.loadVersionSource,
+        }));
         judgeErrors.value = validateJudgeConfiguration(problemForm);
         dialogVisible.value = true;
     } catch (error) {
