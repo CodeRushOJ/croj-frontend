@@ -31,7 +31,7 @@ const currentLocale = computed(() => {
 
 // Initialize app - fetch user if token exists
 onMounted(async () => {
-  if (authStore.token) {
+  if (authStore.token && !authStore.currentUser) {
     await authStore.fetchCurrentUser()
   }
 })
