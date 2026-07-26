@@ -1,11 +1,17 @@
 import request from './request'
 
 export const contestApi = {
-  list: (params) => request({ url: '/v1/contests', method: 'get', params }),
+  list: (params) => request({
+    url: '/v1/contests',
+    method: 'get',
+    params,
+    anonymousFallback: true,
+  }),
   detail: (contestId, { signal } = {}) => request({
     url: `/v1/contests/${contestId}`,
     method: 'get',
     signal,
+    anonymousFallback: true,
   }),
   registration: (contestId) => request({ url: `/v1/contests/${contestId}/me`, method: 'get' }),
   register: (contestId) => request({ url: `/v1/contests/${contestId}/registrations`, method: 'post' }),
@@ -14,8 +20,13 @@ export const contestApi = {
     url: `/v1/contests/${contestId}/problems`,
     method: 'get',
     signal,
+    anonymousFallback: true,
   }),
-  scoreboard: (contestId) => request({ url: `/v1/contests/${contestId}/scoreboard`, method: 'get' }),
+  scoreboard: (contestId) => request({
+    url: `/v1/contests/${contestId}/scoreboard`,
+    method: 'get',
+    anonymousFallback: true,
+  }),
 }
 
 export const adminContestApi = {

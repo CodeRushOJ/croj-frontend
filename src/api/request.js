@@ -1,7 +1,50 @@
 import axios from "axios";
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage } from "element-plus";
 import { useAuthStore } from "@/store/modules/auth";
 import { i18n } from "@/i18n";
+import { ROUTE_NAMES } from "@/constants/routes";
+
+let handledExpiredToken = null;
+
+const bearerTokenFrom = (config, authStore) => {
+  const authorization = typeof config.headers?.get === "function"
+    ? config.headers.get("Authorization")
+    : config.headers?.Authorization || config.headers?.authorization;
+
+  if (authorization) {
+    return String(authorization).replace(/^Bearer\s+/i, "");
+  }
+  return authStore.token;
+};
+
+const recoverExpiredSession = (config, authStore, t) => {
+  const failedToken = bearerTokenFrom(config, authStore);
+  if (!failedToken) return;
+
+  // A delayed response from an older login must never clear a newer session.
+  if (authStore.token && failedToken !== authStore.token) return;
+  if (handledExpiredToken === failedToken) return;
+
+  handledExpiredToken = failedToken;
+  authStore.clearSession();
+  ElMessage({
+    message: t("errors.session_expired"),
+    type: "warning",
+    duration: 5 * 1000,
+  });
+
+  import("@/router")
+    .then(({ default: router }) => {
+      const route = router.currentRoute?.value;
+      if (!route?.meta?.requiresAuth || route.name === ROUTE_NAMES.LOGIN) return;
+
+      return router.push({
+        name: ROUTE_NAMES.LOGIN,
+        query: { redirect: route.fullPath },
+      });
+    })
+    .catch(() => {});
+};
 
 // Create axios instance with relative URL (for proxy)
 const service = axios.create({
@@ -130,7 +173,7 @@ service.interceptors.response.use(
         const config = error.config || {};
         if (config.anonymousFallback) {
           if (!config._anonymousRetry) {
-            authStore.clearSession();
+            recoverExpiredSession(config, authStore, t);
             const sourceHeaders = typeof config.headers?.toJSON === "function"
               ? config.headers.toJSON()
               : { ...(config.headers || {}) };
@@ -146,16 +189,7 @@ service.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        // Show session expired dialog
-        ElMessageBox.confirm(t("errors.session_expired"), t("common.warning"), {
-          confirmButtonText: t("auth.login"),
-          cancelButtonText: t("common.cancel"),
-          type: "warning",
-        }).then(async () => {
-          // Log out and redirect to login
-          const { default: router } = await import("@/router");
-          authStore.logout(router);
-        }).catch(() => {});
+        recoverExpiredSession(config, authStore, t);
       }
       // Handle 403 - Forbidden
       else if (status === 403) {
