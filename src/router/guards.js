@@ -7,7 +7,7 @@ import i18n from "@/i18n";
 const { t } = i18n.global;
 
 export function setupRouterGuards(router) {
-  router.beforeEach((to, from, next) => {
+  router.beforeEach(async (to, from, next) => {
     // 更新页面标题
     document.title = to.meta.title
       ? `${to.meta.title} - CodeRush OJ`
@@ -15,7 +15,6 @@ export function setupRouterGuards(router) {
 
     const authStore = useAuthStore();
     const isAuthenticated = authStore.isAuthenticated;
-    const isAdmin = authStore.isAdmin; // 检查是否是管理员
 
     // 需要认证的路由
     if (to.meta.requiresAuth && !isAuthenticated) {
@@ -30,8 +29,12 @@ export function setupRouterGuards(router) {
       return;
     }
 
+    if (to.meta.admin && !authStore.currentUser) {
+      await authStore.fetchCurrentUser();
+    }
+
     // 管理员路由 - 检查用户是否是管理员
-    if (to.meta.admin && !isAdmin) {
+    if (to.meta.admin && !authStore.isAdmin) {
       ElMessage.error(t("auth.permission_hint"));
       next({ name: ROUTE_NAMES.DASHBOARD });
       return;

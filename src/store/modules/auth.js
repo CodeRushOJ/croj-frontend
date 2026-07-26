@@ -3,7 +3,10 @@
 import { defineStore } from 'pinia'
 import { authApi } from '@/api/auth'
 import { ROUTE_NAMES } from '@/constants/routes'
+import { normalizeCurrentUser } from '@/domain/auth'
 import { clearAllJudgeConfigurationDrafts } from '@/services/judgeConfigurationDraft'
+
+const currentUserRequests = new WeakMap()
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -90,14 +93,28 @@ export const useAuthStore = defineStore('auth', {
     async fetchCurrentUser() {
       if (!this.token) return null;
 
+      const pendingRequest = currentUserRequests.get(this)
+      if (pendingRequest) return pendingRequest
+
+      const request = authApi.getCurrentUser()
+        .then((response) => {
+          this.user = normalizeCurrentUser(response.data)
+          return this.user
+        })
+        .catch((error) => {
+          console.error("获取用户信息失败:", error)
+          this.user = null
+          return null
+        })
+
+      currentUserRequests.set(this, request)
+
       try {
-        const response = await authApi.getCurrentUser();
-        this.user = response.data;
-        return this.user;
-      } catch (error) {
-        console.error("获取用户信息失败:", error);
-        this.user = null;
-        return null;
+        return await request
+      } finally {
+        if (currentUserRequests.get(this) === request) {
+          currentUserRequests.delete(this)
+        }
       }
     },
     
