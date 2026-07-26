@@ -22,15 +22,18 @@ describe("announcement API contract", () => {
       url: "/v1/announcements",
       method: "get",
       params: { page: 2, size: 20 },
+      anonymousFallback: true,
     });
     expect(request).toHaveBeenNthCalledWith(2, {
       url: "/v1/announcements/current",
       method: "get",
       params: { limit: 1 },
+      anonymousFallback: true,
     });
     expect(request).toHaveBeenNthCalledWith(3, {
       url: "/v1/announcements/42",
       method: "get",
+      anonymousFallback: true,
     });
   });
 

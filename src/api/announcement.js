@@ -3,15 +3,22 @@ import request from "./request";
 const versionHeaders = (version) => ({ "If-Match": `"${version}"` });
 
 export const announcementApi = {
-  list: (params) => request({ url: "/v1/announcements", method: "get", params }),
+  list: (params) => request({
+    url: "/v1/announcements",
+    method: "get",
+    params,
+    anonymousFallback: true,
+  }),
   current: (limit = 1) => request({
     url: "/v1/announcements/current",
     method: "get",
     params: { limit },
+    anonymousFallback: true,
   }),
   detail: (announcementId) => request({
     url: `/v1/announcements/${announcementId}`,
     method: "get",
+    anonymousFallback: true,
   }),
 };
 

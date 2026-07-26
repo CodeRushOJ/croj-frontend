@@ -63,6 +63,7 @@ All notable frontend changes are recorded here.
 ### Fixed
 
 - Granted the release publish job `attestations: write` so GitHub OIDC provenance publication no longer fails with HTTP 403 after a successful GHCR image push.
+- Coordinated concurrent expired-token responses into one session reset and notice, recovered public problem, tag, announcement, contest, forum, and solution reads through a one-shot anonymous retry, preserved protected-route login redirects, and prevented delayed old-token failures from clearing a newer login.
 
 ### Removed
 

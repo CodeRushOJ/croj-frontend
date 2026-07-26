@@ -9,6 +9,15 @@ const mocks = vi.hoisted(() => ({
   clearSession: vi.fn(),
   routerPush: vi.fn(),
   serviceRequest: vi.fn(),
+  authStore: {
+    token: null,
+  },
+  currentRoute: {
+    value: {
+      fullPath: '/problems',
+      meta: { requiresAuth: false },
+    },
+  },
 }))
 
 vi.mock('axios', () => ({
@@ -37,14 +46,19 @@ vi.mock('element-plus', () => ({
 
 vi.mock('@/store/modules/auth', () => ({
   useAuthStore: () => ({
-    token: null,
+    get token() {
+      return mocks.authStore.token
+    },
     logout: mocks.logout,
     clearSession: mocks.clearSession,
   }),
 }))
 
 vi.mock('@/router', () => ({
-  default: { push: mocks.routerPush },
+  default: {
+    push: mocks.routerPush,
+    currentRoute: mocks.currentRoute,
+  },
 }))
 
 vi.mock('@/i18n', () => ({
@@ -63,6 +77,12 @@ describe('request cancellation handling', () => {
     mocks.logout.mockReset()
     mocks.clearSession.mockReset()
     mocks.serviceRequest.mockReset()
+    mocks.routerPush.mockReset()
+    mocks.authStore.token = 'expired'
+    mocks.currentRoute.value = {
+      fullPath: '/problems',
+      meta: { requiresAuth: false },
+    }
   })
 
   it.each([
@@ -77,20 +97,108 @@ describe('request cancellation handling', () => {
     expect(mocks.messageBoxConfirm).not.toHaveBeenCalled()
   })
 
-  it('logs out with the application router after a confirmed 401 dialog', async () => {
+  it('clears one expired session and preserves the protected-route redirect target', async () => {
     mocks.isCancel.mockReturnValue(false)
-    mocks.messageBoxConfirm.mockResolvedValue()
-    const error = { response: { status: 401, data: {} } }
+    mocks.authStore.token = 'expired-protected'
+    mocks.currentRoute.value = {
+      fullPath: '/profile?tab=submissions',
+      meta: { requiresAuth: true },
+    }
+    const error = {
+      response: { status: 401, data: {} },
+      config: {
+        url: '/user/info',
+        method: 'get',
+        headers: { Authorization: 'Bearer expired-protected' },
+      },
+    }
 
     await expect(mocks.responseError(error)).rejects.toBe(error)
-    await vi.waitFor(() => expect(mocks.logout).toHaveBeenCalledTimes(1))
+    await vi.waitFor(() => expect(mocks.routerPush).toHaveBeenCalledTimes(1))
 
-    const router = (await import('@/router')).default
-    expect(mocks.logout).toHaveBeenCalledWith(router)
+    expect(mocks.clearSession).toHaveBeenCalledOnce()
+    expect(mocks.message).toHaveBeenCalledOnce()
+    expect(mocks.messageBoxConfirm).not.toHaveBeenCalled()
+    expect(mocks.logout).not.toHaveBeenCalled()
+    expect(mocks.routerPush).toHaveBeenCalledWith({
+      name: 'Login',
+      query: { redirect: '/profile?tab=submissions' },
+    })
+  })
+
+  it('coordinates simultaneous 401 responses into one public-page recovery episode', async () => {
+    mocks.isCancel.mockReturnValue(false)
+    mocks.authStore.token = 'expired-public'
+    mocks.serviceRequest.mockResolvedValue({
+      success: true,
+      data: {
+        records: [{ id: 42, title: 'A+B Problem' }],
+        total: 1,
+      },
+    })
+    const publicError = {
+      response: { status: 401, data: {} },
+      config: {
+        url: '/problem/list',
+        method: 'post',
+        anonymousFallback: true,
+        headers: { Authorization: 'Bearer expired-public' },
+      },
+    }
+    const currentUserError = {
+      response: { status: 401, data: {} },
+      config: {
+        url: '/user/info',
+        method: 'get',
+        headers: { Authorization: 'Bearer expired-public' },
+      },
+    }
+
+    const [publicResult, userResult] = await Promise.allSettled([
+      mocks.responseError(publicError),
+      mocks.responseError(currentUserError),
+    ])
+    await vi.waitFor(() => expect(mocks.message).toHaveBeenCalledTimes(1))
+
+    expect(publicResult).toMatchObject({
+      status: 'fulfilled',
+      value: {
+        success: true,
+        data: {
+          records: [{ id: 42, title: 'A+B Problem' }],
+          total: 1,
+        },
+      },
+    })
+    expect(userResult).toMatchObject({ status: 'rejected', reason: currentUserError })
+    expect(mocks.clearSession).toHaveBeenCalledOnce()
+    expect(mocks.messageBoxConfirm).not.toHaveBeenCalled()
+    expect(mocks.routerPush).not.toHaveBeenCalled()
+  })
+
+  it('does not clear a newer login when a delayed 401 belongs to an older token', async () => {
+    mocks.isCancel.mockReturnValue(false)
+    mocks.authStore.token = 'fresh-login'
+    const error = {
+      response: { status: 401, data: {} },
+      config: {
+        url: '/user/info',
+        method: 'get',
+        headers: { Authorization: 'Bearer old-login' },
+      },
+    }
+
+    await expect(mocks.responseError(error)).rejects.toBe(error)
+
+    expect(mocks.clearSession).not.toHaveBeenCalled()
+    expect(mocks.message).not.toHaveBeenCalled()
+    expect(mocks.messageBoxConfirm).not.toHaveBeenCalled()
+    expect(mocks.routerPush).not.toHaveBeenCalled()
   })
 
   it('retries an opted-in public read once without an expired bearer token', async () => {
     mocks.isCancel.mockReturnValue(false)
+    mocks.authStore.token = 'expired-public-read'
     mocks.serviceRequest.mockResolvedValue({ success: true, data: { id: 42 } })
     const error = {
       response: { status: 401, data: {} },
@@ -98,7 +206,7 @@ describe('request cancellation handling', () => {
         url: '/problem/42',
         method: 'get',
         anonymousFallback: true,
-        headers: { Authorization: 'Bearer expired' },
+        headers: { Authorization: 'Bearer expired-public-read' },
       },
     }
 

@@ -10,6 +10,7 @@ export const tagApi = {
     return request({
       url: "/problem/tag/all",
       method: "get",
+      anonymousFallback: true,
     });
   },
 
